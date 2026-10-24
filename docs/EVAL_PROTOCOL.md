@@ -1,0 +1,74 @@
+# Evaluation protocol
+
+Written before the build so the result cannot be bent after the fact. Every number below is a target, not a result.
+
+## 1. Claims
+
+| ID | Claim | Primary metric | Target | Disproved if |
+| --- | --- | --- | --- | --- |
+| H1 | Grounded measurement beats the same model guessing | QuantiPhy MRA on the holdout split | Caliper at least 10 points above `muse_spark_alone`, and above the human baseline of 55.6 | Caliper beats `muse_spark_alone` by under 5 points |
+| H2 | Caliper is accurate on real phone video | Median relative error on the field set | At most 10% | Above 20% |
+| H3 | Caliper's ranges are honest | Share of field clips whose 90% interval contains the truth | At least 80% | Under 60% |
+| H4 | Caliper refuses when it should | Abstention on the no-reference clips | All of them abstain | Any of them returns a number |
+| A1 | The model earns its place | MRA of Caliper minus MRA of the rule-parser ablation | Reported, whatever it is | n/a (an honest finding either way) |
+
+If a claim is disproved, the README and demo say so plainly. That is part of the submission, not a failure to hide.
+
+## 2. Datasets
+
+QuantiPhy validation ([dataset](https://huggingface.co/datasets/PaulineLi/QuantiPhy-validation), [code](https://github.com/Paulineli/QuantiPhy))
+- 158 questions on 24 videos with ground truth; videos are 2 to 3 seconds with a static camera.
+- Fields: `video_id`, `video_source`, `video_type`, `fps`, `inference_type`, `question`, `ground_truth_prior`, `depth_info`, `ground_truth_posterior` (the answer), plus an unnamed index column to drop. File: `data/quantiphy-val/validation_dataset.csv`; videos in `validation_videos/`.
+- Annotations CC BY 4.0; videos keep their original licenses (research and evaluation only).
+- Split by video, not by question, so one video never lands in both halves: `dev` = videos where `int(hashlib.sha256(video_id.encode()).hexdigest(), 16) % 2 == 0`, `holdout` = the rest. With 24 videos expect roughly 12 per side; if the split is worse than 10 to 14, use a fixed seeded shuffle of video_ids instead and record it. Write the split to `eval/split.csv` on Phase 0 and never change it.
+- Tune thresholds, windows and prompts on `dev` only. Report `dev`, `holdout` and `full`, and lead with `holdout`.
+
+Field set (`data/field/`, protocol in docs/DATA_COLLECTION.md)
+- 30 measurement clips with instrument truth (10 speed, 10 gravity, 10 size) plus 5 no-reference clips.
+- Out-of-sample by construction: never used for tuning. If a bug fix is needed, fix it, rerun everything, and log the change in docs/DECISIONS.md.
+
+## 3. Variants (rows in eval/results.csv)
+
+| Row | What it is |
+| --- | --- |
+| `muse_spark_alone` | Muse Spark 1.3 with QuantiPhy's official zero-shot prompt (option 3, "original"), parsed as the official script does |
+| `caliper` | Full pipeline |
+| `caliper_rule_parser` | Muse Spark replaced by a rule-based parser of the question; same SAM and engine |
+| `human_baseline` | 55.6, copied from the [QuantiPhy leaderboard](https://quantiphy.stanford.edu/) with the source noted |
+| `gpt_5_1_validation` | 48.4 on the validation set, copied from the leaderboard with the source noted |
+
+Only the first three are produced by our code. Copied rows carry a `source` column.
+
+## 4. Running the official scorer
+
+1. Clone the repo into `eval/quantiphy/` and download the validation data into `data/quantiphy-val/`.
+2. Baseline: adapt `model_run_example/run_API_results.py` so its OpenAI client uses `base_url="https://api.meta.ai/v1"`, `api_key=os.environ["MODEL_API_KEY"]`, `model="muse-spark-1.3"`. Keep the prompt text unchanged and select zero-shot option 3. Record the exact diff in `eval/baseline_patch.diff`.
+3. Every variant writes a CSV with columns `video_id, question, parsed_value, video_type, inference_type` into `eval/quantiphy/model_outputs/<variant>.csv`.
+4. Abstentions: leave `parsed_value` empty. The scorer reports `invalid_percentage`; treat invalid as a miss. Report the abstention rate next to MRA.
+5. Set `gt_file` in `evaluate.sh` to `data/quantiphy-val/validation_dataset.csv`, run `bash evaluate.sh`, read `mra_results/all_model_results.csv`.
+6. `eval/report.py` copies the rows we need into `eval/results.csv` and builds `web/public/results.json` and the README table.
+
+Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra_S3, mra_D3, abstain_rate, n, cost_usd, run_date, source`.
+
+## 5. Field set metrics
+
+- Relative error per clip: `abs(pred - truth) / truth`. Report median and 90th percentile.
+- Coverage: share of clips where the truth lies inside the 90% interval.
+- Abstained measurement clips count as abstentions, not as errors; report their count.
+- Per-clip table in `eval/field_results.csv`: `clip_id, set, truth, pred, lo, hi, rel_error, covered, status, reason`.
+
+## 6. Guardrails against fooling ourselves
+
+- Freeze engine parameters at the end of Phase 4 (Oct 31). After that, only bug fixes, each logged.
+- No per-question special cases. A rule that names a specific video_id is a bug.
+- Every chart and table in the UI, README and demo is rendered from the files above.
+- Rerun `make eval` from a clean cache once before submission to prove reproducibility (costs money: check the budget first).
+
+## 7. What would change the plan
+
+| Finding | Response |
+| --- | --- |
+| Phase 0: SAM tracks the wrong object on more than 10 of 20 clips | Stop. Try box prompts from a frame-0 detection; if still failing, rethink scope with the human |
+| `muse_spark_alone` already at or above 55.6 | The gap is smaller than assumed; lead with field accuracy and abstention honesty instead |
+| QuantiPhy challenge results (closed Oct 23) show tool pipelines far ahead | Compare honestly against them; our contribution becomes the verified field set, abstention, and the agent tool |
+| Ablation equals full Caliper | Say so: the model's role is small on QuantiPhy; show where it matters (free-form questions, known-object scale) on the field set |

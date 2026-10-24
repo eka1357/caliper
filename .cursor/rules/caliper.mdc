@@ -1,0 +1,9 @@
+---
+description: Caliper project rules (source of truth is AGENTS.md)
+alwaysApply: true
+---
+
+Read AGENTS.md at the repo root before any task and follow it exactly.
+Design and motion rules: docs/DESIGN.md and docs/TOOLS.md.
+Evaluation rules: docs/EVAL_PROTOCOL.md.
+Never type a result by hand; results come from eval/results.csv.
