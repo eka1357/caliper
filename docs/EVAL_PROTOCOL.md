@@ -47,6 +47,7 @@ Only the first three are produced by our code. Copied rows carry a `source` colu
 4. Abstentions: leave `parsed_value` empty. The scorer reports `invalid_percentage`; treat invalid as a miss. Report the abstention rate next to MRA.
 5. Set `gt_file` in `evaluate.sh` to `data/quantiphy-val/validation_dataset.csv`, run `bash evaluate.sh`, read `mra_results/all_model_results.csv`.
 6. `eval/report.py` copies the rows we need into `eval/results.csv` and builds `web/public/results.json` and the README table.
+7. Prediction CSVs must start with the ground-truth row ID ("Unnamed: 0") as their first column. Build them by copying validation_dataset.csv and adding a parsed_value column, as in eval/quantiphy/model_outputs/gpt-5.1.csv. Check the scorer prints "Matched 158/158".
 
 Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra_S3, mra_D3, abstain_rate, n, cost_usd, run_date, source`.
 
