@@ -31,10 +31,11 @@ Your 15 recommended tools, each with a verdict. Rule of thumb: libraries go on t
 | meta-sam-parser | Parses SAM 3.1 stream lines and decodes masks |
 | numpy, scipy, opencv-python-headless, pandas | Engine math, video frames, CSVs |
 | ffmpeg | Normalizes video to H.264 MP4 with faststart |
-| Modal | SAM 3.1 open-weights fallback and optional backend hosting |
+| Modal | SAM 3.1 open-weights fallback and backend hosting ($100 credits for the first 1,000 who request) |
+| Baseten | Muse Spark Open (`meta-models/muse-spark-open-1026`) for the stretch open-weights backend ($100 credits, reviewed by use case) |
 
 ## How the animation libraries share one page
 
 - `/` creates Lenis with `autoRaf: false`, then in one client component: `lenis.on('scroll', ScrollTrigger.update)`, `gsap.ticker.add((time) => lenis.raf(time * 1000))`, `gsap.ticker.lagSmoothing(0)`. This is the pattern in the Lenis README.
 - Motion components on `/` run their own animations but never drive scroll.
-- `/workspace` and `/results` import only Motion. Check the build output to confirm.
+- `/workspace`, `/study` and `/results` import only Motion. Check the build output to confirm.

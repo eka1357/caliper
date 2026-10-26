@@ -10,7 +10,9 @@ Written before the build so the result cannot be bent after the fact. Every numb
 | H2 | Caliper is accurate on real phone video | Median relative error on the field set | At most 10% | Above 20% |
 | H3 | Caliper's ranges are honest | Share of field clips whose 90% interval contains the truth | At least 80% | Under 60% |
 | H4 | Caliper refuses when it should | Abstention on the no-reference clips | All of them abstain | Any of them returns a number |
-| A1 | The model earns its place | MRA of Caliper minus MRA of the rule-parser ablation | Reported, whatever it is | n/a (an honest finding either way) |
+| H5 | The street speed study is accurate per vehicle | Set A through the study code path: absolute error vs GPS speed | Median at most 3 km/h; 90% ranges contain the GPS value in at least 8 of 10 | Median above 6 km/h |
+| A1 | The model earns its place in the spec | MRA of `caliper` minus `caliper_rule_parser` | Reported, whatever it is | n/a (an honest finding either way) |
+| A2 | The audit earns its place | Wrong-object tracks caught (against your Phase 0 verdicts) and correct results wrongly vetoed; MRA with and without audit | Catches most wrong-object tracks while vetoing few correct ones; report both counts | n/a (report honestly) |
 
 If a claim is disproved, the README and demo say so plainly. That is part of the submission, not a failure to hide.
 
@@ -18,13 +20,14 @@ If a claim is disproved, the README and demo say so plainly. That is part of the
 
 QuantiPhy validation ([dataset](https://huggingface.co/datasets/PaulineLi/QuantiPhy-validation), [code](https://github.com/Paulineli/QuantiPhy))
 - 158 questions on 24 videos with ground truth; videos are 2 to 3 seconds with a static camera.
-- Fields: `video_id`, `video_source`, `video_type`, `fps`, `inference_type`, `question`, `ground_truth_prior`, `depth_info`, `ground_truth_posterior` (the answer), plus an unnamed index column to drop. File: `data/quantiphy-val/validation_dataset.csv`; videos in `validation_videos/`.
-- Annotations CC BY 4.0; videos keep their original licenses (research and evaluation only).
+- Fields: `video_id`, `video_source`, `video_type`, `fps`, `inference_type`, `question`, `ground_truth_prior`, `depth_info`, `ground_truth_posterior` (the answer), plus an unnamed index column (the row ID the scorer matches on). File: `data/quantiphy-val/validation_dataset.csv`; videos in `validation_videos/`.
+- Annotations CC BY 4.0; videos keep their original licenses (research and evaluation only; never shown in the demo).
 - Split by video, not by question, so one video never lands in both halves: `dev` = videos where `int(hashlib.sha256(video_id.encode()).hexdigest(), 16) % 2 == 0`, `holdout` = the rest. With 24 videos expect roughly 12 per side; if the split is worse than 10 to 14, use a fixed seeded shuffle of video_ids instead and record it. Write the split to `eval/split.csv` on Phase 0 and never change it.
 - Tune thresholds, windows and prompts on `dev` only. Report `dev`, `holdout` and `full`, and lead with `holdout`.
 
 Field set (`data/field/`, protocol in docs/DATA_COLLECTION.md)
 - 30 measurement clips with instrument truth (10 speed, 10 gravity, 10 size) plus 5 no-reference clips.
+- Set S: one or two street clips for the speed study demo. No per-vehicle truth; shown as a demonstration, never as an accuracy claim.
 - Out-of-sample by construction: never used for tuning. If a bug fix is needed, fix it, rerun everything, and log the change in docs/DECISIONS.md.
 
 ## 3. Variants (rows in eval/results.csv)
@@ -32,20 +35,22 @@ Field set (`data/field/`, protocol in docs/DATA_COLLECTION.md)
 | Row | What it is |
 | --- | --- |
 | `muse_spark_alone` | Muse Spark 1.3 with QuantiPhy's official zero-shot prompt (option 3, "original"), parsed as the official script does |
-| `caliper` | Full pipeline |
-| `caliper_rule_parser` | Muse Spark replaced by a rule-based parser of the question; same SAM and engine |
+| `caliper` | Full pipeline (spec + SAM + engine + checks + audit) |
+| `caliper_no_audit` | Same, audit switched off |
+| `caliper_rule_parser` | Muse Spark spec replaced by a rule-based parser; same SAM, engine, checks |
+| `caliper_open` | Stretch: spec and audit on Muse Spark Open (Baseten), everything else identical |
 | `human_baseline` | 55.6, copied from the [QuantiPhy leaderboard](https://quantiphy.stanford.edu/) with the source noted |
-| `gpt_5_1_validation` | 48.4 on the validation set, copied from the leaderboard with the source noted |
+| `gpt_5_1_validation` | 48.4 on the validation set, copied from the leaderboard with the source noted (our local scorer run reproduced 0.4824) |
 
-Only the first three are produced by our code. Copied rows carry a `source` column.
+Copied rows carry a `source` column.
 
 ## 4. Running the official scorer
 
 1. Clone the repo into `eval/quantiphy/` and download the validation data into `data/quantiphy-val/`.
 2. Baseline: adapt `model_run_example/run_API_results.py` so its OpenAI client uses `base_url="https://api.meta.ai/v1"`, `api_key=os.environ["MODEL_API_KEY"]`, `model="muse-spark-1.3"`. Keep the prompt text unchanged and select zero-shot option 3. Record the exact diff in `eval/baseline_patch.diff`.
-3. Every variant writes a CSV with columns `video_id, question, parsed_value, video_type, inference_type` into `eval/quantiphy/model_outputs/<variant>.csv`.
-4. Abstentions: leave `parsed_value` empty. The scorer reports `invalid_percentage`; treat invalid as a miss. Report the abstention rate next to MRA.
-5. Set `gt_file` in `evaluate.sh` to `data/quantiphy-val/validation_dataset.csv`, run `bash evaluate.sh`, read `mra_results/all_model_results.csv`.
+3. Every variant writes a CSV into `eval/quantiphy/model_outputs/<variant>.csv`.
+4. Abstentions: leave `parsed_value` empty. The scorer counts blank, non-numeric and zero values as invalid; treat invalid as a miss. Report the abstention rate next to MRA.
+5. Run from `eval/quantiphy`: `python evaluator.py model_outputs mra_results --gt_file ../../data/quantiphy-val/validation_dataset.csv`, then read `mra_results/all_model_results.csv`.
 6. `eval/report.py` copies the rows we need into `eval/results.csv` and builds `web/public/results.json` and the README table.
 7. Prediction CSVs must start with the ground-truth row ID ("Unnamed: 0") as their first column. Build them by copying validation_dataset.csv and adding a parsed_value column, as in eval/quantiphy/model_outputs/gpt-5.1.csv. Check the scorer prints "Matched 158/158".
 
@@ -56,13 +61,13 @@ Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra
 - Relative error per clip: `abs(pred - truth) / truth`. Report median and 90th percentile.
 - Coverage: share of clips where the truth lies inside the 90% interval.
 - Abstained measurement clips count as abstentions, not as errors; report their count.
-- Per-clip table in `eval/field_results.csv`: `clip_id, set, truth, pred, lo, hi, rel_error, covered, status, reason`.
+- Per-clip table in `eval/field_results.csv`: `clip_id, set, path, truth, pred, lo, hi, rel_error, covered, status, reason, audit_approve`. `path` is `measure` or `study` (set A runs through both).
 
 ## 6. Guardrails against fooling ourselves
 
-- Freeze engine parameters at the end of Phase 4 (Oct 31). After that, only bug fixes, each logged.
-- No per-question special cases. A rule that names a specific video_id is a bug.
-- Every chart and table in the UI, README and demo is rendered from the files above.
+- Freeze engine, study and audit parameters at the end of Phase 4 (Oct 31). After that, only bug fixes, each logged.
+- No per-question special cases. A rule that names a specific video_id or clip_id is a bug.
+- Every chart and table in the UI, README, demo video and X post is rendered from the files above.
 - Rerun `make eval` from a clean cache once before submission to prove reproducibility (costs money: check the budget first).
 
 ## 7. What would change the plan
@@ -70,6 +75,7 @@ Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra
 | Finding | Response |
 | --- | --- |
 | Phase 0: SAM tracks the wrong object on more than 10 of 20 clips | Stop. Try box prompts from a frame-0 detection; if still failing, rethink scope with the human |
-| `muse_spark_alone` already at or above 55.6 | The gap is smaller than assumed; lead with field accuracy and abstention honesty instead |
-| QuantiPhy challenge results (closed Oct 23) show tool pipelines far ahead | Compare honestly against them; our contribution becomes the verified field set, abstention, and the agent tool |
-| Ablation equals full Caliper | Say so: the model's role is small on QuantiPhy; show where it matters (free-form questions, known-object scale) on the field set |
+| `muse_spark_alone` already at or above 55.6 | The gap is smaller than assumed; lead with field accuracy, the speed study and abstention honesty |
+| QuantiPhy challenge results show tool pipelines far ahead | Compare honestly; our contribution becomes the verified field set, the audit, abstention, and the speed study |
+| Ablation equals full Caliper | Say so; show where the model matters (free-form questions, known-object scale, the audit) |
+| Audit vetoes many correct results | Tighten its prompt on dev only; if it still hurts, ship it as a warning instead of a veto and say so |

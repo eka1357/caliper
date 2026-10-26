@@ -1,6 +1,6 @@
 # Architecture
 
-Every number Caliper shows traces back to a mask and a formula, or Caliper abstains. One Muse Spark call, two SAM 3.1 calls, and deterministic Python per question.
+Every number Caliper shows traces back to a mask and a formula, and survives an audit, or Caliper abstains. Per question: at most two Muse Spark calls (spec, audit), one SAM 3.1 call per concept, and deterministic Python.
 
 ## 1. Data flow
 
@@ -13,8 +13,21 @@ graph LR
   D --> F["engine: scale, kinematics, interval"]
   E --> F
   F --> G["checks"]
-  G -->|pass| H["Result: measured"]
+  G -->|pass| J["audit: Muse Spark looks at overlay keyframes"]
   G -->|fail| I["Result: abstained + reason"]
+  J -->|approve| H["Result: measured"]
+  J -->|veto| I
+```
+
+Street speed study (showcase, same building blocks):
+
+```mermaid
+graph LR
+  S["Street clip + two gate lines + gate distance"] --> N["normalize"]
+  N --> V["segment: SAM 3.1 per vehicle class"]
+  V --> T["study: gate crossing times per vehicle"]
+  T --> R["per-vehicle speed + interval, or no reading"]
+  R --> P["summary: count, median, 85th percentile with interval"]
 ```
 
 ## 2. Components
@@ -22,12 +35,15 @@ graph LR
 | Module | Job | I/O allowed |
 | --- | --- | --- |
 | `normalize.py` | ffmpeg to H.264 MP4, `-movflags +faststart`, strip audio, keep original fps, cap width at 1280 px | disk |
-| `spec.py` | One Muse Spark 1.3 call: question + video -> `MeasurementSpec` | network, cache |
+| `backends.py` | One interface for language-model calls: Meta API (`muse-spark-1.3`, video input) or Muse Spark Open on Baseten (keyframes as images) | network |
+| `spec.py` | Muse Spark call 1: question + video -> `MeasurementSpec` | network, cache |
 | `segment.py` | SAM 3.1 requests, stream parsing with `meta-sam-parser`, instance selection, open-weights fallback | network, cache |
 | `engine.py` | Scale, positions, local fits, intervals | none (pure) |
 | `checks.py` | Checks and abstention reasons | none (pure) |
+| `audit.py` | Muse Spark call 2: overlay keyframes + spec -> `AuditVerdict` (veto only) | network, cache |
+| `study.py` | Gate method for many vehicles; per-vehicle intervals; summary statistics (math is pure) | none in the math |
 | `pipeline.py` | Orchestrates the above, writes run JSON | disk |
-| `api.py` | FastAPI endpoints | network |
+| `api.py` | FastAPI endpoints, live-run caps, replay mode | network |
 | `config.py` | Every threshold and limit, each with a comment on its origin | none |
 
 Suggested normalize command:
@@ -92,6 +108,14 @@ class Check(BaseModel):
     threshold: str
     detail: str
 
+class AuditVerdict(BaseModel):
+    target_is_right_object: bool
+    reference_is_right_object: bool
+    reference_same_plane: Literal["yes", "no", "unclear"]
+    occlusion_or_identity_switch: bool
+    approve: bool                 # false means veto
+    reason: str                   # one sentence shown to the user on veto
+
 class Result(BaseModel):
     run_id: str
     status: Literal["measured", "abstained"]
@@ -103,18 +127,43 @@ class Result(BaseModel):
     scale_m_per_px: float | None
     method: str                   # e.g. "centroid, local quadratic, window 0.30 s"
     checks: list[Check]
+    audit: AuditVerdict | None
     abstain_reason: str | None
     artifacts: dict               # overlay frames, fit series, URLs
+    backend: Literal["meta_api", "muse_spark_open"]
     cost_usd: float
     timings_ms: dict
+
+class VehicleReading(BaseModel):
+    vehicle_id: str
+    vehicle_class: str            # car, motorcycle, auto rickshaw, bus
+    status: Literal["measured", "no_reading"]
+    speed_kmh: float | None
+    interval_90_kmh: tuple[float, float] | None
+    t_gate_a_s: float | None
+    t_gate_b_s: float | None
+    reason: str | None            # why there is no reading
+
+class StudySummary(BaseModel):
+    run_id: str
+    gate_distance_m: float
+    duration_s: float
+    vehicles_seen: int
+    vehicles_measured: int
+    median_kmh: float | None
+    p85_kmh: float | None
+    p85_interval_90_kmh: tuple[float, float] | None
+    speed_limit_kmh: float | None
+    share_over_limit: float | None
+    readings: list[VehicleReading]
 ```
 
-## 4. Spec step (Muse Spark 1.3)
+## 4. Spec step (Muse Spark call 1)
 
 - Upload the normalized video once with the Files API (`purpose="user_data"`), cache the `file_id` by video hash.
 - One Responses API call with the video and the question. Ask for JSON that matches `MeasurementSpec`.
 - Use the API's structured output mode if the docs confirm the parameter for Muse Spark. Otherwise put the JSON schema in the prompt, validate with pydantic, and retry once with the validation error appended.
-- The model may name a known-size object only when the question gives no prior. It must state the size and its source in `reference_source`. Allowed known objects live in `config.KNOWN_OBJECTS` (for example: INR 10 coin 27 mm, cricket ball 72 mm diameter, A4 sheet 297 x 210 mm, printed ArUco card side as measured).
+- The model may name a known-size object only when the question gives no prior. It must state the size and its source in `reference_source`. Allowed known objects live in `config.KNOWN_OBJECTS` (for example: INR 10 coin 27 mm, cricket ball 72 mm diameter, A4 sheet 297 x 210 mm).
 - The model never returns the answer. If it tries, the value is ignored.
 
 ## 5. Segment step (SAM 3.1)
@@ -161,33 +210,58 @@ Uncertainty (90% interval)
 | physical_bounds | value inside `plausible_range_si` and inside hard limits in config | "The measurement is physically implausible." |
 | interval_width | 90% interval half-width at most 50% of the value | "The uncertainty is too large to be useful." |
 
-## 8. HTTP API (FastAPI, port 8000)
+## 8. Audit step (Muse Spark call 2, veto only)
+
+Why it exists: segmentation can track the wrong object, and a coin held closer to the camera than the target silently breaks the scale. Deterministic checks cannot see either; a vision model can. Muse Spark is weak at numbers and strong at judging evidence, so it judges evidence.
+
+- Input: the question, the spec, and 3 to 4 keyframes (start, middle, end of the fit window) with overlays drawn in: target outline (cyan), reference outline (amber), trajectory, frame number. No numbers are shown to the model.
+- Output: `AuditVerdict` as JSON. `approve=false` turns the result into an abstention with `reason`.
+- The audit never changes a value, an interval, or a threshold.
+- Measured in the ablation (`caliper_no_audit` row) and against the human verdicts in `eval/phase0_tracking.csv`: how many wrong-object tracks it catches, how many correct results it wrongly vetoes.
+
+## 9. Street speed study (gate method)
+
+1. The user draws two gate lines across the road on the first frame and types the real distance between them (measured with a tape along the road edge). Optional stretch: SAM 3.1 finds the two markers and proposes the lines.
+2. SAM 3.1 concept requests, one per vehicle class present: "car", "motorcycle", "auto rickshaw", "bus". Each returns up to 16 objects per frame.
+3. For each track, take the bottom-front point of the mask (where the tyre meets the road, on the side it is moving towards). Find the frame where it crosses gate A and gate B and interpolate linearly between frames for sub-frame crossing times.
+4. Speed `v = D / (t_B - t_A)`. Interval: bootstrap over plus or minus 0.5 frame timing jitter at each gate, plus or minus 1 px gate placement, the tape distance tolerance, and the centroid-crossing estimate as a second method.
+5. No reading (with reason) when: the vehicle is occluded at either gate, the track identity switches between gates, the two estimates disagree by more than 10%, or the speed is implausible (over 150 km/h).
+6. Summary: vehicles seen, measured, no reading; median; 85th percentile with a bootstrap interval over vehicles; share over the speed limit the user enters.
+7. The audit (section 8) runs on a sample of up to 5 vehicles per study as a spot check, shown in the report.
+
+Validation: field set A runs through exactly this code path (one car per clip, GPS truth). See EVAL_PROTOCOL H5.
+
+## 10. HTTP API (FastAPI, port 8000)
 
 | Method and path | Body | Returns |
 | --- | --- | --- |
-| `GET /api/health` | none | `{ok, live_runs_enabled}` |
-| `POST /api/measure` | multipart: `video`, `question`, optional `prior` (JSON) | `Result` |
+| `GET /api/health` | none | `{ok, live_runs_enabled, caps}` |
+| `POST /api/measure` | multipart: `video`, `question`, optional `prior` (JSON), optional `backend` | `Result` |
 | `POST /api/guess` | same as measure | `{text, parsed_value}` from Muse Spark alone (compare mode) |
-| `GET /api/runs/{run_id}` | none | `Result` plus artifact URLs |
+| `POST /api/study` | multipart: `video`, `gate_a`, `gate_b` (pixel lines), `gate_distance_m`, optional `speed_limit_kmh` | `StudySummary` |
+| `GET /api/runs/{run_id}` | none | `Result` or `StudySummary` plus artifact URLs |
 | `GET /api/runs` | none | list of cached demo runs |
-| `GET /api/results` | none | benchmark summary built from `eval/results.csv` |
+| `GET /api/results` | none | benchmark summary built from `eval/results.csv` and `eval/field_results.csv` |
 
-When `LIVE_RUNS_ENABLED=false`, `/api/measure` and `/api/guess` serve only cached runs (matched by video hash) and return 403 with a clear message otherwise. Per-run and daily spend caps come from `.env`.
+Live-run caps (all from `.env`): max clip length for measure and study, per-IP runs per hour, a cost cap per measure run and per study, and a daily spend cap. Before any API call the backend estimates the run's cost (SAM frames x concepts x $0.0002, plus Muse Spark tokens at the rate measured in Phase 0) and refuses if the estimate is above the run or study cap or the day's remaining budget. When a cap is hit, return 429 with a clear message; the UI offers the cached runs. Cached runs and disk-cache hits never count against caps.
 
-## 9. Overlay data for the UI
+## 11. Overlay data for the UI
 
 - For each frame used, send the target and reference outlines as SVG paths (`decode_mask_to_svg_path`), simplified to at most 200 points, plus the centroid.
 - Send the fit series for charts: `[{t_s, pos_m, fit_m}]` and, for speed, `[{t_s, speed_m_s}]`.
+- Study: per-vehicle outline at each gate crossing plus its speed label.
 - The UI draws outlines on a canvas or SVG layer synced to the video with `requestVideoFrameCallback`.
 
-## 10. Deployment
+## 12. Deployment
 
-- Web: Vercel (static or Node runtime). Backend: Modal web endpoint (partner credits) or Render.
-- Hosted demo runs in replay mode: `web/public/runs/*.json` plus compressed demo clips from our own field set.
-- Live mode is enabled only for the recorded demo session and for judges if the rules require it, with spend caps on.
+- Web: Vercel. Backend: Modal web endpoint (partner credits) or Render, with ffmpeg installed.
+- Cached example runs from our own clips in `web/public/runs/` work with no backend at all.
+- Live runs on for the judging window (Nov 5 to 9) with the caps above, and for recording the demo.
 
-## 11. Cost model (for the budget check)
+## 13. Cost model (for the budget check)
 
-- SAM 3.1: 2 requests x frames. A 3-second clip at 30 fps is about 90 frames, so about 180 frames per question, about $0.036.
-- Muse Spark: one call per question with video; check token counts on Phase 0 and record them in docs/DECISIONS.md.
-- QuantiPhy validation (158 questions) end to end should stay within a few dollars. Measure on Phase 0, do not assume.
+- SAM 3.1: frames x concepts. A 3-second question clip at 30 fps is about 90 frames x 2 concepts, about $0.036.
+- Street study: a 3-minute clip at 30 fps is 5,400 frames per vehicle class; 3 classes is 16,200 frames, about $3.24. Downsample to 15 fps only if timing error stays inside the H5 target.
+- Muse Spark: two calls per question (video spec + keyframe audit); measure tokens on Phase 0 and record them in docs/DECISIONS.md.
+- Live caps: a 15-second measure clip at 60 fps is 1,800 frames, about $0.36 plus Muse Spark, inside the $0.50 run cap. A 60-second study at 30 fps with 3 classes is 5,400 frames, about $1.08 plus the audit spot-check, inside the $1.50 study cap. Full 3-minute studies run offline with `make study` and are shown as cached runs.
+- Keep the Meta Billing spend notification at or below $150.

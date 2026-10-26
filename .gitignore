@@ -23,8 +23,10 @@ data/cache/
 data/quantiphy-val/
 eval/quantiphy/
 eval/phase0_overlays/
-data/field/*.mp4
-data/field/*.mov
+data/field/**/*.mp4
+data/field/**/*.mov
+data/field/**/*.MOV
+data/field/**/*.MP4
 data/field/normalized/
 
 # Keep demo clips small and in web/public/runs only

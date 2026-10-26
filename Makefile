@@ -3,7 +3,7 @@
 
 PY := backend/.venv/bin/python
 
-.PHONY: setup dev-api dev-web test lint baseline eval field ablation report
+.PHONY: setup dev-api dev-web test lint baseline eval field ablation study report
 
 setup:
 	cd backend && python -m venv .venv && .venv/bin/pip install -e ".[dev]"
@@ -35,9 +35,13 @@ eval:
 field:
 	$(PY) eval/field.py
 
-# $ Rule-parser ablation on QuantiPhy validation
+# $ Rule-parser and audit-off ablations on QuantiPhy validation
 ablation:
 	$(PY) eval/ablation.py --splits dev holdout full
+
+# $ Street speed study on one clip, e.g. make study CLIP=data/field/S01.mp4 GATE_M=10.0
+study:
+	$(PY) -m caliper.study --clip $(CLIP) --gate-m $(GATE_M)
 
 # Free: rebuild results.csv, web/public/results.json and the README table from saved outputs
 report:

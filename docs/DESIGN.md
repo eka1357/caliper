@@ -70,7 +70,7 @@ One clock per page. On `/` GSAP's ticker drives Lenis and ScrollTrigger. Motion 
 
 Reduced motion (`prefers-reduced-motion: reduce`): no Lenis, no pin, no scrub, no text effects; elements appear at their final state with a 150 ms opacity fade at most.
 
-Effect budget: exactly three decorative effects on `/` (hero SplitText, DrawSVG trajectory, DecryptedText readout). Zero on `/workspace` and `/results`.
+Effect budget: exactly three decorative effects on `/` (hero SplitText, DrawSVG trajectory, DecryptedText readout). Zero on `/workspace`, `/study` and `/results`.
 
 ## 6. Pages
 
@@ -79,17 +79,19 @@ Effect budget: exactly three decorative effects on `/` (hero SplitText, DrawSVG 
 1. **Hero.** H1 "AI guesses. Caliper measures." Subline: "Ask how big, how fast, or how hard something accelerates in a video. Get a measured number with an error range, or an honest no." Primary button "Measure a clip" to `/workspace`; secondary "See the evidence" to `/results`. Visual: a looping muted field clip with the cyan target outline, amber reference outline, the trajectory, and a small readout card.
 2. **The gap.** Three readout cards for one real clip: "Muse Spark alone" (guess style), "Caliper" (measured), "Instrument" (GPS or tape). Values load from the cached run JSON. Line: "Same model. Same video. One guesses, one measures."
 3. **How it works.** Pinned four-step scene using real artifacts from one cached run: Read (the spec JSON), Find (masks appear), Measure (the fit curve draws), Check (checks tick, or the refusal appears).
-4. **Evidence.** bklit bar chart of MRA by variant on the holdout split with the human baseline as a labelled reference line; field-set accuracy in one sentence; link to `/results`.
-5. **When Caliper says no.** Two or three abstention cards with their exact reasons, from cached runs.
-6. **For agents (stretch).** The `measure()` MCP tool call and its JSON result.
-7. **Footer.** Built with Muse Spark 1.3 and SAM 3.1 on Meta Model API; QuantiPhy credit and license note; repo link; limitations link.
+4. **The audit.** One keyframe with overlays and Muse Spark's verdict beside it; one vetoed example ("SAM followed the wrong car, so Caliper refused").
+5. **On a real street.** A still from the street study with vehicles tagged by speed and range, the 85th-percentile card, and one line of context with its source (177,175 road deaths in India in 2024; 70.3% attributed to over-speeding). Button "Run a speed study" to `/study`.
+6. **Evidence.** bklit bar chart of MRA by variant on the holdout split with the human baseline as a labelled reference line; field-set accuracy and speed-vs-GPS error in one sentence each; link to `/results`.
+7. **When Caliper says no.** Two or three abstention cards with their exact reasons, from cached runs.
+8. **For agents and open weights (stretch).** The `measure()` MCP tool call and its JSON result; the Muse Spark Open backend badge if built.
+9. **Footer.** Built with Muse Spark 1.3 and SAM 3.1 on Meta Model API (plus Muse Spark Open if built); "Built Oct 27 to Nov 4 2026"; QuantiPhy credit and license note; repo link; limitations link.
 
 ### `/workspace`: the tool
 
 - Left pane: video stage with overlay toggles (target, reference, trajectory), a scrubber (shadcn Slider) with the fit window shaded, play and frame-step buttons.
 - Right pane: question box with three example chips; collapsible "I know one real size or speed" for an optional prior; primary "Measure" button; switch "Compare with Muse Spark alone".
 - Result card: status badge, the number, unit, interval bar, one method line ("centroid, local quadratic, window 0.30 s").
-- "Show the chain" (Collapsible): Spec (JSON), Scale (reference, value, source, metres per pixel), Fit (bklit line chart of position and fit over time; speed over time), Checks (name, value, threshold, pass or fail), Cost and timing.
+- "Show the chain" (Collapsible): Spec (JSON), Scale (reference, value, source, metres per pixel), Fit (bklit line chart of position and fit over time; speed over time), Checks (name, value, threshold, pass or fail), Audit (the keyframes Muse Spark saw and its verdict in plain words), Backend (Meta API or Muse Spark Open), Cost and timing.
 - States and copy:
 
 | State | Copy |
@@ -101,16 +103,28 @@ Effect budget: exactly three decorative effects on `/` (hero SplitText, DrawSVG 
 | Finding | "Finding the {target} and the {reference}" |
 | Measuring | "Measuring" |
 | Checking | "Checking the measurement" |
+| Auditing | "Muse Spark is checking the evidence" |
 | Measured | Number, range, method |
-| Abstained | "I won't guess." followed by the reason from the failed check and one fix ("Add a coin next to the object") |
+| Abstained | "I won't guess." followed by the reason from the failed check or the audit, and one fix ("Add a coin next to the object") |
+| Live cap reached | "Live runs are paused for now. Try one of these recorded runs." with the cached runs listed |
 | Error | "Something broke on our side." plus a retry button; never a fake number |
 
 - Mobile capture flow (study ScreensDesign onboarding and camera-permission flows first): a one-screen guide before recording ("Keep the phone still. Put a coin beside the object, at the same distance. Film the motion side to side, not toward you."), then `<input type="file" accept="video/*" capture="environment">`, then a review step before upload.
 
+### `/study`: street speed study
+
+- Step 1: drop or record a street clip (guide: "Phone fixed, side-on to the road. Two marks a measured distance apart along the road edge, both in frame.").
+- Step 2: on the first frame, drag two gate lines across the road onto the marks; type the distance in metres and, optionally, the speed limit.
+- Step 3: run. The video plays with each vehicle outlined in cyan as it crosses the gates, its speed and range in a small mono label; vehicles Caliper cannot measure get a grey "no reading" label with the reason on hover.
+- Summary card: vehicles seen, measured, no reading; median; 85th-percentile speed in large mono with its range under it; share over the limit.
+- bklit histogram of measured speeds with the 85th percentile and the limit as labelled reference lines.
+- "Printable report" opens a clean page (date, place typed by the user, method in one paragraph, the summary, the histogram, the per-vehicle table, the limitations) for `window.print()`.
+- Copy never implies enforcement: "Speed survey for road-safety requests", not "catch speeders". No plates or faces are stored or shown.
+
 ### `/results`: the evidence
 
 - Table of every row in `results.json` (variant by split) with source notes.
-- bklit charts: MRA by variant (holdout) with the human baseline line; MRA by category (S2, D2, S3, D3); field-set relative error per clip as dots with the 10% target line; interval coverage as one number with its target.
+- bklit charts: MRA by variant (holdout) with the human baseline line, including audit on and off; MRA by category (S2, D2, S3, D3); field-set relative error per clip as dots with the 10% target line; speed study error vs GPS for set A; interval coverage as one number with its target; audit catches and false vetoes as two numbers.
 - Download links for `results.csv` and `field_results.csv`; a short methodology summary linking docs/EVAL_PROTOCOL.md.
 
 ## 7. Component sources
@@ -132,7 +146,7 @@ Rules for imported components: TypeScript + Tailwind variant only; restyle to th
 - [ ] Keyboard only: every control reachable, focus ring visible.
 - [ ] Reduced motion verified in the OS setting.
 - [ ] Landing Lighthouse mobile: LCP under 2.5 s, CLS under 0.1.
-- [ ] `next build` output shows no gsap or lenis chunk on `/workspace` or `/results`.
+- [ ] `next build` output shows no gsap or lenis chunk on `/workspace`, `/study` or `/results`.
 - [ ] Landing scroll holds 60 fps in the Chrome performance panel on a mid-range laptop.
 - [ ] No layout shift when the result card appears.
 - [ ] Every number on screen traces to `results.json` or a run JSON.
