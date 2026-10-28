@@ -86,7 +86,10 @@ class Clip:
         tracks = self.tracks(phrase)
         if not tracks:
             raise Abstain(f"SAM found no '{phrase}'")
-        return select_instance(tracks, selector, self.frames)
+        try:
+            return select_instance(tracks, selector, self.frames)
+        except ValueError as exc:  # e.g. center_rank:4 with fewer candidates found
+            raise Abstain(f"'{phrase}': {exc}") from exc
 
 
 def run_one(entry: dict, clip: Clip) -> Result:
