@@ -1,0 +1,4 @@
+video_id,split,phrase,frames,frames_returned,objects_max,mean_confidence,overlay,my_verdict
+simulation_0089,dev,bird,30,10,2,0.942,eval/phase0_overlays/simulation_0089__corrected.mp4,right object
+internet_0005,holdout,woman in yellow,178,173,1,0.91,eval/phase0_overlays/internet_0005__corrected.mp4,right object
+internet_0013,holdout,white car,279,279,6,0.829,eval/phase0_overlays/internet_0013__corrected.mp4,right object

@@ -1,0 +1,21 @@
+video_id,split,phrase,frames,frames_returned,objects_max,mean_confidence,overlay,my_verdict
+captured_0021x,dev,ping pong ball,49,43,1,0.875,eval/phase0_overlays/captured_0021x.mp4,right object
+captured_0041x,dev,soccer ball,49,41,1,0.93,eval/phase0_overlays/captured_0041x.mp4,right object
+captured_0061,dev,yoga ball,49,36,2,0.741,eval/phase0_overlays/captured_0061.mp4,right object
+internet_0004,dev,wood block,428,405,1,0.91,eval/phase0_overlays/internet_0004.mp4,right object
+internet_0019,dev,ball,40,37,1,0.844,eval/phase0_overlays/internet_0019.mp4,right object
+internet_0027,dev,black ball,78,78,1,0.914,eval/phase0_overlays/internet_0027.mp4,right object
+simulation_0009,dev,boat,66,66,2,0.809,eval/phase0_overlays/simulation_0009.mp4,right object
+simulation_0060,dev,yellow car,72,72,1,0.797,eval/phase0_overlays/simulation_0060.mp4,right object
+simulation_0089,dev,big bird,30,0,0,,eval/phase0_overlays/simulation_0089.mp4,lost
+simulation_0170_segmented,dev,astronaut,80,80,1,0.934,eval/phase0_overlays/simulation_0170_segmented.mp4,right object
+captured_0013,holdout,cup,49,49,1,0.828,eval/phase0_overlays/captured_0013.mp4,right object
+captured_0027s,holdout,red ball,49,49,1,0.75,eval/phase0_overlays/captured_0027s.mp4,right object
+captured_0034as,holdout,left tennis ball,49,49,1,0.71,eval/phase0_overlays/captured_0034as.mp4,right object
+internet_0001,holdout,black car,31,30,2,0.904,eval/phase0_overlays/internet_0001.mp4,right object
+internet_0005,holdout,black road signs,178,0,0,,eval/phase0_overlays/internet_0005.mp4,lost
+internet_0013,holdout,straight through lane,279,0,0,,eval/phase0_overlays/internet_0013.mp4,lost
+simulation_0015,holdout,central sculpture,100,100,3,0.785,eval/phase0_overlays/simulation_0015.mp4,right object
+simulation_0034_segmented,holdout,boat,72,72,1,0.824,eval/phase0_overlays/simulation_0034_segmented.mp4,right object
+simulation_0098_segmented,holdout,boat,73,73,1,0.867,eval/phase0_overlays/simulation_0098_segmented.mp4,right object
+simulation_0163,holdout,ball,51,39,1,0.789,eval/phase0_overlays/simulation_0163.mp4,right object
