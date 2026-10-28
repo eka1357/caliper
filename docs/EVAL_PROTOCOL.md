@@ -38,6 +38,7 @@ Field set (`data/field/`, protocol in docs/DATA_COLLECTION.md)
 | `caliper` | Full pipeline (spec + SAM + engine + checks + audit) |
 | `caliper_no_audit` | Same, audit switched off |
 | `caliper_rule_parser` | Muse Spark spec replaced by a rule-based parser; same SAM, engine, checks |
+| `caliper_hand_spec` | Reference only (added 2026-10-29): hand-written specs (`eval/specs/phase1_dev_2d.json`, dev 2D) through the same SAM and engine; the Phase 1 `caliper` row, renamed |
 | `caliper_open` | Stretch: spec and audit on Muse Spark Open (Baseten), everything else identical |
 | `human_baseline` | 55.6, copied from the [QuantiPhy leaderboard](https://quantiphy.stanford.edu/) with the source noted |
 | `gpt_5_1_validation` | 48.4 on the validation set, copied from the leaderboard with the source noted (our local scorer run reproduced 0.4824) |
