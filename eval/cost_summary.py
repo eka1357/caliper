@@ -1,10 +1,11 @@
-"""Phase 0 measured facts from the disk cache (no API calls).
+"""Measured facts and spend from the disk cache (no API calls).
 
 Muse Spark tokens and latency come from the cached chat records (the baseline) and responses
-records (smoke test and tracking phrases). Phase 0 SAM requests are matched to their clips through
-eval/phase0_tracking*.csv; all SAM requests (every phase) are matched by trying every phrase in
-the tracking CSVs and eval/specs/*.json (including phrases quoted in spec revisions) on every
-validation video. Billed frames come from ffprobe on the normalized video.
+records (smoke test, tracking phrases, spec writer). Phase 0 SAM requests are matched to their
+clips through eval/phase0_tracking*.csv. All SAM requests (every phase) are matched by trying,
+on every validation video, every phrase in the tracking CSVs and eval/specs/*.json (main and
+alternative phrases, and phrases quoted in spec revisions) plus the rule parser's phrases
+(eval/ablation.py). Billed frames come from ffprobe on the normalized video.
 
   python eval/cost_summary.py
 """
@@ -16,7 +17,9 @@ import json
 import re
 import statistics as st
 
-from baseline import EVAL, link_videos
+import pandas as pd
+from ablation import rule_spec
+from baseline import DATASET, EVAL, link_videos
 from caliper import config
 from caliper.meta_client import DiskCache, file_sha256, muse_cost_usd, request_key
 from caliper.normalize import normalize, probe
@@ -68,11 +71,23 @@ def phrase_pool() -> set[str]:
         doc = json.loads(path.read_text(encoding="utf-8"))
         for e in doc["specs"]:
             if e["spec"]:
-                pool |= {e["spec"][k] for k in ("target_phrase", "second_phrase",
-                                                "reference_phrase") if e["spec"][k]}  # fmt: skip
+                pool |= spec_phrases(e["spec"])
         for rev in doc.get("revisions", []):
             pool |= set(re.findall(r"'([^']+)'", rev))
+    # The rule parser's phrases are generated from the question text, not stored in a file
+    dataset = pd.read_csv(DATASET)
+    for q, prior in zip(dataset.question, dataset.ground_truth_prior, strict=True):
+        spec, _ = rule_spec(q, prior)
+        if spec is not None:
+            pool |= spec_phrases(spec.model_dump())
     return pool
+
+
+def spec_phrases(spec: dict) -> set[str]:
+    """Every phrase a spec can send to SAM: main phrases and their alternatives."""
+    out = {spec.get(k) for k in ("target_phrase", "second_phrase", "reference_phrase")}
+    out |= set(spec.get("target_alt_phrases") or []) | set(spec.get("reference_alt_phrases") or [])
+    return {p for p in out if p}
 
 
 def all_sam_frames() -> tuple[int, int]:
@@ -113,7 +128,7 @@ def main() -> None:
     resp = recs["responses"]
     resp_usage = {k: sum(r["usage"][k] for r in resp) for k in ("input_tokens", "output_tokens")}
     resp_cost = muse_cost_usd(resp_usage)
-    print(f"muse responses (smoke + phrases): records={len(resp)} cost_usd={resp_cost:.4f}")
+    print(f"muse responses (smoke, phrases, specs): records={len(resp)} cost_usd={resp_cost:.4f}")
 
     runs = sam_runs()
     matched = {r["rec"]["key"] for r in runs}
