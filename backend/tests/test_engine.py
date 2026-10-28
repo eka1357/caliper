@@ -202,3 +202,9 @@ def test_to_unit():
 def test_config_window_matches_architecture():
     assert engine.fit_half_window(30) == pytest.approx(max(9 / 30, 0.30) / 2)
     assert config.BOOTSTRAP_B == 500
+
+
+def test_acceleration_window_is_at_least_config_value():
+    assert 2 * engine.accel_half_window(30) == pytest.approx(
+        max(9 / 30, 0.30, config.ACCEL_WINDOW_MIN_S)
+    )

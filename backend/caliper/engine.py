@@ -64,6 +64,11 @@ def fit_half_window(fps: float) -> float:
     return max(config.FIT_WINDOW_MIN_FRAMES / fps, config.FIT_WINDOW_MIN_S) / 2
 
 
+def accel_half_window(fps: float) -> float:
+    """Half of the window for acceleration fits: at least ACCEL_WINDOW_MIN_S wide."""
+    return max(fit_half_window(fps), config.ACCEL_WINDOW_MIN_S / 2)
+
+
 def _component(vec: np.ndarray, axis: str) -> float:
     if axis == "horizontal":
         return float(abs(vec[0]))
@@ -220,7 +225,9 @@ def scale_m_per_px(spec: MeasurementSpec, ref: Series, half: float) -> float:
     return spec.reference_value_si / px
 
 
-def measure_px(spec: MeasurementSpec, tgt: Series, second: Series | None, half: float) -> float:
+def measure_px(
+    spec: MeasurementSpec, tgt: Series, second: Series | None, half: float, accel_half: float
+) -> float:
     """The target quantity in pixel units: px, px/s or px/s^2."""
     st = spec.statistic
     if st == "instantaneous":
@@ -228,7 +235,7 @@ def measure_px(spec: MeasurementSpec, tgt: Series, second: Series | None, half: 
             raise Abstain("instantaneous value needs a timestamp")
         if spec.quantity == "speed":
             return speed_px(tgt, spec.timestamp_s, spec.axis, half)
-        return acceleration_px(tgt, spec.timestamp_s, spec.axis, half)
+        return acceleration_px(tgt, spec.timestamp_s, spec.axis, accel_half)
     if st == "average":
         return average_speed_px(tgt, spec.time_range_s, spec.axis, half)
     if st == "extent":
@@ -269,10 +276,11 @@ def measure(
     ref = Series.from_track(reference) if reference is not None else tgt
     sec = Series.from_track(second) if second is not None else None
     half = fit_half_window(target.fps)
+    accel_half = accel_half_window(target.fps)
 
     def once(t: Series, r: Series, s2: Series | None) -> tuple[float, float, float]:
         scale = scale_m_per_px(spec, r, half)
-        px = measure_px(spec, t, s2, half)
+        px = measure_px(spec, t, s2, half, accel_half)
         return px * scale, scale, px
 
     value, scale, px = once(tgt, ref, sec)
@@ -296,7 +304,7 @@ def measure(
         if len(draws) >= boot // 2
         else None
     )
-    window = 2 * half
+    window = 2 * (accel_half if spec.quantity == "acceleration" else half)
     method = (
         f"centroid; {spec.statistic} {spec.quantity} along {spec.axis}; "
         f"local quadratic window {window:.2f} s on detected frames only; "
