@@ -1,7 +1,7 @@
 """$ Phase 0 smoke test: one muse-spark-1.3 text call and one sam-3.1 concept call.
 
 Spends about $0.01 on the first run; reruns are disk-cache hits and cost $0.
-Usage: backend\\.venv\\Scripts\\python.exe scripts\\smoke.py [--video internet_0001] [--phrase "black car"]
+Usage: backend\\.venv\\Scripts\\python.exe scripts\\smoke.py [--video ID] [--phrase "black car"]
 """
 
 from __future__ import annotations
@@ -44,9 +44,8 @@ def main() -> None:
     seg = segment(video, args.phrase)
     per_frame = seg.objects_per_frame()
     print(f"sam: video={args.video} source_frames={info['frames']} fps={info['fps']}")
-    print(
-        f"sam: phrase={args.phrase!r} frames_returned={seg.frames_returned} cache_hit={seg.cache_hit}"
-    )
+    print(f"sam: phrase={args.phrase!r} frames_returned={seg.frames_returned}")
+    print(f"sam: cache_hit={seg.cache_hit}")
     print(f"sam: objects per frame (count -> frames) {dict(Counter(per_frame.values()))}")
     confs = [d.confidence for d in seg.detections if d.confidence is not None]
     if confs:
