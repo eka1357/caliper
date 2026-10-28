@@ -37,6 +37,22 @@ def test_cached_call_kind_is_part_of_key(tmp_path):
     assert a["key"] != b["key"]
 
 
+def test_chat_create_nth_gives_retries_their_own_entries(tmp_path, monkeypatch):
+    from caliper import meta_client
+
+    answers = iter(["first", "second"])
+
+    def fake_cached_call(kind, payload, fn, cache):
+        return {"response": next(answers), "payload": payload}, False
+
+    monkeypatch.setattr(meta_client, "cached_call", fake_cached_call)
+    monkeypatch.setattr(meta_client, "_occurrences", {})
+    a = meta_client.chat_create_nth({"model": "m", "q": 1}, DiskCache(tmp_path))
+    b = meta_client.chat_create_nth({"model": "m", "q": 1}, DiskCache(tmp_path))
+    assert "occurrence" not in a["payload"]  # first call keeps the plain key
+    assert b["payload"]["occurrence"] == 1
+
+
 def test_normalize_usage_both_shapes():
     assert normalize_usage({"prompt_tokens": 5, "completion_tokens": 3}) == {
         "input_tokens": 5,

@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import tempfile
+import threading
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -137,15 +138,35 @@ def responses_create(payload: dict[str, Any], cache: DiskCache | None = None) ->
     return record
 
 
-def chat_create(payload: dict[str, Any], cache: DiskCache | None = None) -> dict[str, Any]:
-    """Chat Completions call, cached. Used by the QuantiPhy baseline. Returns the cache record."""
+def chat_create(
+    payload: dict[str, Any], cache: DiskCache | None = None, occurrence: int = 0
+) -> dict[str, Any]:
+    """Chat Completions call, cached. Used by the QuantiPhy baseline. Returns the cache record.
+
+    occurrence > 0 marks a deliberate repeat of an identical request (a caller's retry), which
+    gets its own cache entry so the retry still samples the model once, and reruns stay free.
+    """
 
     def call() -> tuple[Any, dict[str, int]]:
         resp = get_client().chat.completions.create(**payload)
         return resp.model_dump(mode="json"), normalize_usage(resp.usage)
 
-    record, _ = cached_call("chat", payload, call, cache)
+    key_payload = {**payload, "occurrence": occurrence} if occurrence else payload
+    record, _ = cached_call("chat", key_payload, call, cache)
     return record
+
+
+_occurrences: dict[str, int] = {}
+_occurrences_lock = threading.Lock()
+
+
+def chat_create_nth(payload: dict[str, Any], cache: DiskCache | None = None) -> dict[str, Any]:
+    """chat_create where the n-th identical request in this process is the n-th cache entry."""
+    key = request_key(payload)
+    with _occurrences_lock:
+        n = _occurrences.get(key, 0)
+        _occurrences[key] = n + 1
+    return chat_create(payload, cache, occurrence=n)
 
 
 def upload_file(path: Path, cache: DiskCache | None = None) -> str:
