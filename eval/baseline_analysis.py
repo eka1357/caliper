@@ -3,19 +3,56 @@
 Per-question MRA uses the official evaluator's formula: the share of the 10 thresholds
 theta in C for which |pred - gt| / gt < 1 - theta, with pred = |parsed_value|.
 
+Also fills share_within_10pct and share_off_2x in eval/results.csv for every variant that has
+eval/quantiphy/model_outputs/<variant>.csv. Both are over all n questions; an invalid answer
+(blank, non-numeric or zero) counts as a miss for both (EVAL_PROTOCOL section 4.4).
+
   python eval/baseline_analysis.py
 """
 
 from __future__ import annotations
 
+import csv
+
 import pandas as pd
-from baseline import DATASET, EVAL, QP, VARIANT
+from baseline import DATASET, EVAL, QP, RESULTS_COLUMNS, VARIANT
 
 C = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]  # evaluator.py
+RESULTS = EVAL / "results.csv"
 
 
-def load() -> pd.DataFrame:
-    pred = pd.read_csv(QP / "model_outputs" / f"{VARIANT}.csv")
+def error_shares(part: pd.DataFrame) -> dict[str, float]:
+    """Share within 10% and share off by more than 2x; invalid answers are misses for both."""
+    ok = ~part.invalid
+    within = ok & (part.rel_err < 0.1)
+    off = ~ok | (part.ratio > 2) | (part.ratio < 0.5)
+    return {"share_within_10pct": within.mean(), "share_off_2x": off.mean()}
+
+
+def update_results() -> None:
+    """Fill the two error-share columns for every variant row whose predictions exist."""
+    with open(RESULTS, encoding="utf-8", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    loaded: dict[str, pd.DataFrame | None] = {}
+    for row in rows:
+        v = row["variant"]
+        if v not in loaded:
+            path = QP / "model_outputs" / f"{v}.csv"
+            loaded[v] = load(v) if path.exists() else None
+        df = loaded[v]
+        if df is None:
+            continue
+        part = df if row["split"] == "full" else df[df.split == row["split"]]
+        row.update({k: round(x, 4) for k, x in error_shares(part).items()})
+    with open(RESULTS, "w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=RESULTS_COLUMNS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+    print(f"updated share_within_10pct and share_off_2x in {RESULTS}")
+
+
+def load(variant: str = VARIANT) -> pd.DataFrame:
+    pred = pd.read_csv(QP / "model_outputs" / f"{variant}.csv")
     gt = pd.read_csv(DATASET)
     assert pred["Unnamed: 0"].tolist() == gt["Unnamed: 0"].tolist()
     split = pd.read_csv(EVAL / "split.csv").set_index("video_id")["split"]
@@ -42,6 +79,11 @@ def main() -> None:
         print("MRA by dimension (mean over questions):")
         print(d.round(3).to_string())
 
+        shares = error_shares(part)
+        print(
+            f"over all n (invalid = miss): within 10% {shares['share_within_10pct']:.3f}  "
+            f"off by more than 2x {shares['share_off_2x']:.3f}"
+        )
         valid = part[~part.invalid]
         r = valid.ratio
         print(
@@ -57,6 +99,7 @@ def main() -> None:
     print("\n== invalid answers (evaluator counts blank, non-numeric and zero)")
     cols = ["Unnamed: 0", "video_id", "split", "category", "parsed_value", "ground_truth_posterior"]
     print(df[df.invalid][cols].to_string(index=False))
+    update_results()
 
 
 if __name__ == "__main__":

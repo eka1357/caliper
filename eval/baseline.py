@@ -35,7 +35,7 @@ CEILING_USD = 30.0  # human's hard ceiling for the full 158-question run (2026-1
 STOP_USD = 25.0  # human: kill the run if cached Muse chat spend passes this (2026-10-28)
 RESULTS_COLUMNS = [
     "variant", "split", "mra_average", "mra_S2", "mra_D2", "mra_S3", "mra_D3",
-    "abstain_rate", "n", "cost_usd", "run_date", "source",
+    "abstain_rate", "share_within_10pct", "share_off_2x", "n", "cost_usd", "run_date", "source",
 ]  # fmt: skip
 
 
@@ -188,6 +188,9 @@ def full(dataset: pd.DataFrame) -> None:
             }
         )
     write_results(rows)
+    from baseline_analysis import update_results  # imports this module; avoid a cycle
+
+    update_results()
     print(f"blank parsed_value: {blank}/{len(pred)}; total cost_usd={total_cost:.2f}")
 
 

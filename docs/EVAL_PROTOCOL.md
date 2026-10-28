@@ -54,7 +54,7 @@ Copied rows carry a `source` column.
 6. `eval/report.py` copies the rows we need into `eval/results.csv` and builds `web/public/results.json` and the README table.
 7. Prediction CSVs must start with the ground-truth row ID ("Unnamed: 0") as their first column. Build them by copying validation_dataset.csv and adding a parsed_value column, as in eval/quantiphy/model_outputs/gpt-5.1.csv. Check the scorer prints "Matched 158/158".
 
-Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra_S3, mra_D3, abstain_rate, n, cost_usd, run_date, source`.
+Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra_S3, mra_D3, abstain_rate, share_within_10pct, share_off_2x, n, cost_usd, run_date, source`. `share_within_10pct` is the share of all n questions with relative error below 10%; `share_off_2x` is the share with pred/truth above 2 or below 0.5. Both count an invalid answer as a miss; both are computed by `eval/baseline_analysis.py` from the prediction CSV.
 
 ## 5. Field set metrics
 

@@ -1,4 +1,4 @@
-variant,split,mra_average,mra_S2,mra_D2,mra_S3,mra_D3,abstain_rate,n,cost_usd,run_date,source
-muse_spark_alone,dev,0.6203183729045219,0.5782608695652174,0.7263157894736841,0.5384615384615385,0.638235294117647,0.0,89,7.9402,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
-muse_spark_alone,holdout,0.5809202770409667,0.5,0.6722222222222222,0.5206896551724138,0.6307692307692309,0.028985507246376812,69,6.1559,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
-muse_spark_alone,full,0.6046526722391085,0.5562499999999999,0.7000000000000001,0.5261904761904761,0.6361702127659575,0.012658227848101267,158,14.0961,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
+variant,split,mra_average,mra_S2,mra_D2,mra_S3,mra_D3,abstain_rate,share_within_10pct,share_off_2x,n,cost_usd,run_date,source
+muse_spark_alone,dev,0.6203183729045219,0.5782608695652174,0.7263157894736841,0.5384615384615385,0.638235294117647,0.0,0.3146,0.1573,89,7.9402,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
+muse_spark_alone,holdout,0.5809202770409667,0.5,0.6722222222222222,0.5206896551724138,0.6307692307692309,0.028985507246376812,0.2754,0.2609,69,6.1559,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
+muse_spark_alone,full,0.6046526722391085,0.5562499999999999,0.7000000000000001,0.5261904761904761,0.6361702127659575,0.012658227848101267,0.2975,0.2025,158,14.0961,2026-10-28,"eval/baseline.py (official zero-shot v3 prompt, evaluator.py)"
