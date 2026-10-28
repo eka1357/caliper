@@ -14,8 +14,10 @@
       "Bash(git log:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(powershell -ExecutionPolicy Bypass -File scripts/tasks.ps1:*)",
-      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tasks.ps1:*)"
+      "Bash(powershell -ExecutionPolicy Bypass -File scripts/tasks.ps1 test)",
+      "Bash(powershell -ExecutionPolicy Bypass -File scripts/tasks.ps1 lint)",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tasks.ps1 test)",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tasks.ps1 lint)"
     ],
     "deny": [
       "Read(./.env)",
