@@ -54,7 +54,7 @@ def update_results() -> None:
 def load(variant: str = VARIANT) -> pd.DataFrame:
     pred = pd.read_csv(QP / "model_outputs" / f"{variant}.csv")
     gt = pd.read_csv(DATASET)
-    assert pred["Unnamed: 0"].tolist() == gt["Unnamed: 0"].tolist()
+    assert set(pred["Unnamed: 0"]) <= set(gt["Unnamed: 0"])  # a variant may cover a subset
     split = pd.read_csv(EVAL / "split.csv").set_index("video_id")["split"]
     df = pred.assign(split=pred.video_id.map(split), dim=pred.video_type.str[1] + "D")
     df["category"] = df.inference_type.str[0] + df.video_type.str[1]

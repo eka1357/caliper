@@ -104,11 +104,12 @@ def run_upstream(questions: pd.DataFrame, tag: str) -> pd.DataFrame:
     return pd.read_csv(outputs[-1])
 
 
-def score(pred: pd.DataFrame, split: str) -> dict[str, float]:
+def score(pred: pd.DataFrame, split: str, variant: str = VARIANT) -> dict[str, float]:
     """Run the official evaluator on one split's rows; require every row to match the GT file."""
-    in_dir, out_dir = WORK / f"score_{split}" / "in", WORK / f"score_{split}" / "out"
+    tag = split if variant == VARIANT else f"{variant}_{split}"
+    in_dir, out_dir = WORK / f"score_{tag}" / "in", WORK / f"score_{tag}" / "out"
     in_dir.mkdir(parents=True, exist_ok=True)
-    pred.to_csv(in_dir / f"{VARIANT}.csv", index=False)
+    pred.to_csv(in_dir / f"{variant}.csv", index=False)
     proc = subprocess.run(
         [sys.executable, "evaluator.py", str(in_dir), str(out_dir), "--gt_file", str(DATASET)],
         cwd=QP, capture_output=True, text=True, check=True, encoding="utf-8",
@@ -195,16 +196,18 @@ def full(dataset: pd.DataFrame) -> None:
 
 
 def write_results(rows: list[dict]) -> None:
+    """Replace the rows with the same (variant, split); keep every other row."""
     path = EVAL / "results.csv"
+    replaced = {(r["variant"], r["split"]) for r in rows}
     keep = []
     if path.exists():
         with open(path, encoding="utf-8", newline="") as fh:
-            keep = [r for r in csv.DictReader(fh) if r["variant"] != VARIANT]
+            keep = [r for r in csv.DictReader(fh) if (r["variant"], r["split"]) not in replaced]
     with open(path, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=RESULTS_COLUMNS, lineterminator="\n")
         w.writeheader()
         w.writerows(keep + rows)
-    print(f"wrote {len(rows)} {VARIANT} rows to {path}")
+    print(f"wrote {len(rows)} {rows[0]['variant']} rows to {path}")
 
 
 def main() -> None:
