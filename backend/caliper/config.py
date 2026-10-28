@@ -88,3 +88,24 @@ KNOWN_OBJECTS = {
     "A4 sheet": {"size_m": 0.297, "axis": "longest", "source": "ISO 216: 297 x 210 mm"},
     "credit card": {"size_m": 0.0856, "axis": "longest", "source": "ISO/IEC 7810 ID-1: 85.6 mm"},
 }
+
+# Checks (ARCHITECTURE section 7, Phase 3). Start values from ARCHITECTURE section 7 or the Phase 3
+# plan; tune on the QuantiPhy dev split only and log every change in DECISIONS.md.
+SCENE_WIDTH_M = (0.05, 2000.0)  # Phase 3 plan: frame width x scale; internet_0004 gave 1.3 cm
+MIN_REFERENCE_PX = 8.0  # Phase 3 plan: the simulation_0193 moons are 2 to 3 px
+MIN_REFERENCE_PATH_PX = 20.0  # Phase 3 plan: a speed reference must visibly move
+GRAVITY_MIN_R2 = 0.9  # Phase 3 plan: a clear parabola on y
+GRAVITY_MIN_DY_PX = 20.0  # Phase 3 plan: a standing person barely moves vertically
+SCALE_AGREE_TOL = 0.25  # ARCHITECTURE section 7 (estimates_agree, 25%)
+PERSPECTIVE_TOL = 0.15  # Phase 3 plan; internet_0027 showed about 8% across the frame
+PERSPECTIVE_MIN_ROWS_PX = 40.0  # need this vertical spread of the reference to fit a slope
+DEPTH_CHANGE_TOL = 0.30  # Phase 3 plan: apparent linear size change over the window, 2D only
+TARGET_FOUND_SHARE = 0.80  # ARCHITECTURE section 7
+REFERENCE_FOUND_SHARE = (
+    0.20  # ARCHITECTURE section 7 said 0.50; dev tuning 2026-10-29 (DECISIONS.md)
+)
+MAX_GAP_FRAMES = 3  # ARCHITECTURE section 7 (track_continuity)
+MASK_CV_MAX = 0.30  # ARCHITECTURE section 7 said 0.25; dev tuning 2026-10-29 (DECISIONS.md)
+INTERVAL_HALF_MAX = 0.50  # ARCHITECTURE section 7 (interval_width)
+CHECKS_ENABLED = True
+AUDIT_ENABLED = True  # ARCHITECTURE section 8; the runner turns it off for caliper_no_audit
