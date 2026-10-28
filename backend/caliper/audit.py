@@ -70,6 +70,19 @@ errors.
 """
 
 
+SAME_PLANE_ITEM = (
+    "- reference_same_plane: are the reference and the target at about the same distance from "
+    "the camera, so one scale fits both? (yes / no / unclear; yes if there is no separate "
+    "reference)"
+)
+DEPTH_SCALED_ITEM = (
+    '- reference_same_plane: answer "yes": the distances of both objects from the camera are '
+    "known and the scale is already corrected for them, so do not judge depth."
+)
+DEPTH_VETO = ", reference clearly at a different depth"
+assert SAME_PLANE_ITEM in PROMPT and DEPTH_VETO in PROMPT
+
+
 def strip_numbers(text: str) -> str:
     return re.sub(r"\d+(?:[.,]\d+)?", "#", text)
 
@@ -125,8 +138,13 @@ def audit(
     reference: Track | None,
     window_s: tuple[float, float],
     backend: LanguageBackend | None = None,
+    depth_scaled: bool = False,
 ) -> tuple[AuditVerdict, dict[str, Any]]:
-    """One Muse Spark call. A failed call vetoes (AGENTS.md rule 3: if the audit fails, abstain)."""
+    """One Muse Spark call. A failed call vetoes (AGENTS.md rule 3: if the audit fails, abstain).
+
+    depth_scaled: the camera distances are known (QuantiPhy 3D depth_info) and the engine already
+    corrects the scale for them, so the same-plane question is dropped from the prompt.
+    """
     frames = keyframe_ids(target, *window_s)
     images = render(video, target, reference, frames)
     prompt = PROMPT.format(
@@ -134,6 +152,8 @@ def audit(
         target=spec.target_phrase,
         reference=spec.reference_phrase or "none (the target sets its own scale)",
     )
+    if depth_scaled:
+        prompt = prompt.replace(SAME_PLANE_ITEM, DEPTH_SCALED_ITEM).replace(DEPTH_VETO, "")
     backend = backend or MetaApiBackend()
     try:
         raw, info = backend.json_with_images(images, prompt, SCHEMA, "AuditVerdict")

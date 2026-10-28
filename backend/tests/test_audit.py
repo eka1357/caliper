@@ -71,3 +71,13 @@ def test_schema_matches_verdict_fields():
 
     assert set(audit.SCHEMA["properties"]) == set(AuditVerdict.model_fields)
     assert audit.SCHEMA["additionalProperties"] is False
+
+
+def test_depth_scaled_prompt_drops_same_plane_judgement(monkeypatch):
+    monkeypatch.setattr(audit, "render", lambda *a, **k: [b"png"] * 4)
+    flat, scaled = Fake(verdict()), Fake(verdict())
+    audit.audit(Path("v.mp4"), "q", SPEC, track(), track(), (0, 1), flat)
+    audit.audit(Path("v.mp4"), "q", SPEC, track(), track(), (0, 1), scaled, depth_scaled=True)
+    assert audit.SAME_PLANE_ITEM in flat.prompts[0]  # 2D prompt unchanged
+    assert audit.SAME_PLANE_ITEM not in scaled.prompts[0]
+    assert "different depth" not in scaled.prompts[0] and "do not judge depth" in scaled.prompts[0]

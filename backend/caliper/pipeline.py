@@ -216,7 +216,8 @@ def measure(
     verdict = None
     if config.AUDIT_ENABLED if audit is None else audit:
         verdict, info = audit_step.audit(ctx.path, question, spec, target, reference,
-                                         window_frames(inputs), backend)  # fmt: skip
+                                         window_frames(inputs), backend,
+                                         depth_scaled=bool(spec.depth_info))  # fmt: skip
         muse_cost += info["cost_usd"]
         artifacts["audit_call"] = {k: info.get(k) for k in ("usage", "cost_usd", "keyframes")}
         if not verdict.approve:
