@@ -41,11 +41,13 @@ log = logging.getLogger("quantiphy")
 HAND_SPECS = EVAL / "specs" / "phase1_dev_2d.json"
 MUSE_SPECS = EVAL / "specs" / "phase2_muse_dev_2d.json"
 SPEC_CACHE = config.CACHE_DIR / "specs"
-VARIANTS = ("caliper", "caliper_rule_parser", "caliper_hand_spec")
+VARIANTS = ("caliper", "caliper_no_audit", "caliper_rule_parser", "caliper_hand_spec")
+MUSE_SPEC_VARIANTS = ("caliper", "caliper_no_audit")  # same cached Muse specs
 SAM_CEILING_USD = 1.50  # Phase 2 plan: SAM for new phrases, both variants
 MUSE_CEILING_USD = 6.0  # human, Phase 2: stop if the spec writer run is projected above this
 SOURCES = {
-    "caliper": "eval/quantiphy.py (dev 2D only; Muse Spark spec writer, caliper/spec.py)",
+    "caliper": "eval/quantiphy.py (dev 2D only; Muse Spark spec writer, checks, visual audit)",
+    "caliper_no_audit": "eval/quantiphy.py (dev 2D only; Muse Spark spec writer, checks, no audit)",
     "caliper_rule_parser": "eval/quantiphy.py (dev 2D only; A1 rule parser, eval/ablation.py)",
     "caliper_hand_spec": "eval/quantiphy.py (dev 2D only; hand-written specs "
     "eval/specs/phase1_dev_2d.json)",
@@ -171,7 +173,7 @@ def sam_cached(ctx: VideoContext, phrase: str) -> bool:
 
 
 def offline_spec(variant: str, entry: dict, q: pd.Series) -> MeasurementSpec | None:
-    if variant == "caliper":
+    if variant in MUSE_SPEC_VARIANTS:
         rec = muse_spec_cached(entry["row_id"])
         return MeasurementSpec(**rec["spec"]) if rec and rec.get("spec") else None
     if variant == "caliper_rule_parser":
@@ -184,7 +186,7 @@ def estimate(variant: str, entries, dataset, ctxs) -> float:
     missing_specs = 0
     for e in entries:
         spec = offline_spec(variant, e, dataset.loc[e["row_id"]])
-        if variant == "caliper" and muse_spec_cached(e["row_id"]) is None:
+        if variant in MUSE_SPEC_VARIANTS and muse_spec_cached(e["row_id"]) is None:
             missing_specs += 1
         if spec is None:
             continue
@@ -254,6 +256,39 @@ def worst(variant: str, n: int) -> None:
               f"instances={run_['artifacts'].get('instances')}")  # fmt: skip
 
 
+def check_report(variant: str, entries: list[dict], dataset: pd.DataFrame) -> None:
+    """Per check: bad answers (off by > 2x before checks) it catches, good answers it kills."""
+    rd = runs_dir(variant)
+    rows = []
+    for e in entries:
+        p = rd / f"{e['row_id']}.json"
+        run_ = json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+        if not run_ or run_["artifacts"].get("unchecked_value") is None:
+            continue
+        gt = float(dataset.loc[e["row_id"], "ground_truth_posterior"])
+        ratio = abs(run_["artifacts"]["unchecked_value"]) / gt
+        failed = {c["name"] for c in run_["checks"] if not c["passed"]}
+        rows.append((e["row_id"], ratio, failed, abs(ratio - 1) < 0.1))
+    bad = [r for r in rows if r[1] > 2 or r[1] < 0.5]
+    good = [r for r in rows if not (r[1] > 2 or r[1] < 0.5)]
+    print(f"{variant}: {len(rows)} answered before checks: {len(bad)} off by > 2x, "
+          f"{len(good)} not; {sum(r[3] for r in rows)} within 10%")  # fmt: skip
+    names = sorted({n for r in rows for n in r[2]})
+    for n in names:
+        caught = [r[0] for r in bad if n in r[2]]
+        killed = [r[0] for r in good if n in r[2]]
+        killed10 = [r[0] for r in good if n in r[2] and r[3]]
+        print(f"  {n:20s} catches {len(caught)}/{len(bad)} {caught}  "
+              f"kills {len(killed)}/{len(good)} "
+              f"{killed} (within 10%: {killed10})")  # fmt: skip
+    kept = [r for r in rows if not r[2]]
+    off = sum(1 for r in kept if r[1] > 2 or r[1] < 0.5)
+    w10 = sum(1 for r in kept if r[3])
+    print(f"  after all checks: answered {len(kept)}/{len(entries)}, "
+          f"off by > 2x {off}/{len(kept)}, "
+          f"within 10% {w10}/{len(kept)}")  # fmt: skip
+
+
 def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs) -> None:
     rd = runs_dir(variant)
     rd.mkdir(parents=True, exist_ok=True)
@@ -264,11 +299,18 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs) -> None:
         run_id = f"{variant}-{e['row_id']}"
         spec, why, _ = get_spec(variant, e, q, ctx)
         res: Result = (
-            measure(ctx, q.question, q.ground_truth_prior, spec=spec, run_id=run_id)
+            measure(
+                ctx,
+                q.question,
+                q.ground_truth_prior,
+                spec=spec,
+                run_id=run_id,
+                audit=variant == "caliper",
+            )
             if spec is not None
             else abstained(why, run_id, method="spec")
         )
-        if variant == "caliper":
+        if variant in MUSE_SPEC_VARIANTS:
             rec = muse_spec_cached(e["row_id"]) or {}
             res.cost_usd += rec.get("cost_usd", 0.0)
             muse_cost += rec.get("cost_usd", 0.0)
@@ -305,6 +347,8 @@ def main() -> None:
     ap.add_argument("--estimate", action="store_true")
     ap.add_argument("--compare-specs", action="store_true")
     ap.add_argument("--worst", type=int, default=0)
+    ap.add_argument("--check-report", action="store_true", help="per-check catches (no API)")
+    ap.add_argument("--audit-pilot", type=int, default=0, help="audit one row, print, no results")
     ap.add_argument(
         "--sam-ceiling",
         type=float,
@@ -318,6 +362,18 @@ def main() -> None:
     if args.worst:
         worst(args.variant, args.worst)
         return
+    if args.audit_pilot:
+        e = next(x for x in entries if x["row_id"] == args.audit_pilot)
+        q = dataset.loc[e["row_id"]]
+        ctx = contexts([e], dataset)[e["video_id"]]
+        spec, why, _ = get_spec("caliper", e, q, ctx)
+        res = measure(ctx, q.question, q.ground_truth_prior, spec=spec, audit=True)
+        print(res.status, res.abstain_reason, res.audit)
+        print("audit call:", res.artifacts.get("audit_call"))
+        return
+    if args.check_report:
+        check_report(args.variant, entries, dataset)
+        return
     if args.compare_specs:
         compare_specs(entries, dataset)
         return
@@ -328,7 +384,9 @@ def main() -> None:
     est = estimate(args.variant, entries, dataset, ctxs)
     if args.estimate:
         return
-    if args.variant == "caliper" and any(muse_spec_cached(e["row_id"]) is None for e in entries):
+    if args.variant in MUSE_SPEC_VARIANTS and any(
+        muse_spec_cached(e["row_id"]) is None for e in entries
+    ):
         sys.exit("STOP: run --specs-only first (Muse calls need their own approval)")
     if est > args.sam_ceiling:
         sys.exit(f"STOP: SAM estimate ${est:.2f} is above ${args.sam_ceiling:.2f}")

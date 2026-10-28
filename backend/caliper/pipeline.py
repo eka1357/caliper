@@ -11,10 +11,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from caliper import audit as audit_step
 from caliper import config, engine
 from caliper.backends import LanguageBackend
+from caliper.checks import CheckInputs, first_failure, run_checks, window_frames
 from caliper.engine import Abstain
-from caliper.models import MeasurementSpec, Result, Track
+from caliper.models import AuditVerdict, Check, MeasurementSpec, Result, Track
 from caliper.normalize import normalize, probe
 from caliper.segment import (
     sam_cost_usd,
@@ -81,13 +83,15 @@ def _stub_spec() -> MeasurementSpec:
 
 def abstained(
     reason: str, run_id: str, spec: MeasurementSpec | None = None, method: str = "",
-    artifacts: dict | None = None, cost_usd: float = 0.0,
+    artifacts: dict | None = None, cost_usd: float = 0.0, checks: list[Check] | None = None,
+    audit: AuditVerdict | None = None,
 ) -> Result:  # fmt: skip
     spec = spec or _stub_spec()
     return Result(
         run_id=run_id, status="abstained", value=None, unit=spec.output_unit, interval_90=None,
-        quantity=spec.quantity, spec=spec, scale_m_per_px=None, method=method, checks=[],
-        audit=None, abstain_reason=reason, artifacts=artifacts or {}, backend="meta_api",
+        quantity=spec.quantity, spec=spec, scale_m_per_px=None, method=method,
+        checks=checks or [], audit=audit, abstain_reason=reason, artifacts=artifacts or {},
+        backend="meta_api",
         cost_usd=cost_usd, timings_ms={},
     )  # fmt: skip
 
@@ -101,6 +105,7 @@ def measure(
     depth_info: dict | None = None,
     run_id: str = "",
     backend: LanguageBackend | None = None,
+    audit: bool | None = None,
 ) -> Result:
     """One question on one video. Abstains (never guesses) when any step cannot support a number."""
     ctx = video if isinstance(video, VideoContext) else VideoContext(video)
@@ -162,11 +167,38 @@ def measure(
     interval = (
         tuple(engine.to_unit(x, spec.output_unit) for x in m.interval_si) if m.interval_si else None
     )
-    artifacts.update(value_px=m.value_px, bootstrap_ok=m.bootstrap_ok)
+    value = engine.to_unit(m.value_si, spec.output_unit)
+    artifacts.update(value_px=m.value_px, bootstrap_ok=m.bootstrap_ok, unchecked_value=value,
+                     unchecked_interval=interval)  # fmt: skip
+    inputs = CheckInputs(
+        spec=spec,
+        target=engine.Series.from_track(target),
+        reference=engine.Series.from_track(reference) if reference is not None else None,
+        value_si=m.value_si,
+        interval_si=m.interval_si,
+        scale_m_per_px=m.scale_m_per_px,
+        frame_width=ctx.width,
+        clip_frames=ctx.frames,
+        fps=ctx.fps,
+        use_depth=spec.depth_info is not None,
+    )
+    checks = run_checks(inputs)
+    reason = first_failure(checks, spec.target_phrase) if config.CHECKS_ENABLED else None
+    if reason:
+        return abstained(reason, run_id, spec, m.method, artifacts, cost(), checks)
+    verdict = None
+    if config.AUDIT_ENABLED if audit is None else audit:
+        verdict, info = audit_step.audit(ctx.path, question, spec, target, reference,
+                                         window_frames(inputs), backend)  # fmt: skip
+        muse_cost += info["cost_usd"]
+        artifacts["audit_call"] = {k: info.get(k) for k in ("usage", "cost_usd", "keyframes")}
+        if not verdict.approve:
+            return abstained(f"Evidence check: {verdict.reason}", run_id, spec, m.method,
+                             artifacts, cost(), checks, verdict)  # fmt: skip
     return Result(
-        run_id=run_id, status="measured", value=engine.to_unit(m.value_si, spec.output_unit),
+        run_id=run_id, status="measured", value=value,
         unit=spec.output_unit, interval_90=interval, quantity=spec.quantity, spec=spec,
-        scale_m_per_px=m.scale_m_per_px, method=m.method, checks=[], audit=None,
+        scale_m_per_px=m.scale_m_per_px, method=m.method, checks=checks, audit=verdict,
         abstain_reason=None, artifacts=artifacts, backend="meta_api", cost_usd=cost(),
         timings_ms={},
     )  # fmt: skip
