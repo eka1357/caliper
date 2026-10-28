@@ -56,6 +56,17 @@ Copied rows carry a `source` column.
 
 Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra_S3, mra_D3, abstain_rate, share_within_10pct, share_off_2x, n, cost_usd, run_date, source`. `share_within_10pct` is the share of all n questions with relative error below 10%; `share_off_2x` is the share with pred/truth above 2 or below 0.5. Both count an invalid answer as a miss; both are computed by `eval/baseline_analysis.py` from the prediction CSV.
 
+### 4a. Answered-only reporting (pre-registered 2026-10-28, before the first Phase 1 tuning rerun)
+
+- The official MRA (scorer output, an abstention counts as a miss) stays the headline benchmark number everywhere it is shown.
+- Also reported, for every variant and split, as extra columns in `eval/results.csv`:
+  - `coverage`: share of the n questions answered (a valid, nonzero number);
+  - `mra_answered`: mean per-question MRA over the answered questions only (pooled over questions, not averaged over categories);
+  - `share_within_10pct_answered` and `share_off_2x_answered`: the two error shares over the answered questions only.
+- Like-for-like comparison: `eval/paired_results.csv` reports `muse_spark_alone` on exactly the questions each Caliper variant answered, with columns `variant, split, category, n_answered, mra_variant, mra_muse, within10_variant, within10_muse, off2x_variant, off2x_muse` (`category` = S2, D2, S3, D3 or `all`).
+- All of these are computed by `eval/baseline_analysis.py` from the prediction CSVs.
+- No variant may fill Caliper's abstentions with an LLM's answers. Abstentions stay abstentions.
+
 ## 5. Field set metrics
 
 - Relative error per clip: `abs(pred - truth) / truth`. Report median and 90th percentile.
