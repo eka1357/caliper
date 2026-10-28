@@ -12,7 +12,6 @@ second Muse call per question stays free for the audit (AGENTS.md rule 2).
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -156,9 +155,32 @@ quantity "speed", statistic "instantaneous", axis "path", timestamp_s 2.0, time_
 """
 
 
-def prompt_for(question: str, prior: str | None) -> str:
-    return PROMPT.format(question=question, prior=prior or "none",
+DEPTH_PROMPT = """
+Depth: the distance from the camera is known (values hidden from you) for these objects: \
+{keys}. Set target_depth_key to the one naming the target and reference_depth_key to the one \
+naming the reference object (the target's key if the prior describes the target itself), or \
+null if none fits.
+"""
+DEPTH_FIELDS = ("target_depth_key", "reference_depth_key")
+
+
+def prompt_for(question: str, prior: str | None, depth_keys: list[str] | None = None) -> str:
+    text = PROMPT.format(question=question, prior=prior or "none",
                          known=", ".join(f'"{k}"' for k in config.KNOWN_OBJECTS))  # fmt: skip
+    if depth_keys:
+        text += DEPTH_PROMPT.format(keys=", ".join(depth_keys))
+    return text
+
+
+def schema_for(depth_keys: list[str] | None) -> dict[str, Any]:
+    """The strict schema; depth key fields only when the question has depth information, so
+    2D requests stay byte-identical (and cached)."""
+    if not depth_keys:
+        return SCHEMA
+    props = dict(PROPERTIES)
+    for f in DEPTH_FIELDS:
+        props[f] = _s(f"Depth key for the {f.split('_')[0]}", list(depth_keys), True)
+    return {**SCHEMA, "properties": props, "required": list(props)}
 
 
 def _alts(main: str | None, alts: list[str]) -> list[str]:
@@ -174,10 +196,14 @@ def _alts(main: str | None, alts: list[str]) -> list[str]:
 
 def postprocess(raw: dict[str, Any], prior: str | None, depth_info: dict | None) -> MeasurementSpec:
     """Validate the model's JSON and apply the deterministic checks."""
-    extra = set(raw) - set(PROPERTIES)
+    allowed = set(PROPERTIES) | (set(DEPTH_FIELDS) if depth_info else set())
+    extra = set(raw) - allowed
     if extra:
         log.warning("spec writer returned extra keys, ignored: %s", sorted(extra))
-    data = {k: raw[k] for k in PROPERTIES if k in raw}
+    data = {k: raw[k] for k in allowed if k in raw}
+    for f in DEPTH_FIELDS:  # a key must name a listed object, never a number
+        if data.get(f) is not None and data[f] not in (depth_info or {}):
+            data[f] = None
     data["target_alt_phrases"] = _alts(
         data.get("target_phrase"), data.get("target_alt_phrases") or []
     )
@@ -231,13 +257,10 @@ def write_spec(
     """One Muse Spark call. Returns the spec and call info (usage, cost, raw JSON)."""
     backend = backend or MetaApiBackend()
     try:
-        raw, info = backend.json_with_video(video, prompt_for(question, prior), SCHEMA,
-                                            "MeasurementSpec")  # fmt: skip
+        keys = sorted(depth_info) if depth_info else None
+        raw, info = backend.json_with_video(video, prompt_for(question, prior, keys),
+                                            schema_for(keys), "MeasurementSpec")  # fmt: skip
     except BackendError as exc:
         raise SpecError(str(exc)) from exc
     info = {**info, "raw": raw}
     return postprocess(raw, prior, depth_info), info
-
-
-def spec_json(spec: MeasurementSpec) -> str:
-    return json.dumps(spec.model_dump(), sort_keys=True)

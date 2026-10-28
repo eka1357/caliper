@@ -117,10 +117,20 @@ def gravity_fit(s: Series) -> tuple[float, float, float]:
 
 
 def gravity_reference(inp: CheckInputs) -> Check:
+    """Acceleration reference: a clear parabola. Vertical (gravity): downward along y. Other
+    axes (e.g. a car's given acceleration): a clear quadratic along its principal direction."""
     if inp.spec.reference_kind != "acceleration":
         return _na("gravity_reference")
     ref = inp.reference if inp.reference is not None else inp.target
-    a, r2, dy = gravity_fit(ref)
+    if inp.spec.reference_axis != "vertical":
+        centred = ref.pos - ref.pos.mean(axis=0)
+        u = np.linalg.svd(centred, full_matrices=False)[2][0]
+        along = Series(ref.t, np.stack([np.zeros(len(ref)), centred @ u], axis=1), ref.area,
+                       ref.ext, ref.frames)  # fmt: skip
+        a, r2, dy = gravity_fit(along)
+        a = abs(a)
+    else:
+        a, r2, dy = gravity_fit(ref)
     ok = a > 0 and r2 >= config.GRAVITY_MIN_R2 and dy >= config.GRAVITY_MIN_DY_PX
     return _check("gravity_reference", ok, r2,
                   f"downward acceleration > 0, R^2 >= {config.GRAVITY_MIN_R2}, "

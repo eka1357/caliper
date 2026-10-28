@@ -46,7 +46,9 @@ class MeasurementSpec(BaseModel):
     time_anchor: TimeAnchor = "timestamp"
     time_range_s: tuple[float, float] | None = None  # average over a window of the clip
     output_unit: str  # unit the question asks for
-    depth_info: dict | None  # QuantiPhy 3D field, passed through untouched
+    depth_info: dict | None  # QuantiPhy 3D: parsed {object key: [(t, metres)]}, see depth.py
+    target_depth_key: str | None = None  # key of depth_info naming the target (3D only)
+    reference_depth_key: str | None = None  # key naming the reference (3D only)
     plausible_range_si: tuple[float, float]  # sanity bounds proposed by the model
     notes: str = ""
 

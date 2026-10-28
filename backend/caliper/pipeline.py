@@ -11,10 +11,13 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from caliper import audit as audit_step
 from caliper import config, engine
 from caliper.backends import LanguageBackend
 from caliper.checks import CheckInputs, first_failure, run_checks, window_frames
+from caliper.depth import depth_ratio
 from caliper.engine import Abstain
 from caliper.models import AuditVerdict, Check, MeasurementSpec, Result, Track
 from caliper.normalize import normalize, probe
@@ -71,6 +74,25 @@ class VideoContext:
                 return track, rule, phrase
         tried = ", ".join(f"'{p}'" for p in phrases)
         raise Abstain(f"SAM found no {tried}")
+
+
+def _depth_ratio(spec: MeasurementSpec, target: Track, reference: Track | None) -> float:
+    """Pinhole: metres per pixel scale with distance. Target at the asked time (or the middle of
+    its frames), reference over its frames (median time)."""
+    t_times = [f.t_s for f in target.frames]
+    if spec.timestamp_s is not None:
+        t_target = spec.timestamp_s
+    elif spec.time_range_s is not None:
+        t_target = sum(spec.time_range_s) / 2
+    else:
+        t_target = float(np.median(t_times))
+    ref = reference if reference is not None else target
+    t_ref = float(np.median([f.t_s for f in ref.frames]))
+    ref_key = spec.reference_depth_key or (spec.target_depth_key if reference is None else None)
+    try:
+        return depth_ratio(spec.depth_info, spec.target_depth_key, ref_key, t_target, t_ref)
+    except KeyError as exc:
+        raise Abstain(f"No depth is given for the {exc.args[0]}.") from exc
 
 
 def _stub_spec() -> MeasurementSpec:
@@ -162,6 +184,11 @@ def measure(
             "clip": ctx.frames,
         }
         m = engine.measure(spec, target, reference, second)
+        if spec.depth_info:
+            ratio = _depth_ratio(spec, target, reference)
+            m.value_si *= ratio
+            m.interval_si = tuple(x * ratio for x in m.interval_si) if m.interval_si else None
+            artifacts["depth_ratio"] = ratio
     except Abstain as exc:
         return abstained(str(exc), run_id, spec, "engine", artifacts, cost())
     interval = (
