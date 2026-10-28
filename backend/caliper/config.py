@@ -70,4 +70,4 @@ FPS_MISMATCH_TOL = 0.01  # human, Phase 0 finding 1: log when dataset fps differ
 # Dev tuning C (human-approved, 2026-10-28): minimum window for acceleration fits only, one
 # value chosen from {0.0 (same as speed), 0.6, 1.0} s by dev MRA on the 5 dev 2D acceleration
 # questions. See DECISIONS.md.
-ACCEL_WINDOW_MIN_S = 1.0  # dev MRA on 5 accel questions: 0.320 (0.0), 0.420 (0.6), 0.440 (1.0)
+ACCEL_WINDOW_MIN_S = 0.0  # 1.0 s tried on dev, reverted 2026-10-28 (DECISIONS.md)
