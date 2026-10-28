@@ -44,7 +44,8 @@ NORMALIZED_DIR = CACHE_DIR / "normalized"
 
 # QuantiPhy split (EVAL_PROTOCOL section 2). The sha256 rule gave 8 dev / 16 holdout on the
 # 24 validation videos, outside the allowed 10 to 14, so the protocol's fallback applies:
-# a fixed seeded shuffle of the sorted video_ids, first half dev. Seed = building-period start.
+# a fixed seeded shuffle of the sorted video_ids, stratified by 2D/3D (human decision,
+# 2026-10-28, so holdout is not 15 2D questions vs 68 3D). Seed = building-period start.
 SPLIT_SEED = 20261027
 SPLIT_HASH_MIN_DEV = 10
 SPLIT_HASH_MAX_DEV = 14

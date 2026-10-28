@@ -4,6 +4,7 @@ Newest first. Add a row whenever a decision changes scope, architecture, metrics
 
 | Date | Decision | Why | Revisit if |
 | --- | --- | --- | --- |
+| 2026-10-28 | QuantiPhy split: seeded shuffle (seed 20261027) stratified by video dimension, 6 of 12 2D and 6 of 12 3D videos per side; frozen in `eval/split.csv` by `eval/make_split.py` | The sha256 rule gave 8 dev / 16 holdout videos, outside the protocol's 10 to 14, so its seeded-shuffle fallback applies; an unstratified shuffle left holdout with 15 2D vs 68 3D questions. Human chose stratified | Never (the split is frozen) |
 | 2026-10-26 | Live cost caps: $0.50 per measure run, $1.50 per study (60 s max), $5 a day, each checked on a cost estimate before any API call | The first caps contradicted each other: a $0.25 run cap would have refused every live study (a 3-minute study is about $3.24) | Judges hit the caps often during judging |
 | 2026-10-26 | Start all code at Oct 27 00:00 ET (9:30 AM IST) | Official building period is Oct 27 to Nov 4; removes any "new work only" doubt | Never |
 | 2026-10-26 | Add a second Muse Spark call: visual audit, veto only | New rubric scores Use of Meta AI Tooling equally; the audit catches wrong-object tracks and out-of-plane references that checks cannot see, and it is measured (A2) | Audit vetoes many correct results on dev |
