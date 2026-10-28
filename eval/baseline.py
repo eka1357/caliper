@@ -32,6 +32,7 @@ VIDEOS_BY_ID = config.QUANTIPHY_DIR / "videos_by_id"
 WORK = config.CACHE_DIR / "baseline"
 VARIANT = "muse_spark_alone"
 CEILING_USD = 30.0  # human's hard ceiling for the full 158-question run (2026-10-28)
+STOP_USD = 25.0  # human: kill the run if cached Muse chat spend passes this (2026-10-28)
 RESULTS_COLUMNS = [
     "variant", "split", "mra_average", "mra_S2", "mra_D2", "mra_S3", "mra_D3",
     "abstain_rate", "n", "cost_usd", "run_date", "source",
@@ -80,10 +81,23 @@ def run_upstream(questions: pd.DataFrame, tag: str) -> pd.DataFrame:
         "PYTHONIOENCODING": "utf-8",
     }
     # Menu answers: method 1 (zero-shot), version 3 (original), Enter for the default provider.
-    subprocess.run(
+    proc = subprocess.Popen(
         [sys.executable, "run_API_results.py"],
-        cwd=UPSTREAM, env=env, input="1\n3\n\n", text=True, check=True, encoding="utf-8",
+        cwd=UPSTREAM, env=env, stdin=subprocess.PIPE, text=True, encoding="utf-8",
     )  # fmt: skip
+    assert proc.stdin is not None
+    proc.stdin.write("1\n3\n\n")
+    proc.stdin.close()
+    while proc.poll() is None:
+        try:
+            proc.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            spent = muse_cost_usd(chat_usage()[0])
+            if spent > STOP_USD:
+                proc.kill()
+                sys.exit(f"STOP: cached Muse spend ${spent:.2f} passed ${STOP_USD:.0f}; run killed")
+    if proc.returncode != 0:
+        sys.exit(f"upstream script failed with exit code {proc.returncode}")
     outputs = sorted((out_dir / "tables").glob("muse-spark-1.3_zero_shot_v3_results_2*.csv"))
     if not outputs:
         sys.exit(f"no upstream results CSV in {out_dir / 'tables'}")
