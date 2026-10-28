@@ -71,3 +71,20 @@ FPS_MISMATCH_TOL = 0.01  # human, Phase 0 finding 1: log when dataset fps differ
 # value chosen from {0.0 (same as speed), 0.6, 1.0} s by dev MRA on the 5 dev 2D acceleration
 # questions. See DECISIONS.md.
 ACCEL_WINDOW_MIN_S = 0.0  # 1.0 s tried on dev, reverted 2026-10-28 (DECISIONS.md)
+
+# Spec writer (ARCHITECTURE section 4). Structured output (Responses text.format json_schema,
+# strict) is confirmed for muse-spark-1.3 at https://dev.meta.ai/docs/structured-output
+# (checked 2026-10-29). Output budget covers reasoning; the Phase 0 baseline used up to 32,106
+# output tokens on one question, so 4000 would truncate.
+SPEC_MAX_OUTPUT_TOKENS = 16_000
+SPEC_ALT_PHRASES = 2  # human, Phase 1 lesson 2: two alternatives per phrase, tried with SAM only
+PRIOR_MISMATCH_TOL = 0.01  # model's reference_value_si vs the parsed prior; parsed value wins
+
+# Known-size objects the spec writer may use only when the question gives no prior
+# (ARCHITECTURE section 4). Sizes in metres, each with its source.
+KNOWN_OBJECTS = {
+    "INR 10 coin": {"size_m": 0.027, "axis": "disc", "source": "RBI: 27 mm diameter"},
+    "cricket ball": {"size_m": 0.072, "axis": "disc", "source": "MCC Law 4: about 72 mm"},
+    "A4 sheet": {"size_m": 0.297, "axis": "longest", "source": "ISO 216: 297 x 210 mm"},
+    "credit card": {"size_m": 0.0856, "axis": "longest", "source": "ISO/IEC 7810 ID-1: 85.6 mm"},
+}

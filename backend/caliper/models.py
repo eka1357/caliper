@@ -32,6 +32,7 @@ class MeasurementSpec(BaseModel):
     second_phrase: str | None = None  # separation / orbit_diameter: the other object
     second_instance: Instance = "auto"
     reference_phrase: str | None  # None when the prior describes the target itself
+    reference_alt_phrases: list[str] = []  # tried with SAM only when the main phrase finds nothing
     reference_instance: Instance = "auto"
     reference_kind: Literal["size", "speed", "acceleration", "given_prior", "known_object"]
     reference_statistic: Literal["extent", "average_speed", "acceleration"] = "extent"
