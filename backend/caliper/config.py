@@ -53,3 +53,17 @@ SPLIT_HASH_MAX_DEV = 14
 # Normalize (ARCHITECTURE section 2)
 NORMALIZE_MAX_WIDTH = 1280
 NORMALIZE_CRF = 18
+
+# Engine (ARCHITECTURE section 6). Starting values; tune on the QuantiPhy dev split only, and log
+# every change in DECISIONS.md.
+FIT_WINDOW_MIN_FRAMES = 9  # ARCHITECTURE section 6: window = max(9 frames, 0.30 s)
+FIT_WINDOW_MIN_S = 0.30  # ARCHITECTURE section 6
+FIT_MIN_POINTS = 5  # human, Phase 0 finding 3: fit detected frames only; fewer than this abstains
+AREA_STABLE_BAND = 0.15  # human, Phase 0 finding 4: size frames within +-15% of median mask area
+AREA_STABLE_MIN_FRAMES = 5  # same finding: fewer stable frames than this abstains
+INSTANCE_MIN_FRAME_SHARE = 0.30  # Phase 1 plan: drop candidates seen on < 30% of frames
+SEPARATION_MAX_GAP_S = 0.10  # both objects must be seen within this of the asked time
+BOOTSTRAP_B = 500  # ARCHITECTURE section 6
+BOOTSTRAP_SEED = 20261027  # fixed so intervals are reproducible; building-period start
+JITTER_PX = 1.0  # ARCHITECTURE section 6: reference and target extents jittered by +-1 px
+FPS_MISMATCH_TOL = 0.01  # human, Phase 0 finding 1: log when dataset fps differs from ffprobe
