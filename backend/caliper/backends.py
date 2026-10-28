@@ -6,6 +6,7 @@ cached on disk (meta_client). MuseSparkOpenBackend: stretch (Phase 6), not imple
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 from pathlib import Path
@@ -28,6 +29,12 @@ class LanguageBackend(Protocol):
         self, video: Path, prompt: str, schema: dict[str, Any], schema_name: str
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """One call with a video and a prompt; returns (parsed JSON, call info)."""
+        ...
+
+    def json_with_images(
+        self, images: list[bytes], prompt: str, schema: dict[str, Any], schema_name: str
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """One call with PNG images and a prompt; returns (parsed JSON, call info)."""
         ...
 
 
@@ -73,7 +80,33 @@ class MetaApiBackend:
             },
             "max_output_tokens": config.SPEC_MAX_OUTPUT_TOKENS,
         }
-        record = responses_create(payload, self.cache)
+        return self._parse(responses_create(payload, self.cache))
+
+    def json_with_images(
+        self, images: list[bytes], prompt: str, schema: dict[str, Any], schema_name: str
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """One call with PNG images (base64 data URLs) and a prompt; strict JSON output."""
+        content: list[dict[str, Any]] = [{"type": "input_text", "text": prompt}]
+        content += [
+            {"type": "input_image", "image_url": "data:image/png;base64," + _b64(img)}
+            for img in images
+        ]
+        payload = {
+            "model": config.MUSE_MODEL,
+            "input": [{"type": "message", "role": "user", "content": content}],
+            "text": {
+                "format": {
+                    "type": "json_schema",
+                    "name": schema_name,
+                    "schema": schema,
+                    "strict": True,
+                }
+            },
+            "max_output_tokens": config.SPEC_MAX_OUTPUT_TOKENS,
+        }
+        return self._parse(responses_create(payload, self.cache))
+
+    def _parse(self, record: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
         resp = record["response"]
         info = {
             "key": record["key"],
@@ -91,6 +124,10 @@ class MetaApiBackend:
             raise BackendError(f"model output is not JSON: {exc}") from exc
 
 
+def _b64(data: bytes) -> str:
+    return base64.b64encode(data).decode("ascii")
+
+
 class MuseSparkOpenBackend:
     """Stretch (Phase 6): meta-models/muse-spark-open-1026 on Baseten, keyframes as images."""
 
@@ -98,5 +135,10 @@ class MuseSparkOpenBackend:
 
     def json_with_video(
         self, video: Path, prompt: str, schema: dict[str, Any], schema_name: str
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        raise NotImplementedError("Muse Spark Open backend is a Phase 6 stretch goal")
+
+    def json_with_images(
+        self, images: list[bytes], prompt: str, schema: dict[str, Any], schema_name: str
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         raise NotImplementedError("Muse Spark Open backend is a Phase 6 stretch goal")

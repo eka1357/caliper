@@ -12,6 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+import cv2
 import numpy as np
 from meta_sam_parser import (
     CompletedOutcome,
@@ -23,7 +24,14 @@ from meta_sam_parser import (
 from pydantic import BaseModel
 
 from caliper import config
-from caliper.meta_client import DiskCache, cached_call, file_sha256, get_client, upload_file
+from caliper.meta_client import (
+    DiskCache,
+    cached_call,
+    file_sha256,
+    get_client,
+    request_key,
+    upload_file,
+)
 from caliper.models import Track, TrackFrame
 
 log = logging.getLogger(__name__)
@@ -309,3 +317,43 @@ def same_object_conflict(
         if other is target and selector != target_selector:
             return f"target and {name} resolved to the same object"
     return None
+
+
+def mask_rasters(
+    video: Path, phrase: str, object_id: str, frames: list[int], width: int, height: int,
+    cache: DiskCache | None = None,
+) -> dict[int, np.ndarray]:  # fmt: skip
+    """Full-frame binary masks of one object on the given frames, from the cached SAM response.
+
+    Cache only: returns {} when the segmentation is not cached (never calls the API).
+    """
+    payload = {
+        "model": config.SAM_MODEL,
+        "video_sha256": file_sha256(Path(video)),
+        "phrase": phrase,
+        "metadata": {"include_confidence": "true"},
+    }
+    record = (cache or DiskCache()).get(request_key({"kind": "sam", **payload}))
+    if record is None:
+        return {}
+    parser = video_segmentation_format().create_parser()
+    parser.push(record["response"]["raw_output"], emit=False)
+    wanted = set(frames)
+    out: dict[int, np.ndarray] = {}
+    for rec in parser.finish(CompletedOutcome()).result.records:
+        if not isinstance(rec, SegmentationMaskRecord) or rec.frame is None:
+            continue
+        f = rec.frame.frame_index
+        if f not in wanted or rec.object_id != object_id:
+            continue
+        m, b = rec.mask, rec.bounds
+        local = np.frombuffer(decode_mask_to_raster(m), dtype=np.uint8).reshape(m.height, m.width)
+        x0, y0 = int(round(b.left)), int(round(b.top))
+        w, h = max(1, int(round(b.right - b.left))), max(1, int(round(b.bottom - b.top)))
+        if (w, h) != (m.width, m.height):
+            local = cv2.resize(local, (w, h), interpolation=cv2.INTER_NEAREST)
+        full = np.zeros((height, width), np.uint8)
+        x1, y1 = min(width, x0 + w), min(height, y0 + h)
+        full[max(0, y0) : y1, max(0, x0) : x1] = local[max(0, -y0) : y1 - y0, max(0, -x0) : x1 - x0]
+        out[f] = full
+    return out
