@@ -343,6 +343,7 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs, dims: st
             rec = muse_spec_cached(e["row_id"]) or {}
             res.cost_usd += rec.get("cost_usd", 0.0)
             muse_cost += rec.get("cost_usd", 0.0)
+        muse_cost += (res.artifacts.get("audit_call") or {}).get("cost_usd") or 0.0  # call 2
         sam_requests |= {(e["video_id"], p) for p in res.artifacts.get("phrases_tried", [])}
         (rd / f"{e['row_id']}.json").write_text(res.model_dump_json(indent=1), encoding="utf-8")
         preds[e["row_id"]] = res.value
