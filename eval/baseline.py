@@ -112,6 +112,7 @@ def score(pred: pd.DataFrame, split: str) -> dict[str, float]:
     proc = subprocess.run(
         [sys.executable, "evaluator.py", str(in_dir), str(out_dir), "--gt_file", str(DATASET)],
         cwd=QP, capture_output=True, text=True, check=True, encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},  # it prints a check mark; cp1252 fails
     )  # fmt: skip
     expected = f"Matched {len(pred)}/{len(pred)}"
     if expected not in proc.stdout:
