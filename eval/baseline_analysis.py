@@ -35,6 +35,13 @@ def error_shares(part: pd.DataFrame) -> dict[str, float]:
     return {"share_within_10pct": within.mean(), "share_off_2x": off.mean()}
 
 
+def split_part(df: pd.DataFrame, split: str) -> pd.DataFrame:
+    """Rows of a results split: full, dev, holdout, or dev_2d / dev_3d (one dimension)."""
+    name, _, dim = split.partition("_")
+    part = df if name == "full" else df[df.split == name]
+    return part[part.dim == dim.upper()] if dim else part
+
+
 def answered_metrics(part: pd.DataFrame) -> dict[str, float | str]:
     """Coverage, and MRA and error shares over the answered questions only (pooled)."""
     ans = part[~part.invalid]
@@ -62,7 +69,7 @@ def write_paired(loaded: dict[str, pd.DataFrame | None], rows: list[dict]) -> No
         df = loaded.get(v)
         if v == VARIANT or df is None:
             continue
-        part = df if split == "full" else df[df.split == split]
+        part = split_part(df, split)
         ans = part[~part.invalid]
         for cat in [*sorted(ans.category.unique()), "all"]:
             a = ans if cat == "all" else ans[ans.category == cat]
@@ -97,7 +104,7 @@ def update_results() -> None:
         df = loaded[v]
         if df is None:
             continue
-        part = df if row["split"] == "full" else df[df.split == row["split"]]
+        part = split_part(df, row["split"])
         row.update({k: round(x, 4) for k, x in error_shares(part).items()})
         row.update(answered_metrics(part))
     with open(RESULTS, "w", encoding="utf-8", newline="") as fh:

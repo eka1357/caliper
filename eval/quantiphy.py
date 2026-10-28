@@ -31,6 +31,7 @@ from ablation import rule_spec
 from baseline import DATASET, EVAL, QP, link_videos, score, write_results
 from baseline_analysis import load, update_results
 from caliper import config
+from caliper.depth import parse_depth
 from caliper.meta_client import DiskCache, file_sha256, muse_cost_usd, request_key
 from caliper.models import MeasurementSpec, Result
 from caliper.pipeline import VideoContext, abstained, measure
@@ -39,7 +40,8 @@ from caliper.spec import SpecError, write_spec
 
 log = logging.getLogger("quantiphy")
 HAND_SPECS = EVAL / "specs" / "phase1_dev_2d.json"
-MUSE_SPECS = EVAL / "specs" / "phase2_muse_dev_2d.json"
+MUSE_SPECS = {"2D": EVAL / "specs" / "phase2_muse_dev_2d.json",
+              "3D": EVAL / "specs" / "phase3_muse_dev_3d.json"}  # fmt: skip
 SPEC_CACHE = config.CACHE_DIR / "specs"
 VARIANTS = ("caliper", "caliper_no_audit", "caliper_rule_parser", "caliper_hand_spec")
 MUSE_SPEC_VARIANTS = ("caliper", "caliper_no_audit")  # same cached Muse specs
@@ -64,6 +66,21 @@ def hand_entries() -> list[dict]:
     return json.loads(HAND_SPECS.read_text(encoding="utf-8"))["specs"]
 
 
+def question_entries(dims: str, dataset: pd.DataFrame) -> list[dict]:
+    """Dev questions: 2D from the hand-spec file (the Phase 1 set), 3D from the dataset."""
+    out = hand_entries() if dims in ("2D", "all") else []
+    if dims in ("3D", "all"):
+        split = pd.read_csv(EVAL / "split.csv").set_index("video_id")["split"]
+        rows = dataset[(dataset.video_id.map(split) == "dev") & (dataset.video_type.str[1] == "3")]
+        out += [{"row_id": int(r), "video_id": v, "abstain_reason": None, "spec": None, "dim": "3D"}
+                for r, v in zip(rows["Unnamed: 0"], rows.video_id, strict=True)]  # fmt: skip
+    return out
+
+
+def is_3d(q: pd.Series) -> bool:
+    return str(q.video_type)[1] == "3"
+
+
 def runs_dir(variant: str):
     return config.CACHE_DIR / "runs" / variant
 
@@ -76,16 +93,20 @@ def muse_spec_cached(row: int) -> dict | None:
 def get_spec(variant: str, entry: dict, q: pd.Series, ctx: VideoContext) -> tuple:
     """(spec or None, abstain reason, muse call info) for one question. Muse calls are cached."""
     if variant == "caliper_hand_spec":
+        if entry.get("dim") == "3D":
+            return None, "no hand-written spec (3D)", None
         if entry["abstain_reason"]:
             return None, entry["abstain_reason"], None
         return MeasurementSpec(**entry["spec"]), "", None
     if variant == "caliper_rule_parser":
-        spec, why = rule_spec(q.question, q.ground_truth_prior)
+        spec, why = rule_spec(q.question, q.ground_truth_prior,
+                              parse_depth(q.depth_info) if is_3d(q) else None)  # fmt: skip
         return spec, why, None
     SPEC_CACHE.mkdir(parents=True, exist_ok=True)
     out = SPEC_CACHE / f"{entry['row_id']}.json"
     try:
-        spec, info = write_spec(ctx.path, q.question, q.ground_truth_prior)
+        depth = parse_depth(q.depth_info) if is_3d(q) else None
+        spec, info = write_spec(ctx.path, q.question, q.ground_truth_prior, depth)
     except SpecError as exc:
         rec = {"row_id": entry["row_id"], "video_id": entry["video_id"], "error": str(exc)}
         out.write_text(json.dumps(rec, indent=1), encoding="utf-8")
@@ -142,18 +163,25 @@ def specs_only(entries: list[dict], dataset: pd.DataFrame, rows: list[int]) -> N
 
 
 def write_muse_spec_file(entries: list[dict]) -> None:
+    for dim in ("2D", "3D"):
+        part = [e for e in entries if e.get("dim", "2D") == dim]
+        if part:
+            _write_muse_specs(part, dim)
+
+
+def _write_muse_specs(entries: list[dict], dim: str) -> None:
     out = []
     for e in entries:
         rec = muse_spec_cached(e["row_id"]) or {}
         out.append({"row_id": e["row_id"], "video_id": e["video_id"],
                     "error": rec.get("error"), "spec": rec.get("spec")})  # fmt: skip
     doc = {
-        "about": "Specs written by Muse Spark 1.3 (caliper/spec.py) for the QuantiPhy dev 2D "
+        "about": f"Specs written by Muse Spark 1.3 (caliper/spec.py) for the QuantiPhy dev {dim} "
         "questions. Keyed by dataset row id; no question text or answers stored.",
         "specs": out,
     }
-    MUSE_SPECS.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
-    print(f"wrote {len(out)} specs to {MUSE_SPECS}")
+    MUSE_SPECS[dim].write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+    print(f"wrote {len(out)} specs to {MUSE_SPECS[dim]}")
 
 
 def sam_phrases(spec: MeasurementSpec) -> list[str]:
@@ -177,7 +205,8 @@ def offline_spec(variant: str, entry: dict, q: pd.Series) -> MeasurementSpec | N
         rec = muse_spec_cached(entry["row_id"])
         return MeasurementSpec(**rec["spec"]) if rec and rec.get("spec") else None
     if variant == "caliper_rule_parser":
-        return rule_spec(q.question, q.ground_truth_prior)[0]
+        return rule_spec(q.question, q.ground_truth_prior,
+                         parse_depth(q.depth_info) if is_3d(q) else None)[0]  # fmt: skip
     return MeasurementSpec(**entry["spec"]) if entry["spec"] else None
 
 
@@ -289,7 +318,7 @@ def check_report(variant: str, entries: list[dict], dataset: pd.DataFrame) -> No
           f"within 10% {w10}/{len(kept)}")  # fmt: skip
 
 
-def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs) -> None:
+def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs, dims: str) -> None:
     rd = runs_dir(variant)
     rd.mkdir(parents=True, exist_ok=True)
     preds, muse_cost, sam_requests = {}, 0.0, set()
@@ -325,24 +354,28 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs) -> None:
     rows = dataset.loc[[e["row_id"] for e in entries]].reset_index(drop=True)
     rows["parsed_value"] = [preds[r] for r in rows["Unnamed: 0"]]
     rows.to_csv(QP / "model_outputs" / f"{variant}.csv", index=False)
-    m = score(rows, "dev", variant)
+    split = "dev" if dims == "all" else f"dev_{dims.lower()}"
+    m = score(rows, split, variant)
     write_results([{
-        "variant": variant, "split": "dev",
-        "mra_average": "",  # the scorer averages all 4 categories; these runs are 2D only
-        "mra_S2": m.get("mra_S2"), "mra_D2": m.get("mra_D2"), "mra_S3": "", "mra_D3": "",
+        "variant": variant, "split": split,
+        "mra_average": m.get("mra_average") or "",  # the scorer needs all 4 categories
+        **{k: m.get(k) if m.get(k) is not None else "" for k in
+           ("mra_S2", "mra_D2", "mra_S3", "mra_D3")},
         "abstain_rate": m.get("invalid_percentage", 0) / 100, "n": len(rows),
         "cost_usd": round(cost, 4), "run_date": date.today().isoformat(),
         "source": SOURCES[variant],
     }])  # fmt: skip
     update_results()
     print(f"{variant}: abstained {sum(v is None for v in preds.values())}/{len(preds)}; "
-          f"S2={m.get('mra_S2')} D2={m.get('mra_D2')} run cost ${cost:.4f}")  # fmt: skip
+          f"S2={m.get('mra_S2')} D2={m.get('mra_D2')} S3={m.get('mra_S3')} D3={m.get('mra_D3')} "
+          f"run cost ${cost:.4f}")  # fmt: skip
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--variant", choices=VARIANTS, default="caliper")
     ap.add_argument("--specs-only", action="store_true")
+    ap.add_argument("--dims", choices=("2D", "3D", "all"), default="2D", help="dev questions")
     ap.add_argument("--rows", type=int, nargs="*", default=[], help="row ids (pilot)")
     ap.add_argument("--estimate", action="store_true")
     ap.add_argument("--compare-specs", action="store_true")
@@ -358,7 +391,7 @@ def main() -> None:
     args = ap.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     dataset = pd.read_csv(DATASET).set_index("Unnamed: 0", drop=False)
-    entries = hand_entries()
+    entries = question_entries(args.dims, dataset)
     if args.worst:
         worst(args.variant, args.worst)
         return
@@ -390,7 +423,7 @@ def main() -> None:
         sys.exit("STOP: run --specs-only first (Muse calls need their own approval)")
     if est > args.sam_ceiling:
         sys.exit(f"STOP: SAM estimate ${est:.2f} is above ${args.sam_ceiling:.2f}")
-    run(args.variant, entries, dataset, ctxs)
+    run(args.variant, entries, dataset, ctxs, args.dims)
 
 
 if __name__ == "__main__":

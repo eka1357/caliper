@@ -61,7 +61,18 @@ def _target_text(q: str) -> str | None:
     return m.group(1) if m else None
 
 
-def rule_spec(question: str, prior: str | None) -> tuple[MeasurementSpec | None, str]:
+def depth_key(phrase: str | None, depth: dict | None) -> str | None:
+    """The depth_info key containing the phrase's head noun (last word), if exactly one does."""
+    if not phrase or not depth:
+        return None
+    head = phrase.split()[-1].rstrip("s")
+    hits = [k for k in depth if head in k.split("_") or head in k]
+    return hits[0] if len(hits) == 1 else None
+
+
+def rule_spec(
+    question: str, prior: str | None, depth: dict | None = None
+) -> tuple[MeasurementSpec | None, str]:
     q = re.sub(r"\s*\([^)]*\)", " ", question.lower())  # drop parentheticals
     q = re.sub(r"\s+", " ", q).strip().replace(" ?", "?")
     unit_m = re.search(r"\bin\s+([a-z/^0-9²]+)\s*\?\s*$", q)
@@ -140,7 +151,9 @@ def rule_spec(question: str, prior: str | None) -> tuple[MeasurementSpec | None,
             quantity=quantity, statistic=statistic, axis=axis, timestamp_s=timestamp,
             time_anchor=anchor if statistic == "separation" else "timestamp",
             time_range_s=time_range, output_unit=unit or DEFAULT_UNIT[quantity],
-            depth_info=None, plausible_range_si=(0.0, 1e4), **ref,
+            depth_info=depth or None, plausible_range_si=(0.0, 1e4),
+            target_depth_key=depth_key(target, depth),
+            reference_depth_key=depth_key(ref["reference_phrase"] or target, depth), **ref,
         )  # fmt: skip
     except ValueError as exc:
         return None, f"rule parser: {exc}"
