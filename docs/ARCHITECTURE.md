@@ -61,7 +61,10 @@ from typing import Literal
 from pydantic import BaseModel
 
 Quantity = Literal["size", "speed", "acceleration"]          # MVP
-Statistic = Literal["instantaneous", "average", "extent"]
+Statistic = Literal["instantaneous", "average", "extent",
+                    "separation", "orbit_diameter"]            # last two added 2026-10-28
+Instance = str      # auto | left | right | middle | top | bottom | largest | smallest | center_rank:k
+Axis = Literal["path", "horizontal", "vertical", "longest", "shortest", "disc"]
 
 class Prior(BaseModel):
     kind: Literal["size", "speed", "given_depth"]
@@ -72,14 +75,22 @@ class Prior(BaseModel):
 class MeasurementSpec(BaseModel):
     target_phrase: str            # SAM concept prompt, short noun phrase
     target_alt_phrases: list[str] = []
-    reference_phrase: str | None  # None when the prior is a speed of the target itself
-    reference_kind: Literal["size", "speed", "given_prior", "known_object"]
+    target_instance: Instance = "auto"   # which match to keep (segment.select_instance)
+    second_phrase: str | None = None     # separation / orbit_diameter: the other object
+    second_instance: Instance = "auto"
+    reference_phrase: str | None  # None when the prior describes the target itself
+    reference_instance: Instance = "auto"
+    reference_kind: Literal["size", "speed", "acceleration", "given_prior", "known_object"]
+    reference_statistic: Literal["extent", "average_speed", "acceleration"] = "extent"
+    reference_axis: Axis = "longest"
     reference_value_si: float | None
     reference_source: str         # "question prior", or "world knowledge: INR 10 coin is 27 mm"
     quantity: Quantity
     statistic: Statistic
-    axis: Literal["path", "horizontal", "vertical", "longest"] = "path"
+    axis: Axis = "path"
     timestamp_s: float | None
+    time_anchor: Literal["timestamp", "first", "last"] = "timestamp"  # "initial", "final"
+    time_range_s: tuple[float, float] | None = None                   # "average in 1 s to 2 s"
     output_unit: str              # unit the question asks for
     depth_info: dict | None       # QuantiPhy 3D field, passed through untouched
     plausible_range_si: tuple[float, float]  # sanity bounds proposed by the model
@@ -88,10 +99,11 @@ class MeasurementSpec(BaseModel):
 class TrackFrame(BaseModel):
     frame: int
     t_s: float
-    box: tuple[int, int, int, int]
+    box: tuple[float, float, float, float]   # left, top, right, bottom (half-open)
     confidence: float | None
     area_px: int
     centroid_px: tuple[float, float]
+    extent_px: dict[str, float]   # horizontal, vertical, longest, shortest, disc
 
 class Track(BaseModel):
     phrase: str
@@ -171,7 +183,7 @@ class StudySummary(BaseModel):
 1. Concept request for `target_phrase` with `include_confidence: "true"`.
 2. Concept request for `reference_phrase` (skip when the prior describes the target).
 3. Parse each streamed line with `meta-sam-parser`. Keep per frame: ordinal, box, confidence, mask raster (or RLE in the cache).
-4. Instance selection when several objects match: keep the ordinal present in the most frames; break ties by mean confidence, then by mask area. Record the rule used in `Result.method`.
+4. Instance selection when several objects match (`segment.select_instance`): drop candidates seen on fewer than 30% of frames; then apply the spec's selector (left/right/top/bottom/middle by median centroid, largest/smallest by median mask area, center_rank:k by distance from the frame centre); with `auto`, keep the longest continuous run of frames, ties by mean confidence, then mean area. Record the rule used in `Result.method`. (Changed 2026-10-28 from "most frames" after Phase 0.)
 5. Fallback A (ambiguous target): build a box prompt for frame 0 with `build_object_prompt` from the chosen instance and re-run so SAM tracks one object.
 6. Fallback B (API down or 5xx after 2 retries): open weights `facebook/sam3.1` on Modal, same output schema.
 7. Cache key: `sha256(video) + phrase + model + metadata`.
@@ -191,7 +203,7 @@ Position
 
 Kinematics
 - Time `t = frame / fps`.
-- Instantaneous speed and acceleration at `timestamp_s`: least-squares quadratic `p(t) = a + b (t - t0) + c (t - t0)^2` on x and y over a window (start at max(9 frames, 0.30 s); tune on dev only). Speed `|b| * s`, acceleration `2 * c * s` along the motion direction.
+- Instantaneous speed and acceleration at `timestamp_s`: least-squares quadratic `p(t) = a + b (t - t0) + c (t - t0)^2` on x and y over a window (start at max(9 frames, 0.30 s); tune on dev only). Speed `|b| * s`, acceleration `|2 * c| * s` (magnitude of the fitted acceleration vector; the motion direction is undefined where the object turns or stops), or one component when the spec's axis is horizontal or vertical. Fit only on frames with a detection; never interpolate.
 - Average speed: path length of the smoothed track divided by elapsed time.
 - Size: target extent in pixels along the spec axis, times `s`.
 
