@@ -1,0 +1,1583 @@
+{
+ "about": "Specs written by Muse Spark 1.3 (caliper/spec.py) for the QuantiPhy dev 2D questions. Keyed by dataset row id; no question text or answers stored.",
+ "specs": [
+  {
+   "row_id": 139,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "big bird",
+    "target_alt_phrases": [
+     "large bird",
+     "dark bird"
+    ],
+    "target_instance": "largest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "small bird",
+    "reference_alt_phrases": [
+     "little bird",
+     "dark small bird"
+    ],
+    "reference_instance": "smallest",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.5,
+     3.0
+    ],
+    "notes": "Both birds are seen in flight against clear sky with a clear size difference."
+   }
+  },
+  {
+   "row_id": 140,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "big bird",
+    "target_alt_phrases": [
+     "large bird",
+     "left bird"
+    ],
+    "target_instance": "largest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "small bird",
+    "reference_alt_phrases": [
+     "little bird",
+     "right bird"
+    ],
+    "reference_instance": "smallest",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "shortest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.2,
+     4.0
+    ],
+    "notes": "Both birds appear as small dark silhouettes in flight with varying wing positions."
+   }
+  },
+  {
+   "row_id": 141,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "small bird",
+    "target_alt_phrases": [
+     "black bird",
+     "flying bird"
+    ],
+    "target_instance": "smallest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.05,
+     2.5
+    ],
+    "notes": "Scale comes from the target bird itself so the reference and target are the same object viewed in one frame."
+   }
+  },
+  {
+   "row_id": 142,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "small bird",
+    "target_alt_phrases": [
+     "dark flying bird",
+     "tiny bird"
+    ],
+    "target_instance": "smallest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     30.0
+    ],
+    "notes": "Scale comes from the target itself since the prior describes its own length with no separate reference object."
+   }
+  },
+  {
+   "row_id": 143,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "big bird",
+    "target_alt_phrases": [
+     "large bird",
+     "big raptor"
+    ],
+    "target_instance": "largest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "small bird",
+    "reference_alt_phrases": [
+     "little bird",
+     "small dark bird"
+    ],
+    "reference_instance": "smallest",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     30.0
+    ],
+    "notes": "Scale comes from the small bird while motion is measured on the larger bird."
+   }
+  },
+  {
+   "row_id": 144,
+   "video_id": "simulation_0089",
+   "error": null,
+   "spec": {
+    "target_phrase": "big bird",
+    "target_alt_phrases": [
+     "large bird",
+     "eagle"
+    ],
+    "target_instance": "largest",
+    "second_phrase": "small bird",
+    "second_instance": "smallest",
+    "reference_phrase": "small bird",
+    "reference_alt_phrases": [
+     "little bird",
+     "crow"
+    ],
+    "reference_instance": "smallest",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 0.94,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "horizontal",
+    "timestamp_s": 0.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.5,
+     50.0
+    ],
+    "notes": "Scale is taken from the second bird which is also one endpoint of the measured separation."
+   }
+  },
+  {
+   "row_id": 427,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "The astronaut is airborne above the lunar surface during the measurement."
+   }
+  },
+  {
+   "row_id": 428,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut figure",
+     "spaceman"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Astronaut performs a running jump across a bright lunar surface against a dark sky which may affect segmentation continuity."
+   }
+  },
+  {
+   "row_id": 429,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "person in spacesuit",
+     "spaceman"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Astronaut is captured mid-hop above the surface so motion includes both horizontal and vertical components."
+   }
+  },
+  {
+   "row_id": 430,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "white astronaut",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Astronaut is airborne around the queried time during a low-gravity jump."
+   }
+  },
+  {
+   "row_id": 431,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "spaceman",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Astronaut is midair during the leap which may tilt the body and affect vertical extent scaling."
+   }
+  },
+  {
+   "row_id": 432,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Astronaut is airborne over a lunar surface and the scale prior describes the target itself."
+   }
+  },
+  {
+   "row_id": 433,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut",
+     "spacesuited figure"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 3.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Astronaut leaves the ground and is airborne with changing body posture during the sequence."
+   }
+  },
+  {
+   "row_id": 434,
+   "video_id": "simulation_0171",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut",
+     "spaceman"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 3.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Scale comes from the target itself while pose changes during the lunar jump."
+   }
+  },
+  {
+   "row_id": 498,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Callisto moon",
+    "target_alt_phrases": [
+     "outer moon dot",
+     "small white dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.01,
+     1.0
+    ],
+    "notes": "Reference speed describes the target itself so scale comes from tracking its own motion."
+   }
+  },
+  {
+   "row_id": 499,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Jupiter model",
+    "target_alt_phrases": [
+     "central planet",
+     "beige sphere"
+    ],
+    "target_instance": "center_rank:1",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto model",
+    "reference_alt_phrases": [
+     "Callisto moon",
+     "outer moon model"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.1,
+     10.0
+    ],
+    "notes": "Scale is derived from the orbital motion of an outer moon while the target itself remains stationary at the center."
+   }
+  },
+  {
+   "row_id": 500,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Io moon model",
+    "target_alt_phrases": [
+     "Io moon",
+     "Io dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto moon model",
+    "reference_alt_phrases": [
+     "Callisto moon",
+     "Callisto dot"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.2,
+     3.0
+    ],
+    "notes": "Inner moon orbits closer to the planet than the outer reference moon so tracks must be carefully separated."
+   }
+  },
+  {
+   "row_id": 501,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Europa model",
+    "target_alt_phrases": [
+     "Europa dot",
+     "small Europa moon"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto model",
+    "reference_alt_phrases": [
+     "Callisto dot",
+     "small Callisto moon"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.1,
+     3.0
+    ],
+    "notes": "Europa appears as a tiny moving dot on an inner orbit with on-screen labels nearby."
+   }
+  },
+  {
+   "row_id": 502,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Ganymede moon",
+    "target_alt_phrases": [
+     "Ganymede dot",
+     "small white moon"
+    ],
+    "target_instance": "center_rank:3",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto moon",
+    "reference_alt_phrases": [
+     "Callisto dot",
+     "outer white moon"
+    ],
+    "reference_instance": "center_rank:4",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.1,
+     2.0
+    ],
+    "notes": "Moons appear as tiny dots moving along concentric orbits around the central planet with labels nearby."
+   }
+  },
+  {
+   "row_id": 503,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Io model",
+    "target_alt_phrases": [
+     "small inner moon",
+     "inner moon dot"
+    ],
+    "target_instance": "center_rank:1",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto model",
+    "reference_alt_phrases": [
+     "small outer moon",
+     "outer moon dot"
+    ],
+    "reference_instance": "center_rank:4",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.01,
+     2.0
+    ],
+    "notes": "Scale comes from orbital speed of the outermost moon while the target is the innermost moon on the same display."
+   }
+  },
+  {
+   "row_id": 504,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Europa moon",
+    "target_alt_phrases": [
+     "Europa satellite",
+     "Europa dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto moon",
+    "reference_alt_phrases": [
+     "Callisto satellite",
+     "Callisto dot"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.01,
+     1.0
+    ],
+    "notes": "Europa appears as a tiny moving dot on its orbit so scale must come from Callisto motion."
+   }
+  },
+  {
+   "row_id": 505,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Ganymede moon",
+    "target_alt_phrases": [
+     "Ganymede model",
+     "grey Ganymede dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "Callisto moon",
+    "reference_alt_phrases": [
+     "Callisto model",
+     "outer Callisto dot"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.01,
+     2.0
+    ],
+    "notes": "Moons appear as tiny dots moving on overlapping circular orbits which may challenge segmentation."
+   }
+  },
+  {
+   "row_id": 506,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Io moon",
+    "target_alt_phrases": [
+     "Io model",
+     "innermost moon"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "central planet",
+    "second_instance": "auto",
+    "reference_phrase": "Callisto moon",
+    "reference_alt_phrases": [
+     "Callisto model",
+     "outermost moon"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "orbit_diameter",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.1,
+     5.0
+    ],
+    "notes": "Io is the innermost orbiting model while the scale prior comes from the outermost Callisto model."
+   }
+  },
+  {
+   "row_id": 507,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Europa moon",
+    "target_alt_phrases": [
+     "tiny moon dot",
+     "small orbiting moon"
+    ],
+    "target_instance": "center_rank:2",
+    "second_phrase": "central planet",
+    "second_instance": "middle",
+    "reference_phrase": "Callisto moon",
+    "reference_alt_phrases": [
+     "outer moon dot",
+     "outermost satellite"
+    ],
+    "reference_instance": "center_rank:4",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "orbit_diameter",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.1,
+     10.0
+    ],
+    "notes": "Europa appears as a tiny moving dot on a red circular orbit around the central planet."
+   }
+  },
+  {
+   "row_id": 508,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Ganymede model",
+    "target_alt_phrases": [
+     "Ganymede moon",
+     "Ganymede dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "central planet",
+    "second_instance": "auto",
+    "reference_phrase": "Callisto model",
+    "reference_alt_phrases": [
+     "Callisto moon",
+     "outer Callisto dot"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "orbit_diameter",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.2,
+     5.0
+    ],
+    "notes": "Ganymede orbit lies interior to the Callisto orbit used for scale."
+   }
+  },
+  {
+   "row_id": 509,
+   "video_id": "simulation_0193",
+   "error": null,
+   "spec": {
+    "target_phrase": "Callisto moon",
+    "target_alt_phrases": [
+     "outermost moon",
+     "tiny orbiting dot"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "central planet",
+    "second_instance": "largest",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 0.627,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "orbit_diameter",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.5,
+     10.0
+    ],
+    "notes": "The Callisto dot is very small and faint on the outermost red orbit against a starry background."
+   }
+  },
+  {
+   "row_id": 2161,
+   "video_id": "internet_0004",
+   "error": null,
+   "spec": {
+    "target_phrase": "wood block",
+    "target_alt_phrases": [
+     "wooden plank",
+     "timber board"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white ruler",
+    "reference_alt_phrases": [
+     "triangular ruler",
+     "set square"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "horizontal",
+    "reference_value_si": 0.01,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.02,
+     0.3
+    ],
+    "notes": "Block is viewed head-on with the scale ruler resting on top."
+   }
+  },
+  {
+   "row_id": 2162,
+   "video_id": "internet_0004",
+   "error": null,
+   "spec": {
+    "target_phrase": "wood block",
+    "target_alt_phrases": [
+     "wooden plank",
+     "timber board"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white ruler",
+    "reference_alt_phrases": [
+     "triangular set square",
+     "measuring ruler"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 0.01,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.005,
+     0.06
+    ],
+    "notes": "Ruler is placed edge-on directly atop the block so both thicknesses share the same view."
+   }
+  },
+  {
+   "row_id": 2163,
+   "video_id": "internet_0004",
+   "error": null,
+   "spec": {
+    "target_phrase": "pencil tip",
+    "target_alt_phrases": [
+     "blue pencil",
+     "pencil"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white ruler",
+    "reference_alt_phrases": [
+     "ruler",
+     "measuring ruler"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "horizontal",
+    "reference_value_si": 0.01,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.005,
+     1.0
+    ],
+    "notes": "Pencil motion is brief and occurs while the ruler rests on the block for scale."
+   }
+  },
+  {
+   "row_id": 2164,
+   "video_id": "internet_0004",
+   "error": null,
+   "spec": {
+    "target_phrase": "green jigsaw",
+    "target_alt_phrases": [
+     "electric saw",
+     "jigsaw"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white ruler",
+    "reference_alt_phrases": [
+     "set square",
+     "measuring triangle"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "horizontal",
+    "reference_value_si": 0.01,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.001,
+     0.1
+    ],
+    "notes": "Ruler is visible early for scale while the saw appears later during cutting."
+   }
+  },
+  {
+   "row_id": 2228,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "ball",
+    "target_alt_phrases": [
+     "soccer ball",
+     "round ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.05,
+     0.5
+    ],
+    "notes": "Ball appears as a dark silhouette against strong sunset backlight which may complicate tracking."
+   }
+  },
+  {
+   "row_id": 2229,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "middle person",
+    "target_alt_phrases": [
+     "person in the center",
+     "central silhouette"
+    ],
+    "target_instance": "middle",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     1.0,
+     2.2
+    ],
+    "notes": "Backlit silhouettes on a beach make segmentation low contrast but the central figure remains distinct."
+   }
+  },
+  {
+   "row_id": 2230,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "person on the left",
+    "target_alt_phrases": [
+     "passer",
+     "left silhouette"
+    ],
+    "target_instance": "left",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "ball",
+    "reference_alt_phrases": [
+     "soccer ball",
+     "football"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     1.2,
+     2.1
+    ],
+    "notes": "Backlit silhouettes on beach require scale from airborne ball motion."
+   }
+  },
+  {
+   "row_id": 2231,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "person on the right",
+    "target_alt_phrases": [
+     "rightmost silhouette",
+     "man on the far right"
+    ],
+    "target_instance": "right",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "thrown ball",
+    "reference_alt_phrases": [
+     "ball",
+     "football"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     1.2,
+     2.1
+    ],
+    "notes": "Backlit beach silhouettes make segmentation low contrast so scale must come from the airborne ball trajectory."
+   }
+  },
+  {
+   "row_id": 2232,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "passer person",
+    "target_alt_phrases": [
+     "passing person",
+     "throwing silhouette"
+    ],
+    "target_instance": "middle",
+    "second_phrase": "receiver person",
+    "second_instance": "right",
+    "reference_phrase": "ball",
+    "reference_alt_phrases": [
+     "flying ball",
+     "thrown ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": 0.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": null,
+    "plausible_range_si": [
+     1.0,
+     50.0
+    ],
+    "notes": "Silhouetted figures against bright sunset make segmentation low contrast and the flying object is very small"
+   }
+  },
+  {
+   "row_id": 2233,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "ball",
+    "target_alt_phrases": [
+     "soccer ball",
+     "round ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     30.0
+    ],
+    "notes": "Scene is a dark backlit beach silhouette at sunset making the ball difficult to see."
+   }
+  },
+  {
+   "row_id": 2234,
+   "video_id": "internet_0019",
+   "error": null,
+   "spec": {
+    "target_phrase": "ball",
+    "target_alt_phrases": [
+     "soccer ball",
+     "football"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "vertical",
+    "reference_value_si": 9.8,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     -15.0,
+     15.0
+    ],
+    "notes": "Ball appears as dark silhouette against sunset and may be briefly occluded by players."
+   }
+  },
+  {
+   "row_id": 2272,
+   "video_id": "internet_0027",
+   "error": null,
+   "spec": {
+    "target_phrase": "black ball",
+    "target_alt_phrases": [
+     "black 8-ball",
+     "8 ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "purple ball",
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.0572,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "first",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.05,
+     1.5
+    ],
+    "notes": "Initial frame contains several moving balls so color identification matters for tracking."
+   }
+  },
+  {
+   "row_id": 2273,
+   "video_id": "internet_0027",
+   "error": null,
+   "spec": {
+    "target_phrase": "white ball",
+    "target_alt_phrases": [
+     "cue ball",
+     "white sphere"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.0572,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": [
+     1.0,
+     2.0
+    ],
+    "output_unit": "cm/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     5.0
+    ],
+    "notes": "Cue ball moves among several other balls on a pool table viewed from above."
+   }
+  },
+  {
+   "row_id": 2274,
+   "video_id": "internet_0027",
+   "error": null,
+   "spec": {
+    "target_phrase": "orange ball",
+    "target_alt_phrases": [
+     "orange billiard ball",
+     "orange pool ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.0572,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     5.0
+    ],
+    "notes": "Overhead view shows several billiard balls rolling across a pool table."
+   }
+  },
+  {
+   "row_id": 2275,
+   "video_id": "internet_0027",
+   "error": null,
+   "spec": {
+    "target_phrase": "purple ball",
+    "target_alt_phrases": [
+     "purple billiard ball",
+     "violet ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "black ball",
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.0572,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "last",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.05,
+     1.0
+    ],
+    "notes": "Both balls remain clearly visible throughout the clip."
+   }
+  },
+  {
+   "row_id": 2276,
+   "video_id": "internet_0027",
+   "error": null,
+   "spec": {
+    "target_phrase": "yellow ball",
+    "target_alt_phrases": [
+     "yellow pool ball",
+     "yellow sphere"
+    ],
+    "target_instance": "left",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.0572,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s^2",
+    "depth_info": null,
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Several similar balls are visible so the leftmost yellow ball must be tracked consistently."
+   }
+  }
+ ]
+}
