@@ -6,6 +6,7 @@ theta in C for which |pred - gt| / gt < 1 - theta, with pred = |parsed_value|.
 Also fills share_within_10pct and share_off_2x in eval/results.csv for every variant that has
 eval/quantiphy/model_outputs/<variant>.csv. Both are over all n questions; an invalid answer
 (blank, non-numeric or zero) counts as a miss for both (EVAL_PROTOCOL section 4.4).
+Also fills the answered-only columns and writes eval/paired_results.csv (EVAL_PROTOCOL 4a).
 
   python eval/baseline_analysis.py
 """
@@ -19,6 +20,11 @@ from baseline import DATASET, EVAL, QP, RESULTS_COLUMNS, VARIANT
 
 C = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]  # evaluator.py
 RESULTS = EVAL / "results.csv"
+PAIRED = EVAL / "paired_results.csv"
+PAIRED_COLUMNS = [
+    "variant", "split", "category", "n_answered", "mra_variant", "mra_muse",
+    "within10_variant", "within10_muse", "off2x_variant", "off2x_muse",
+]  # fmt: skip
 
 
 def error_shares(part: pd.DataFrame) -> dict[str, float]:
@@ -29,8 +35,57 @@ def error_shares(part: pd.DataFrame) -> dict[str, float]:
     return {"share_within_10pct": within.mean(), "share_off_2x": off.mean()}
 
 
+def answered_metrics(part: pd.DataFrame) -> dict[str, float | str]:
+    """Coverage, and MRA and error shares over the answered questions only (pooled)."""
+    ans = part[~part.invalid]
+    out: dict[str, float | str] = {"coverage": round(len(ans) / len(part), 4)}
+    if len(ans) == 0:
+        return {**out, "mra_answered": "", "share_within_10pct_answered": "",
+                "share_off_2x_answered": ""}  # fmt: skip
+    return {
+        **out,
+        "mra_answered": round(ans.mra.mean(), 4),
+        "share_within_10pct_answered": round((ans.rel_err < 0.1).mean(), 4),
+        "share_off_2x_answered": round(((ans.ratio > 2) | (ans.ratio < 0.5)).mean(), 4),
+    }
+
+
+def write_paired(loaded: dict[str, pd.DataFrame | None], rows: list[dict]) -> None:
+    """muse_spark_alone on exactly the questions each other variant answered."""
+    muse = loaded.get(VARIANT)
+    if muse is None:
+        return
+    muse = muse.set_index("Unnamed: 0")
+    out = []
+    for row in rows:
+        v, split = row["variant"], row["split"]
+        df = loaded.get(v)
+        if v == VARIANT or df is None:
+            continue
+        part = df if split == "full" else df[df.split == split]
+        ans = part[~part.invalid]
+        for cat in [*sorted(ans.category.unique()), "all"]:
+            a = ans if cat == "all" else ans[ans.category == cat]
+            m = muse.loc[a["Unnamed: 0"]]
+            out.append(
+                {
+                    "variant": v, "split": split, "category": cat, "n_answered": len(a),
+                    "mra_variant": round(a.mra.mean(), 4), "mra_muse": round(m.mra.mean(), 4),
+                    "within10_variant": round((a.rel_err < 0.1).mean(), 4),
+                    "within10_muse": round((m.rel_err < 0.1).mean(), 4),
+                    "off2x_variant": round(((a.ratio > 2) | (a.ratio < 0.5)).mean(), 4),
+                    "off2x_muse": round(((m.ratio > 2) | (m.ratio < 0.5)).mean(), 4),
+                }
+            )  # fmt: skip
+    with open(PAIRED, "w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=PAIRED_COLUMNS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(out)
+    print(f"wrote {len(out)} rows to {PAIRED}")
+
+
 def update_results() -> None:
-    """Fill the two error-share columns for every variant row whose predictions exist."""
+    """Fill the error-share and answered-only columns for every row whose predictions exist."""
     with open(RESULTS, encoding="utf-8", newline="") as fh:
         rows = list(csv.DictReader(fh))
     loaded: dict[str, pd.DataFrame | None] = {}
@@ -44,11 +99,13 @@ def update_results() -> None:
             continue
         part = df if row["split"] == "full" else df[df.split == row["split"]]
         row.update({k: round(x, 4) for k, x in error_shares(part).items()})
+        row.update(answered_metrics(part))
     with open(RESULTS, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=RESULTS_COLUMNS, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    print(f"updated share_within_10pct and share_off_2x in {RESULTS}")
+    print(f"updated error-share and answered-only columns in {RESULTS}")
+    write_paired(loaded, rows)
 
 
 def load(variant: str = VARIANT) -> pd.DataFrame:

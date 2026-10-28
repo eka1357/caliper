@@ -35,7 +35,8 @@ CEILING_USD = 30.0  # human's hard ceiling for the full 158-question run (2026-1
 STOP_USD = 25.0  # human: kill the run if cached Muse chat spend passes this (2026-10-28)
 RESULTS_COLUMNS = [
     "variant", "split", "mra_average", "mra_S2", "mra_D2", "mra_S3", "mra_D3",
-    "abstain_rate", "share_within_10pct", "share_off_2x", "n", "cost_usd", "run_date", "source",
+    "abstain_rate", "share_within_10pct", "share_off_2x", "coverage", "mra_answered",
+    "share_within_10pct_answered", "share_off_2x_answered", "n", "cost_usd", "run_date", "source",
 ]  # fmt: skip
 
 

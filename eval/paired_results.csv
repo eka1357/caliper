@@ -1,0 +1,4 @@
+variant,split,category,n_answered,mra_variant,mra_muse,within10_variant,within10_muse,off2x_variant,off2x_muse
+caliper,dev,D2,7,0.9286,0.8143,0.8571,0.7143,0.0,0.0
+caliper,dev,S2,18,0.6556,0.5444,0.2778,0.1111,0.0556,0.1667
+caliper,dev,all,25,0.732,0.62,0.44,0.28,0.04,0.12
