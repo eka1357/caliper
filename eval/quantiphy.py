@@ -305,6 +305,8 @@ def main() -> None:
     ap.add_argument("--estimate", action="store_true")
     ap.add_argument("--compare-specs", action="store_true")
     ap.add_argument("--worst", type=int, default=0)
+    ap.add_argument("--sam-ceiling", type=float, default=SAM_CEILING_USD,
+                    help="one-run override, only with the human's approval (DECISIONS.md)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     dataset = pd.read_csv(DATASET).set_index("Unnamed: 0", drop=False)
@@ -324,8 +326,8 @@ def main() -> None:
         return
     if args.variant == "caliper" and any(muse_spec_cached(e["row_id"]) is None for e in entries):
         sys.exit("STOP: run --specs-only first (Muse calls need their own approval)")
-    if est > SAM_CEILING_USD:
-        sys.exit(f"STOP: SAM estimate ${est:.2f} is above ${SAM_CEILING_USD:.2f}")
+    if est > args.sam_ceiling:
+        sys.exit(f"STOP: SAM estimate ${est:.2f} is above ${args.sam_ceiling:.2f}")
     run(args.variant, entries, dataset, ctxs)
 
 
