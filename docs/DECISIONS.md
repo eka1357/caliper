@@ -29,7 +29,7 @@ Newest first. Add a row whenever a decision changes scope, architecture, metrics
 
 | Fact | Value | How measured |
 | --- | --- | --- |
-| Muse Spark tokens per QuantiPhy question with video | | |
-| SAM 3.1 latency per 90-frame clip | | |
-| Cost of one full validation run | | |
-| SAM wrong-object rate on 20 clips | | |
+| Muse Spark tokens per QuantiPhy question with video | Input mean 41,259 (median 29,334; range 14,677 to 219,261); output mean 8,857 (median 7,726; range 1,741 to 32,106), mostly reasoning; about 514 input tokens per frame image; latency median 74 s, max 252 s | `eval/cost_summary.py` over the 158 cached baseline chat records (official zero-shot v3 prompt, every frame sent as an image) |
+| SAM 3.1 latency per 90-frame clip | Median 8.3 s on the 7 clips with 60 to 120 frames; median 11.6 s when each request is scaled to 90 frames; range 4.2 to 31.7 s per request (30 to 428 frames). Includes the Files upload | `eval/cost_summary.py` over the 23 cached SAM records (20 tracking clips, 3 phrase-corrected reruns; the smoke clip is one of the 20) |
+| Cost of one full validation run | $14.10 for the Muse Spark alone baseline (158 questions, $0.089 per question, no retries needed). All of Phase 0 so far: $14.62 ($14.10 baseline, $0.47 SAM for 2,359 frames, $0.06 smoke and phrase calls) | `eval/cost_summary.py`; token prices from AGENTS.md section 3 |
+| SAM wrong-object rate on 20 clips | Pending: `my_verdict` in `eval/phase0_tracking.csv` is still empty. Mechanical count: 3 of 20 clips returned no detections with the first-question phrase; with the phrase corrected, all 3 return detections (verdicts pending) | Human verdict per overlay in `eval/phase0_overlays/`; counted by `eval/cost_summary.py` |
