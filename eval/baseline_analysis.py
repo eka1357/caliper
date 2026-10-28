@@ -70,6 +70,8 @@ def write_paired(loaded: dict[str, pd.DataFrame | None], rows: list[dict]) -> No
         if v == VARIANT or df is None:
             continue
         part = split_part(df, split)
+        if len(part) == 0:
+            continue
         ans = part[~part.invalid]
         for cat in [*sorted(ans.category.unique()), "all"]:
             a = ans if cat == "all" else ans[ans.category == cat]
@@ -105,6 +107,8 @@ def update_results() -> None:
         if df is None:
             continue
         part = split_part(df, row["split"])
+        if len(part) == 0:  # the prediction file holds another split; keep the row as is
+            continue
         row.update({k: round(x, 4) for k, x in error_shares(part).items()})
         row.update(answered_metrics(part))
     with open(RESULTS, "w", encoding="utf-8", newline="") as fh:

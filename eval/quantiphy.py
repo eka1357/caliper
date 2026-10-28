@@ -359,8 +359,8 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs, dims: st
     m = score(rows, split, variant)
     write_results([{
         "variant": variant, "split": split,
-        "mra_average": m.get("mra_average") or "",  # the scorer needs all 4 categories
-        **{k: m.get(k) if m.get(k) is not None else "" for k in
+        "mra_average": m.get("mra_average") if pd.notna(m.get("mra_average")) else "",
+        **{k: m.get(k) if pd.notna(m.get(k)) else "" for k in
            ("mra_S2", "mra_D2", "mra_S3", "mra_D3")},
         "abstain_rate": m.get("invalid_percentage", 0) / 100, "n": len(rows),
         "cost_usd": round(cost, 4), "run_date": date.today().isoformat(),
