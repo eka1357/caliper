@@ -1,8 +1,10 @@
 """Phase 0 measured facts from the disk cache (no API calls).
 
 Muse Spark tokens and latency come from the cached chat records (the baseline) and responses
-records (smoke test and tracking phrases). SAM requests are matched to their clips through
-eval/phase0_tracking*.csv, so billed frames come from ffprobe on the normalized video.
+records (smoke test and tracking phrases). Phase 0 SAM requests are matched to their clips through
+eval/phase0_tracking*.csv; all SAM requests (every phase) are matched by trying every phrase in
+the tracking CSVs and eval/specs/*.json (including phrases quoted in spec revisions) on every
+validation video. Billed frames come from ffprobe on the normalized video.
 
   python eval/cost_summary.py
 """
@@ -11,6 +13,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import statistics as st
 
 from baseline import EVAL, link_videos
@@ -53,6 +56,39 @@ def sam_runs() -> list[dict]:
                 frames = int(probe(video)["frames"])
                 runs.append({**row, "source": path.name, "billed_frames": frames, "rec": rec})
     return runs
+
+
+def phrase_pool() -> set[str]:
+    pool: set[str] = set()
+    for path in TRACKING:
+        if path.exists():
+            with open(path, encoding="utf-8", newline="") as fh:
+                pool |= {row["phrase"] for row in csv.DictReader(fh)}
+    for path in (EVAL / "specs").glob("*.json"):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        for e in doc["specs"]:
+            if e["spec"]:
+                pool |= {e["spec"][k] for k in ("target_phrase", "second_phrase",
+                                                "reference_phrase") if e["spec"][k]}  # fmt: skip
+        for rev in doc.get("revisions", []):
+            pool |= set(re.findall(r"'([^']+)'", rev))
+    return pool
+
+
+def all_sam_frames() -> tuple[int, int]:
+    """(matched SAM records, billed frames) over every phase."""
+    cache, matched, frames = DiskCache(), 0, 0
+    pool = phrase_pool()
+    for video in sorted(link_videos().values()):
+        norm = normalize(video)
+        sha, n = file_sha256(norm), None
+        for phrase in pool:
+            payload = {"model": config.SAM_MODEL, "video_sha256": sha, "phrase": phrase,
+                       "metadata": {"include_confidence": "true"}}  # fmt: skip
+            if cache.get(request_key({"kind": "sam", **payload})) is not None:
+                n = n if n is not None else int(probe(norm)["frames"])
+                matched, frames = matched + 1, frames + n
+    return matched, frames
 
 
 def main() -> None:
@@ -99,6 +135,11 @@ def main() -> None:
 
     total = chat_cost + resp_cost + sam_cost
     print(f"phase 0 spend from cache: cost_usd={total:.4f}")
+    n_all, frames_all = all_sam_frames()
+    sam_all = sam_cost_usd(frames_all)
+    print(f"sam, all phases: records={len(recs['sam'])} matched={n_all} "
+          f"billed frames={frames_all} cost_usd={sam_all:.4f}")  # fmt: skip
+    print(f"total spend from cache, all phases: cost_usd={chat_cost + resp_cost + sam_all:.4f}")
 
     for path in TRACKING:
         if not path.exists():
