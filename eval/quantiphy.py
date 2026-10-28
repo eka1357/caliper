@@ -28,7 +28,13 @@ from caliper.engine import Abstain
 from caliper.meta_client import DiskCache, file_sha256, request_key
 from caliper.models import MeasurementSpec, Result
 from caliper.normalize import normalize, probe
-from caliper.segment import sam_cost_usd, segment, select_instance, tracks_from_segmentation
+from caliper.segment import (
+    sam_cost_usd,
+    same_object_conflict,
+    segment,
+    select_instance,
+    tracks_from_segmentation,
+)
 
 log = logging.getLogger("quantiphy")
 SPECS = EVAL / "specs" / "phase1_dev_2d.json"
@@ -113,6 +119,14 @@ def run_one(entry: dict, clip: Clip) -> Result:
             else (None, "reference = target")
         )
         artifacts["instances"] = {"target": t_rule, "second": s_rule, "reference": r_rule}
+        conflict = same_object_conflict(
+            target,
+            spec.target_instance,
+            [(second, spec.second_instance, "second object"),
+             (reference, spec.reference_instance, "reference")],
+        )  # fmt: skip
+        if conflict:
+            raise Abstain(conflict)
         artifacts["detected_frames"] = {
             "target": len(target.frames),
             "second": len(second.frames) if second else None,

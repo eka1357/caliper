@@ -119,3 +119,26 @@ def test_select_instance_drops_short_candidates():
     assert chosen is real and "1 short candidates dropped" in rule
     with pytest.raises(ValueError):
         select_instance([real], "sideways", 30)
+
+
+def test_comparative_selector_keeps_briefly_seen_object():
+    from caliper.segment import select_instance
+
+    big = _track(0, (100, 100), list(range(10)), area=900)  # 10 of 30 frames
+    small = _track(1, (300, 100), list(range(20, 27)), area=200)  # 7 of 30: under 30%
+    assert select_instance([big, small], "smallest", 30)[0] is small
+    assert select_instance([big, small], "largest", 30)[0] is big
+    chosen, rule = select_instance([big, small], "auto", 30)
+    assert chosen is big and "1 short candidates dropped" in rule
+
+
+def test_same_object_conflict():
+    from caliper.segment import same_object_conflict
+
+    a, b = _track(0, (0, 0), list(range(10))), _track(1, (9, 9), list(range(10)))
+    assert same_object_conflict(a, "largest", [(a, "smallest", "reference")]) is not None
+    assert same_object_conflict(a, "auto", [(a, "auto", "reference")]) is None  # same object meant
+    assert (
+        same_object_conflict(a, "largest", [(b, "smallest", "reference"), (None, "auto", "x")])
+        is None
+    )

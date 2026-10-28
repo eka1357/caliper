@@ -247,8 +247,10 @@ def _auto_key(track: Track) -> tuple[int, float, float]:
 def select_instance(tracks: list[Track], selector: str, n_frames: int) -> tuple[Track, str]:
     """Pick one instance deterministically; return it with a description of the rule used.
 
-    Candidates seen on fewer than INSTANCE_MIN_FRAME_SHARE of the clip's frames are dropped
-    first (unless that drops all of them). Then:
+    Short candidates are dropped first (unless that drops all of them): for auto, those seen on
+    fewer than INSTANCE_MIN_FRAME_SHARE of the clip's frames; for a comparative selector, those
+    with fewer than FIT_MIN_POINTS frames, so a briefly seen second object still counts when the
+    question names it by size or position (changed 2026-10-28 after dev: simulation_0089). Then:
     - left/right/top/bottom: extreme median centroid x or y over the frames each is seen;
     - middle: median centroid x closest to the median of all candidates' median x;
     - largest/smallest: median mask area;
@@ -257,7 +259,10 @@ def select_instance(tracks: list[Track], selector: str, n_frames: int) -> tuple[
     """
     if not tracks:
         raise ValueError("no tracks to select from")
-    min_frames = config.INSTANCE_MIN_FRAME_SHARE * n_frames
+    if selector == "auto":
+        min_frames = config.INSTANCE_MIN_FRAME_SHARE * n_frames
+    else:
+        min_frames = config.FIT_MIN_POINTS
     pool = [t for t in tracks if len(t.frames) >= min_frames] or list(tracks)
     dropped = len(tracks) - len(pool)
 
@@ -293,3 +298,14 @@ def select_instance(tracks: list[Track], selector: str, n_frames: int) -> tuple[
         raise ValueError(f"unknown instance selector {selector!r}")
     note = f"; {dropped} short candidates dropped" if dropped else ""
     return chosen, f"instance {chosen.object_ordinal} of {len(tracks)}: {rule}{note}"
+
+
+def same_object_conflict(
+    target: Track, target_selector: str, others: list[tuple[Track | None, str, str]]
+) -> str | None:
+    """Reason to abstain when another role resolved to the target's own track although its
+    selector differs (e.g. "largest" and "smallest" bird both landing on one bird)."""
+    for other, selector, name in others:
+        if other is target and selector != target_selector:
+            return f"target and {name} resolved to the same object"
+    return None
