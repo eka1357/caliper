@@ -1,0 +1,3 @@
+# Root ruff config for eval/ and scripts/. backend/ uses backend/pyproject.toml.
+extend = "backend/pyproject.toml"
+extend-exclude = ["eval/quantiphy", "data", "web"]
