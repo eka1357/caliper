@@ -29,6 +29,14 @@ from caliper.segment import Segmentation, sam_cost_usd, segment
 PER_SPLIT = 10
 OVERLAYS = EVAL / "phase0_overlays"
 TRACKING_CSV = EVAL / "phase0_tracking.csv"
+CORRECTED_CSV = EVAL / "phase0_tracking_corrected.csv"
+# Clips where the first-question phrase found nothing; the moving object their questions ask
+# about, chosen by hand from the question text (human request, 2026-10-28).
+CORRECTED_PHRASES = {
+    "simulation_0089": "bird",  # was "big bird" (relative size, q139)
+    "internet_0005": "woman in yellow",  # was "black road signs"; the walker of the prior, q2166
+    "internet_0013": "white car",  # was "straight through lane"; q2203
+}
 CEILING_USD = 0.60  # SAM plus phrase calls; plan estimate was about $0.45
 COLUMNS = [
     "video_id", "split", "phrase", "frames", "frames_returned", "objects_max",
@@ -123,10 +131,13 @@ def write_overlay(video: Path, seg: Segmentation, label: str, out: Path) -> None
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--estimate", action="store_true", help="print frames and cost, no API calls")
+    ap.add_argument("--corrected", action="store_true", help="rerun CORRECTED_PHRASES clips only")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     videos = link_videos()
     rows = clips()
+    if args.corrected:
+        rows = rows[rows.video_id.isin(CORRECTED_PHRASES)]
     frames = {v: int(probe(videos[v])["frames"]) for v in rows.video_id}
     sam_est = sam_cost_usd(sum(frames.values()))
     print(
@@ -138,18 +149,23 @@ def main() -> None:
     if sam_est > CEILING_USD:
         sys.exit(f"STOP: SAM estimate ${sam_est:.2f} is above ${CEILING_USD:.2f}")
 
+    corrected = args.corrected
+    out_csv = CORRECTED_CSV if corrected else TRACKING_CSV
     verdicts = {}  # a rerun keeps verdicts already filled in by hand
-    if TRACKING_CSV.exists():
-        with open(TRACKING_CSV, encoding="utf-8", newline="") as fh:
+    if out_csv.exists():
+        with open(out_csv, encoding="utf-8", newline="") as fh:
             verdicts = {row["video_id"]: row["my_verdict"] for row in csv.DictReader(fh)}
     OVERLAYS.mkdir(parents=True, exist_ok=True)
     out_rows, spent = [], 0.0
     for r in rows.itertuples():
-        phrase, cost = target_phrase(r.question, r.ground_truth_prior)
+        if corrected:
+            phrase, cost = CORRECTED_PHRASES[r.video_id], 0.0
+        else:
+            phrase, cost = target_phrase(r.question, r.ground_truth_prior)
         video = normalize(videos[r.video_id])
         seg = segment(video, phrase)
         spent += cost + (0.0 if seg.cache_hit else sam_cost_usd(frames[r.video_id]))
-        overlay = OVERLAYS / f"{r.video_id}.mp4"
+        overlay = OVERLAYS / f"{r.video_id}{'__corrected' if corrected else ''}.mp4"
         write_overlay(video, seg, f"{r.video_id}: '{phrase}'", overlay)
         per_frame = seg.objects_per_frame()
         confs = [d.confidence for d in seg.detections if d.confidence is not None]
@@ -171,11 +187,11 @@ def main() -> None:
             f"returned={seg.frames_returned} objects_max={out_rows[-1]['objects_max']} "
             f"cache_hit={seg.cache_hit} diagnostics={len(seg.diagnostics)}"
         )
-    with open(TRACKING_CSV, "w", encoding="utf-8", newline="") as fh:
+    with open(out_csv, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=COLUMNS, lineterminator="\n")
         w.writeheader()
         w.writerows(out_rows)
-    print(f"wrote {len(out_rows)} rows to {TRACKING_CSV}; spent this run ~${spent:.4f}")
+    print(f"wrote {len(out_rows)} rows to {out_csv}; spent this run ~${spent:.4f}")
 
 
 if __name__ == "__main__":
