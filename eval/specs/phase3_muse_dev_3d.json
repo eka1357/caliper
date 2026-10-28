@@ -1,0 +1,3008 @@
+{
+ "about": "Specs written by Muse Spark 1.3 (caliper/spec.py) for the QuantiPhy dev 3D questions. Keyed by dataset row id; no question text or answers stored.",
+ "specs": [
+  {
+   "row_id": 1090,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden boat",
+    "target_alt_phrases": [
+     "canoe",
+     "small boat"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "boat",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     1.0,
+     10.0
+    ],
+    "notes": "Scale comes from the boat's own motion so the boat must show clear displacement for calibration."
+   }
+  },
+  {
+   "row_id": 1091,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "boat",
+    "target_alt_phrases": [
+     "wooden boat",
+     "small canoe"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "shortest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "boat",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.5,
+     3.0
+    ],
+    "notes": "Scale uses the target's own motion with no separate reference object visible."
+   }
+  },
+  {
+   "row_id": 1092,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "boat",
+    "target_alt_phrases": [
+     "wooden canoe",
+     "rowboat"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "boat",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.2,
+     3.0
+    ],
+    "notes": "Scale comes from the boat's own motion so target and reference share depth."
+   }
+  },
+  {
+   "row_id": 1093,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden pier",
+    "target_alt_phrases": [
+     "wooden dock",
+     "lake pier"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "boat",
+    "reference_alt_phrases": [
+     "small boat",
+     "wooden canoe"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "shortest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "pier",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.5,
+     5.0
+    ],
+    "notes": "Static pier measured using moving boat for scale."
+   }
+  },
+  {
+   "row_id": 1094,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden pier",
+    "target_alt_phrases": [
+     "wooden dock",
+     "lake pier"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "boat",
+    "reference_alt_phrases": [
+     "rowboat",
+     "wooden boat"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "pier",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     1.0,
+     20.0
+    ],
+    "notes": "Scale comes from boat motion while the target pier is static at a different depth."
+   }
+  },
+  {
+   "row_id": 1095,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden pier",
+    "target_alt_phrases": [
+     "small dock",
+     "wooden dock"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "wooden boat",
+    "second_instance": "auto",
+    "reference_phrase": "wooden boat",
+    "reference_alt_phrases": [
+     "small boat",
+     "canoe"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": 3.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "pier",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.0,
+     30.0
+    ],
+    "notes": "Minimum distance uses the closest points between the pier and boat masks with scale from boat motion."
+   }
+  },
+  {
+   "row_id": 1096,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden steps",
+    "target_alt_phrases": [
+     "wooden stairs",
+     "cabin steps"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "boat",
+    "reference_alt_phrases": [
+     "canoe",
+     "rowboat"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "stairs",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.3,
+     4.0
+    ],
+    "notes": "Scale comes from boat motion while the target steps are static near the cabin at a different depth."
+   }
+  },
+  {
+   "row_id": 1097,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden pier",
+    "target_alt_phrases": [
+     "wooden dock",
+     "small pier"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "wooden boat",
+    "reference_alt_phrases": [
+     "rowboat",
+     "small canoe"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "pier",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.1,
+     3.0
+    ],
+    "notes": "Visible pier above the waterline defines the vertical measurement."
+   }
+  },
+  {
+   "row_id": 1098,
+   "video_id": "simulation_0009",
+   "error": null,
+   "spec": {
+    "target_phrase": "cabin stairs",
+    "target_alt_phrases": [
+     "wooden steps",
+     "cabin steps"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "small boat",
+    "reference_alt_phrases": [
+     "canoe",
+     "rowboat"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 1.5,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "boat": [
+      [
+       0.0,
+       11.827
+      ],
+      [
+       1.0,
+       13.154
+      ]
+     ],
+     "pier": [
+      [
+       null,
+       18.92
+      ]
+     ],
+     "stairs": [
+      [
+       null,
+       23.125
+      ]
+     ]
+    },
+    "target_depth_key": "stairs",
+    "reference_depth_key": "boat",
+    "plausible_range_si": [
+     0.2,
+     3.0
+    ],
+    "notes": "Stairs extent is used as proxy for floor height since floor edge itself is not directly segmentable."
+   }
+  },
+  {
+   "row_id": 1343,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "yellow car",
+    "target_alt_phrases": [
+     "yellow taxi",
+     "taxi"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "largest",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "yellow_car",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.0,
+     30.0
+    ],
+    "notes": "Scale is derived from the white car acceleration prior rather than a length reference."
+   }
+  },
+  {
+   "row_id": 1344,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "traffic lane",
+    "target_alt_phrases": [
+     "road lane",
+     "gray lane"
+    ],
+    "target_instance": "middle",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "right",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "horizontal",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     2.0,
+     5.0
+    ],
+    "notes": "The lane surface is uniform with no painted edges so the central road area is segmented."
+   }
+  },
+  {
+   "row_id": 1345,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "white car",
+    "target_alt_phrases": [
+     "white van",
+     "white SUV"
+    ],
+    "target_instance": "largest",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "white_car",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     2.0,
+     10.0
+    ],
+    "notes": "Scale must be derived from the target's own motion since the prior describes the target itself."
+   }
+  },
+  {
+   "row_id": 1346,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "yellow car",
+    "target_alt_phrases": [
+     "yellow taxi",
+     "taxi"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "largest",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "yellow_car",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     2.0,
+     7.0
+    ],
+    "notes": "Scale is derived from vehicle acceleration rather than a direct length reference."
+   }
+  },
+  {
+   "row_id": 1347,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "yellow car",
+    "target_alt_phrases": [
+     "yellow taxi",
+     "taxi sedan"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white SUV"
+    ],
+    "reference_instance": "largest",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "yellow_car",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.5,
+     3.0
+    ],
+    "notes": "Scale must be inferred from vehicle motion rather than a direct size reference."
+   }
+  },
+  {
+   "row_id": 1348,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "bicycle wheel",
+    "target_alt_phrases": [
+     "bike wheel",
+     "cycle wheel"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "largest",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "bike",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.3,
+     1.0
+    ],
+    "notes": "Scale relies on accelerating vehicle motion rather than a static size reference."
+   }
+  },
+  {
+   "row_id": 1349,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "walking pedestrian",
+    "target_alt_phrases": [
+     "pedestrian",
+     "person walking"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "human",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.0,
+     5.0
+    ],
+    "notes": "Scale must be derived from vehicle acceleration rather than a size cue."
+   }
+  },
+  {
+   "row_id": 1350,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "walking pedestrian",
+    "target_alt_phrases": [
+     "person on sidewalk",
+     "pedestrian"
+    ],
+    "target_instance": "right",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "right",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "horizontal",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "human",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.5,
+     2.5
+    ],
+    "notes": "Scale must be derived from vehicle motion rather than a direct length reference."
+   }
+  },
+  {
+   "row_id": 1351,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "bicycle",
+    "target_alt_phrases": [
+     "bike",
+     "cycle"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "largest",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": "bike",
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.0,
+     15.0
+    ],
+    "notes": "The bicycle crosses the intersection through traffic and becomes partly obscured by the white vehicle late in the clip."
+   }
+  },
+  {
+   "row_id": 1352,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "green car",
+    "target_alt_phrases": [
+     "teal car",
+     "green sedan"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white sedan",
+     "white vehicle"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     1.0,
+     3.0
+    ],
+    "notes": "Multiple white vehicles cross the intersection so tracking must isolate the accelerating reference car."
+   }
+  },
+  {
+   "row_id": 1353,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "purple car",
+    "target_alt_phrases": [
+     "purple automobile",
+     "violet car"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white automobile",
+     "white sedan"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     1.0,
+     2.5
+    ],
+    "notes": "Scale is derived from the white car motion rather than a static length."
+   }
+  },
+  {
+   "row_id": 1354,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "stacked trash bags",
+    "target_alt_phrases": [
+     "trash bags",
+     "garbage bag pile"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white vehicle"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.2,
+     3.0
+    ],
+    "notes": "Scale must be derived from vehicle acceleration rather than a known length."
+   }
+  },
+  {
+   "row_id": 1355,
+   "video_id": "simulation_0060",
+   "error": null,
+   "spec": {
+    "target_phrase": "trash can",
+    "target_alt_phrases": [
+     "trash bin",
+     "waste bin"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "white car",
+    "reference_alt_phrases": [
+     "white van",
+     "white SUV"
+    ],
+    "reference_instance": "right",
+    "reference_kind": "acceleration",
+    "reference_statistic": "acceleration",
+    "reference_axis": "path",
+    "reference_value_si": 4.0,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "vertical",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "human": [
+      [
+       0.58,
+       34.4785
+      ],
+      [
+       1.58,
+       35.6486
+      ]
+     ],
+     "yellow_car": [
+      [
+       0.58,
+       26.2275
+      ],
+      [
+       1.58,
+       28.424
+      ]
+     ],
+     "white_car": [
+      [
+       0.58,
+       22.7254
+      ],
+      [
+       1.58,
+       21.537
+      ]
+     ],
+     "bike": [
+      [
+       0.58,
+       23.5534
+      ],
+      [
+       1.58,
+       23.2262
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "white_car",
+    "plausible_range_si": [
+     0.3,
+     2.0
+    ],
+    "notes": "Scale relies on vehicle motion rather than a static length prior."
+   }
+  },
+  {
+   "row_id": 1989,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "spacewalker",
+     "white spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Target provides its own scale while drifting against a featureless background."
+   }
+  },
+  {
+   "row_id": 1990,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "spaceman",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Plain white background offers little texture while the astronaut grows quickly as it approaches the camera."
+   }
+  },
+  {
+   "row_id": 1991,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "white spacesuit",
+     "floating person"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Astronaut drifts and appears to approach the camera so depth change must be accounted for."
+   }
+  },
+  {
+   "row_id": 1992,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "white astronaut",
+    "target_alt_phrases": [
+     "astronaut",
+     "spacesuit figure"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Astronaut moves toward the camera against a featureless background with changing apparent size."
+   }
+  },
+  {
+   "row_id": 1993,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "white spacesuit",
+     "spacewalker"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Astronaut drifts against a plain bright background while appearing to approach the camera."
+   }
+  },
+  {
+   "row_id": 1994,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "person in spacesuit",
+     "spaceman"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Scale comes from the target itself while depth accounts for motion toward the camera."
+   }
+  },
+  {
+   "row_id": 1995,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "spaceman",
+     "person in spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "longest",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 3.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     20.0
+    ],
+    "notes": "Astronaut drifts against plain background while growing larger so depth change must be accounted for."
+   }
+  },
+  {
+   "row_id": 1996,
+   "video_id": "simulation_0170_segmented",
+   "error": null,
+   "spec": {
+    "target_phrase": "astronaut",
+    "target_alt_phrases": [
+     "person in spacesuit",
+     "white spacesuit"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "vertical",
+    "reference_value_si": 2.2,
+    "reference_source": "question prior",
+    "quantity": "acceleration",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 3.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s^2",
+    "depth_info": {
+     "astronaut": [
+      [
+       1.0,
+       23.137
+      ]
+     ]
+    },
+    "target_depth_key": "astronaut",
+    "reference_depth_key": "astronaut",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Scale uses the astronaut itself which grows rapidly while drifting against a blank background."
+   }
+  },
+  {
+   "row_id": 2520,
+   "video_id": "captured_0021x",
+   "error": null,
+   "spec": {
+    "target_phrase": "ping pong ball",
+    "target_alt_phrases": [
+     "white ball",
+     "small ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.04,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.2,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s",
+    "depth_info": {
+     "pingpong": [
+      [
+       1.0,
+       1.511
+      ],
+      [
+       1.4,
+       1.03
+      ]
+     ]
+    },
+    "target_depth_key": "pingpong",
+    "reference_depth_key": "pingpong",
+    "plausible_range_si": [
+     0.0,
+     5.0
+    ],
+    "notes": "Scale comes from the target itself so both depth keys point to the same object."
+   }
+  },
+  {
+   "row_id": 2521,
+   "video_id": "captured_0021x",
+   "error": null,
+   "spec": {
+    "target_phrase": "ping pong ball",
+    "target_alt_phrases": [
+     "white ball",
+     "small round ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.04,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.4,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm/s",
+    "depth_info": {
+     "pingpong": [
+      [
+       1.0,
+       1.511
+      ],
+      [
+       1.4,
+       1.03
+      ]
+     ]
+    },
+    "target_depth_key": "pingpong",
+    "reference_depth_key": "pingpong",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "The scale is provided by the target ball itself since the prior describes its own diameter."
+   }
+  },
+  {
+   "row_id": 2522,
+   "video_id": "captured_0021x",
+   "error": null,
+   "spec": {
+    "target_phrase": "ping pong ball",
+    "target_alt_phrases": [
+     "white ball",
+     "table tennis ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.04,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": [
+     1.0,
+     1.4
+    ],
+    "output_unit": "cm",
+    "depth_info": {
+     "pingpong": [
+      [
+       1.0,
+       1.511
+      ],
+      [
+       1.4,
+       1.03
+      ]
+     ]
+    },
+    "target_depth_key": "pingpong",
+    "reference_depth_key": "pingpong",
+    "plausible_range_si": [
+     0.0,
+     2.0
+    ],
+    "notes": "Scale comes from the target itself and displacement is measured over a short time window."
+   }
+  },
+  {
+   "row_id": 2523,
+   "video_id": "captured_0021x",
+   "error": null,
+   "spec": {
+    "target_phrase": "brown table",
+    "target_alt_phrases": [
+     "wooden table",
+     "table top"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "ping pong ball",
+    "reference_alt_phrases": [
+     "white ball",
+     "table tennis ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.04,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "horizontal",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": {
+     "pingpong": [
+      [
+       1.0,
+       1.511
+      ],
+      [
+       1.4,
+       1.03
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "pingpong",
+    "plausible_range_si": [
+     0.3,
+     2.0
+    ],
+    "notes": "Table is viewed against dark background with ball resting on its surface for scale."
+   }
+  },
+  {
+   "row_id": 2524,
+   "video_id": "captured_0021x",
+   "error": null,
+   "spec": {
+    "target_phrase": "wooden table",
+    "target_alt_phrases": [
+     "brown table",
+     "table top"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "ping pong ball",
+    "reference_alt_phrases": [
+     "white ball",
+     "table tennis ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "size",
+    "reference_statistic": "extent",
+    "reference_axis": "disc",
+    "reference_value_si": 0.04,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "longest",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": {
+     "pingpong": [
+      [
+       1.0,
+       1.511
+      ],
+      [
+       1.4,
+       1.03
+      ]
+     ]
+    },
+    "target_depth_key": null,
+    "reference_depth_key": "pingpong",
+    "plausible_range_si": [
+     0.5,
+     3.0
+    ],
+    "notes": "Table is viewed frontally against a dark background with the small ball resting on the far edge."
+   }
+  },
+  {
+   "row_id": 2915,
+   "video_id": "captured_0041x",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white ball",
+     "football"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 5.21,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": 1.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": {
+     "soccer_ball": [
+      [
+       1.5,
+       2.544
+      ],
+      [
+       1.6,
+       2.074
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "soccer_ball",
+    "plausible_range_si": [
+     0.05,
+     0.5
+    ],
+    "notes": "Scale is derived from the target's own motion rather than a separate reference object."
+   }
+  },
+  {
+   "row_id": 2916,
+   "video_id": "captured_0041x",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white ball",
+     "football"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 5.21,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "average",
+    "axis": "path",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": [
+     1.5,
+     1.6
+    ],
+    "output_unit": "m",
+    "depth_info": {
+     "soccer_ball": [
+      [
+       1.5,
+       2.544
+      ],
+      [
+       1.6,
+       2.074
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "soccer_ball",
+    "plausible_range_si": [
+     0.0,
+     2.0
+    ],
+    "notes": "Scale comes from the target's own prior motion rather than a separate object."
+   }
+  },
+  {
+   "row_id": 2917,
+   "video_id": "captured_0041x",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "football",
+     "white ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "person",
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 5.21,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": 1.5,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "soccer_ball": [
+      [
+       1.5,
+       2.544
+      ],
+      [
+       1.6,
+       2.074
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "soccer_ball",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Ball is moving away from the person at the measurement moment."
+   }
+  },
+  {
+   "row_id": 3047,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "gray yoga ball",
+    "target_alt_phrases": [
+     "yoga ball",
+     "large exercise ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": null,
+    "reference_alt_phrases": [],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": 0.6,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "yoga_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.3,
+     1.0
+    ],
+    "notes": "Scale is derived from the target's own motion prior rather than a separate reference object."
+   }
+  },
+  {
+   "row_id": 3048,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "white soccer ball",
+    "target_alt_phrases": [
+     "soccer ball",
+     "white and black ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "gray yoga ball",
+    "reference_alt_phrases": [
+     "yoga ball",
+     "large exercise ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "extent",
+    "axis": "disc",
+    "timestamp_s": null,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "cm",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.1,
+     0.35
+    ],
+    "notes": "Scale is derived from yoga ball motion while target uses its own depth key."
+   }
+  },
+  {
+   "row_id": 3049,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white ball",
+     "football"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "basketball",
+    "second_instance": "auto",
+    "reference_phrase": "yoga ball",
+    "reference_alt_phrases": [
+     "exercise ball",
+     "grey gym ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Scale comes from a moving yoga ball rather than a static size reference."
+   }
+  },
+  {
+   "row_id": 3050,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "orange basketball",
+    "target_alt_phrases": [
+     "basketball",
+     "orange ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "gray yoga ball",
+    "second_instance": "auto",
+    "reference_phrase": "gray yoga ball",
+    "reference_alt_phrases": [
+     "yoga ball",
+     "exercise ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "path",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "basketball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     10.0
+    ],
+    "notes": "Scale is derived from yoga ball motion rather than a static size reference."
+   }
+  },
+  {
+   "row_id": 3051,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white soccer ball",
+     "white ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": "floor",
+    "second_instance": "auto",
+    "reference_phrase": "yoga ball",
+    "reference_alt_phrases": [
+     "exercise ball",
+     "large gray ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "size",
+    "statistic": "separation",
+    "axis": "vertical",
+    "timestamp_s": 2.0,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     3.0
+    ],
+    "notes": "The second object is the floor plane used as the baseline for vertical separation."
+   }
+  },
+  {
+   "row_id": 3052,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white soccer ball",
+     "white ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "yoga ball",
+    "reference_alt_phrases": [
+     "large exercise ball",
+     "gray ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.6,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     15.0
+    ],
+    "notes": "Scene is blurry with multiple balls moving simultaneously in a small indoor room."
+   }
+  },
+  {
+   "row_id": 3053,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "soccer ball",
+    "target_alt_phrases": [
+     "white soccer ball",
+     "football"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "yoga ball",
+    "reference_alt_phrases": [
+     "purple yoga ball",
+     "exercise ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 0.9,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "soccer_ball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     15.0
+    ],
+    "notes": "Soccer ball is airborne on the left while the yoga ball rests near the center of the room."
+   }
+  },
+  {
+   "row_id": 3054,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "orange basketball",
+    "target_alt_phrases": [
+     "basketball",
+     "orange ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "gray yoga ball",
+    "reference_alt_phrases": [
+     "yoga ball",
+     "large gray ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.1,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "basketball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     15.0
+    ],
+    "notes": "Basketball moves quickly toward the camera and appears blurred in the later view."
+   }
+  },
+  {
+   "row_id": 3055,
+   "video_id": "captured_0061",
+   "error": null,
+   "spec": {
+    "target_phrase": "orange basketball",
+    "target_alt_phrases": [
+     "basketball",
+     "orange ball"
+    ],
+    "target_instance": "auto",
+    "second_phrase": null,
+    "second_instance": "auto",
+    "reference_phrase": "yoga ball",
+    "reference_alt_phrases": [
+     "exercise ball",
+     "purple ball"
+    ],
+    "reference_instance": "auto",
+    "reference_kind": "speed",
+    "reference_statistic": "average_speed",
+    "reference_axis": "path",
+    "reference_value_si": 2.5104,
+    "reference_source": "question prior",
+    "quantity": "speed",
+    "statistic": "instantaneous",
+    "axis": "path",
+    "timestamp_s": 1.6,
+    "time_anchor": "timestamp",
+    "time_range_s": null,
+    "output_unit": "m/s",
+    "depth_info": {
+     "yoga_ball": [
+      [
+       0.6,
+       2.133
+      ]
+     ],
+     "basketball": [
+      [
+       1.1,
+       2.42
+      ],
+      [
+       1.6,
+       1.9015
+      ]
+     ],
+     "soccer_ball": [
+      [
+       0.6,
+       1.937
+      ],
+      [
+       0.9,
+       1.585
+      ]
+     ]
+    },
+    "target_depth_key": "basketball",
+    "reference_depth_key": "yoga_ball",
+    "plausible_range_si": [
+     0.0,
+     15.0
+    ],
+    "notes": "Basketball moves quickly in the foreground while the large exercise ball provides the motion scale."
+   }
+  }
+ ]
+}
