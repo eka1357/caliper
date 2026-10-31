@@ -154,3 +154,20 @@
     transition-duration: 150ms !important;
   }
 }
+
+/* Printing (the study report): dark tokens would print light text on white paper. */
+@media print {
+  :root {
+    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #111418;
+    --card: #ffffff;
+    --card-foreground: #111418;
+    --muted: #f2f4f6;
+    --muted-foreground: #4a5562;
+    --border: #c9d0d8;
+    --track: #0a7f8c;
+    --primary: #8a5a00;
+    --destructive: #b3261e;
+  }
+}
