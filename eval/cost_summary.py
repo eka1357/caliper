@@ -129,6 +129,9 @@ def main() -> None:
     resp_usage = {k: sum(r["usage"][k] for r in resp) for k in ("input_tokens", "output_tokens")}
     resp_cost = muse_cost_usd(resp_usage)
     print(f"muse responses (smoke, phrases, specs): records={len(resp)} cost_usd={resp_cost:.4f}")
+    per_call = sorted(muse_cost_usd(r["usage"]) for r in resp)
+    if per_call:  # basis of config.MUSE_CALL_ESTIMATE_USD for the live cost estimate
+        print(f"  cost/call: mean={st.mean(per_call):.4f} max={per_call[-1]:.4f}")
 
     runs = sam_runs()
     matched = {r["rec"]["key"] for r in runs}

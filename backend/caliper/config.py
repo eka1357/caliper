@@ -109,4 +109,31 @@ MAX_GAP_FRAMES = 3  # ARCHITECTURE section 7 (track_continuity)
 MASK_CV_MAX = 0.30  # ARCHITECTURE section 7 said 0.25; dev tuning 2026-10-29 (DECISIONS.md)
 INTERVAL_HALF_MAX = 0.50  # ARCHITECTURE section 7 (interval_width)
 CHECKS_ENABLED = True
+
+
+def _env_float(var: str, default: float) -> float:
+    return float(os.environ.get(var, default))
+
+
+# Live runs and caps (AGENTS rule 14, ARCHITECTURE section 10). Read from .env; defaults are the
+# values in .env.example. Cached runs and API-run cache hits never count against them.
+LIVE_RUNS_ENABLED = os.environ.get("LIVE_RUNS_ENABLED", "false").strip().lower() == "true"
+LIVE_MAX_CLIP_SECONDS = _env_float("LIVE_MAX_CLIP_SECONDS", 15)
+LIVE_MAX_STUDY_SECONDS = _env_float("LIVE_MAX_STUDY_SECONDS", 60)
+LIVE_RUNS_PER_IP_PER_HOUR = int(_env_float("LIVE_RUNS_PER_IP_PER_HOUR", 5))
+PER_RUN_CAP_USD = _env_float("PER_RUN_CAP_USD", 0.50)
+PER_STUDY_CAP_USD = _env_float("PER_STUDY_CAP_USD", 1.50)
+DAILY_SPEND_CAP_USD = _env_float("DAILY_SPEND_CAP_USD", 5.00)
+LIVE_MAX_UPLOAD_BYTES = 200 * 1024 * 1024  # Phase 5: refuse bigger uploads before probing
+SPEND_DIR = CACHE_DIR / "spend"  # daily spend ledger, one JSON per UTC date
+API_RUNS_DIR = CACHE_DIR / "api_runs"  # live results keyed by video, question, prior, backend
+# Cost estimate before any live API call (ARCHITECTURE section 13): SAM frames x concepts, plus
+# Muse Spark calls. 2 concepts = target + reference (alternative phrases cost extra; the actual
+# cost is what the daily ledger records). Per-call Muse estimate: max $0.0309 over the 135 cached
+# Responses records (`python eval/cost_summary.py`, "cost/call" line, 2026-10-31), rounded up.
+LIVE_SAM_CONCEPTS = 2
+MUSE_CALL_ESTIMATE_USD = 0.035
+MUSE_CALLS_PER_MEASURE = 2  # spec + audit (AGENTS rule 2)
+# Live requests use a smaller bootstrap than eval (BOOTSTRAP_B) to keep them fast. DECISIONS.md.
+LIVE_BOOTSTRAP_B = 200
 AUDIT_ENABLED = True  # ARCHITECTURE section 8; the runner turns it off for caliper_no_audit
