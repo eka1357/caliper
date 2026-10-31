@@ -57,7 +57,7 @@ During the building period (Oct 27 to Nov 4 2026): all application code in `back
 
 - Models: Muse Spark 1.3 and SAM 3.1 via [Meta Model API](https://dev.meta.ai/docs/overview); Muse Spark Open via Baseten if the open-weights backend is used.
 - Benchmark: [QuantiPhy](https://github.com/Paulineli/QuantiPhy) (annotations CC BY 4.0; videos keep their original licenses, are used only for evaluation, and are not redistributed or shown here).
-- UI components: [shadcn/ui](https://ui.shadcn.com) (MIT) on [Radix UI](https://www.radix-ui.com) (MIT); charts from [bklit](https://github.com/bklit/bklit-ui) chart components (MIT); [Motion](https://motion.dev) (MIT); [lucide](https://lucide.dev) icons (ISC); [Sonner](https://sonner.emilkowal.ski) (MIT); d3-shape, d3-scale, d3-array (ISC).
+- UI components: [shadcn/ui](https://ui.shadcn.com) (MIT) on [Radix UI](https://www.radix-ui.com) (MIT); charts from [bklit](https://github.com/bklit/bklit-ui) chart components (MIT); [Motion](https://motion.dev) (MIT); [lucide](https://lucide.dev) icons (ISC); [Sonner](https://sonner.emilkowal.ski) (MIT); d3-shape, d3-scale, d3-array (ISC); [GSAP](https://gsap.com) with ScrollTrigger, SplitText and DrawSVG ([Standard "no charge" license](https://gsap.com/standard-license), landing page only); [Lenis](https://github.com/darkroomengineering/lenis) (MIT, landing page only).
 - Fonts: Geist and Geist Mono (SIL OFL 1.1), Instrument Serif (SIL OFL 1.1), via next/font/google.
 
 ## License
