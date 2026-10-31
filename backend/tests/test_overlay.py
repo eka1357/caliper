@@ -57,3 +57,12 @@ def test_no_scale_gives_no_series():
     track, _ = moving_disc(5)
     o = overlay.build(track, None, None)
     assert o["fit"] == [] and o["speed"] == []
+
+
+def test_sample_frames_limits_and_keeps_ends():
+    track, masks = moving_disc(30)
+    only = overlay.sample_frames(track, None, limit=10)
+    assert len(only) == 10 and {0, 29} <= only
+    o = overlay.build(track, None, 0.01, "path", masks, only=only)
+    assert [f["frame"] for f in o["frames"]] == sorted(only)
+    assert len(o["fit"]) == 30  # series keep every detected frame

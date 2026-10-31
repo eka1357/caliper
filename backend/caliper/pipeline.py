@@ -14,7 +14,7 @@ from typing import Any
 import numpy as np
 
 from caliper import audit as audit_step
-from caliper import config, engine
+from caliper import config, engine, overlay
 from caliper.backends import LanguageBackend
 from caliper.checks import CheckInputs, first_failure, run_checks, window_frames
 from caliper.depth import depth_ratio
@@ -22,6 +22,7 @@ from caliper.engine import Abstain
 from caliper.models import AuditVerdict, Check, MeasurementSpec, Result, Track
 from caliper.normalize import normalize, probe
 from caliper.segment import (
+    mask_rasters,
     sam_cost_usd,
     same_object_conflict,
     segment,
@@ -95,6 +96,22 @@ def _depth_ratio(spec: MeasurementSpec, target: Track, reference: Track | None) 
         raise Abstain(f"No depth is given for the {exc.args[0]}.") from exc
 
 
+def _overlay(ctx: VideoContext, spec: MeasurementSpec, target: Track, reference: Track | None,
+             scale: float | None) -> dict:  # fmt: skip
+    """Outlines (from the cached SAM masks) and fit series for the UI (ARCHITECTURE section 11)."""
+    only = overlay.sample_frames(target, reference)
+    frames = sorted(only)
+
+    def masks(track: Track | None) -> dict:
+        if track is None:
+            return {}
+        return mask_rasters(ctx.path, track.phrase, str(track.object_ordinal), frames,
+                            ctx.width, ctx.height)  # fmt: skip
+
+    return overlay.build(target, reference, scale, spec.axis, masks(target), masks(reference),
+                         only)  # fmt: skip
+
+
 def _stub_spec() -> MeasurementSpec:
     return MeasurementSpec(
         target_phrase="", reference_phrase=None, reference_kind="given_prior",
@@ -128,8 +145,14 @@ def measure(
     run_id: str = "",
     backend: LanguageBackend | None = None,
     audit: bool | None = None,
+    bootstrap_b: int = config.BOOTSTRAP_B,
+    with_overlay: bool = False,
 ) -> Result:
-    """One question on one video. Abstains (never guesses) when any step cannot support a number."""
+    """One question on one video. Abstains (never guesses) when any step cannot support a number.
+
+    bootstrap_b: the API passes config.LIVE_BOOTSTRAP_B for live runs; eval keeps the default.
+    with_overlay: add artifacts["overlay"] (outlines, fit series) once both tracks exist.
+    """
     ctx = video if isinstance(video, VideoContext) else VideoContext(video)
     artifacts: dict[str, Any] = {
         "video": ctx.name,
@@ -183,7 +206,7 @@ def measure(
             "reference": len(reference.frames) if reference else None,
             "clip": ctx.frames,
         }
-        m = engine.measure(spec, target, reference, second)
+        m = engine.measure(spec, target, reference, second, boot=bootstrap_b)
         if spec.depth_info:
             ratio = _depth_ratio(spec, target, reference)
             m.value_si *= ratio
@@ -197,6 +220,8 @@ def measure(
     value = engine.to_unit(m.value_si, spec.output_unit)
     artifacts.update(value_px=m.value_px, bootstrap_ok=m.bootstrap_ok, unchecked_value=value,
                      unchecked_interval=interval)  # fmt: skip
+    if with_overlay:
+        artifacts["overlay"] = _overlay(ctx, spec, target, reference, m.scale_m_per_px)
     inputs = CheckInputs(
         spec=spec,
         target=engine.Series.from_track(target),

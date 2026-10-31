@@ -15,6 +15,7 @@ from caliper.engine import Abstain, Series
 from caliper.models import Track, TrackFrame
 
 MAX_POINTS = 200  # ARCHITECTURE section 11
+MAX_FRAMES = 150  # Phase 5: outlines sent for at most this many frames per run (payload size)
 
 
 def _simplify(contour: np.ndarray) -> np.ndarray:
@@ -56,13 +57,15 @@ def frames_overlay(
     reference: Track | None,
     target_masks: dict[int, np.ndarray] | None = None,
     reference_masks: dict[int, np.ndarray] | None = None,
+    only: set[int] | None = None,
 ) -> list[dict]:
-    """One entry per frame where the target or the reference was detected."""
+    """One entry per frame where the target or the reference was detected (within `only`)."""
     tm, rm = target_masks or {}, reference_masks or {}
     by_t = {f.frame: f for f in target.frames}
     by_r = {f.frame: f for f in reference.frames} if reference is not None else {}
     out = []
-    for frame in sorted(set(by_t) | set(by_r)):
+    frames = set(by_t) | set(by_r)
+    for frame in sorted(frames if only is None else frames & only):
         t, r = by_t.get(frame), by_r.get(frame)
         out.append({
             "frame": frame,
@@ -107,6 +110,16 @@ def fit_series(target: Track, scale_m_per_px: float, axis: str = "path") -> dict
     return {"fit": fit_rows, "speed": speed}
 
 
+def sample_frames(target: Track, reference: Track | None, limit: int = MAX_FRAMES) -> set[int]:
+    """At most `limit` evenly spaced detected frames; the UI holds each outline until the next."""
+    frames = sorted({f.frame for f in target.frames}
+                    | ({f.frame for f in reference.frames} if reference else set()))  # fmt: skip
+    if len(frames) <= limit:
+        return set(frames)
+    idx = np.linspace(0, len(frames) - 1, limit).round().astype(int)
+    return {frames[i] for i in idx}
+
+
 def build(
     target: Track,
     reference: Track | None,
@@ -114,6 +127,7 @@ def build(
     axis: str = "path",
     target_masks: dict[int, np.ndarray] | None = None,
     reference_masks: dict[int, np.ndarray] | None = None,
+    only: set[int] | None = None,
 ) -> dict:
     """The `overlay` block of a run JSON."""
     empty: dict[str, list] = {"fit": [], "speed": []}
@@ -122,6 +136,6 @@ def build(
         "fps": target.fps,
         "width": target.width,
         "height": target.height,
-        "frames": frames_overlay(target, reference, target_masks, reference_masks),
+        "frames": frames_overlay(target, reference, target_masks, reference_masks, only),
         **series,
     }

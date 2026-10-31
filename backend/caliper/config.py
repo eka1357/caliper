@@ -125,6 +125,8 @@ PER_RUN_CAP_USD = _env_float("PER_RUN_CAP_USD", 0.50)
 PER_STUDY_CAP_USD = _env_float("PER_STUDY_CAP_USD", 1.50)
 DAILY_SPEND_CAP_USD = _env_float("DAILY_SPEND_CAP_USD", 5.00)
 LIVE_MAX_UPLOAD_BYTES = 200 * 1024 * 1024  # Phase 5: refuse bigger uploads before probing
+# Browser origins allowed to call the API (comma-separated in .env; default: local Next.js)
+WEB_ORIGINS = os.environ.get("WEB_ORIGINS", "http://localhost:3000").split(",")
 SPEND_DIR = CACHE_DIR / "spend"  # daily spend ledger, one JSON per UTC date
 API_RUNS_DIR = CACHE_DIR / "api_runs"  # live results keyed by video, question, prior, backend
 # Cost estimate before any live API call (ARCHITECTURE section 13): SAM frames x concepts, plus
