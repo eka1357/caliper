@@ -41,6 +41,7 @@ CACHE_DIR = _path("CACHE_DIR", "data/cache")
 QUANTIPHY_DIR = _path("QUANTIPHY_DIR", "data/quantiphy-val")
 FIELD_DIR = _path("FIELD_DIR", "data/field")
 NORMALIZED_DIR = CACHE_DIR / "normalized"
+RUNS_DIR = ROOT / "web" / "public" / "runs"  # cached runs for replay (ARCHITECTURE section 12)
 
 # QuantiPhy split (EVAL_PROTOCOL section 2). The sha256 rule gave 8 dev / 16 holdout on the
 # 24 validation videos, outside the allowed 10 to 14, so the protocol's fallback applies:
