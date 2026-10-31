@@ -47,13 +47,20 @@ VARIANTS = ("caliper", "caliper_no_audit", "caliper_rule_parser", "caliper_hand_
 MUSE_SPEC_VARIANTS = ("caliper", "caliper_no_audit")  # same cached Muse specs
 SAM_CEILING_USD = 1.50  # Phase 2 plan: SAM for new phrases, both variants
 MUSE_CEILING_USD = 6.0  # human, Phase 2: stop if the spec writer run is projected above this
-SOURCES = {
-    "caliper": "eval/quantiphy.py (dev 2D only; Muse Spark spec writer, checks, visual audit)",
-    "caliper_no_audit": "eval/quantiphy.py (dev 2D only; Muse Spark spec writer, checks, no audit)",
-    "caliper_rule_parser": "eval/quantiphy.py (dev 2D only; A1 rule parser, eval/ablation.py)",
-    "caliper_hand_spec": "eval/quantiphy.py (dev 2D only; hand-written specs "
-    "eval/specs/phase1_dev_2d.json)",
+SOURCES = {  # what the variant is; the split scope is added by source_for()
+    "caliper": "Muse Spark spec writer, checks, visual audit",
+    "caliper_no_audit": "Muse Spark spec writer, checks, no audit",
+    "caliper_rule_parser": "A1 rule parser, eval/ablation.py",
+    "caliper_hand_spec": "hand-written specs eval/specs/phase1_dev_2d.json",
 }
+SCOPES = {"dev_2d": "dev 2D only", "dev_3d": "dev 3D only", "dev": "dev, all four categories"}
+
+
+def source_for(variant: str, split: str) -> str:
+    """Source note for a results.csv row: the script, the split it covers, and the variant."""
+    return f"eval/quantiphy.py ({SCOPES.get(split, split)}; {SOURCES[variant]})"
+
+
 COMPARE = [
     "target_phrase", "target_instance", "second_phrase", "second_instance", "reference_phrase",
     "reference_instance", "reference_kind", "reference_statistic", "reference_axis",
@@ -364,7 +371,7 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs, dims: st
            ("mra_S2", "mra_D2", "mra_S3", "mra_D3")},
         "abstain_rate": m.get("invalid_percentage", 0) / 100, "n": len(rows),
         "cost_usd": round(cost, 4), "run_date": date.today().isoformat(),
-        "source": SOURCES[variant],
+        "source": source_for(variant, split),
     }])  # fmt: skip
     update_results()
     print(f"{variant}: abstained {sum(v is None for v in preds.values())}/{len(preds)}; "
