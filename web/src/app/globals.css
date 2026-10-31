@@ -1,0 +1,156 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark only (docs/DESIGN.md section 2, DECISIONS.md). Values are the DESIGN.md start values. */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-track: var(--track);
+  --color-success: var(--success);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-background: var(--chart-background);
+  --color-chart-foreground: var(--chart-foreground);
+  --color-chart-foreground-muted: var(--chart-foreground-muted);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-crosshair: var(--chart-crosshair);
+  --color-chart-label: var(--chart-label);
+  --color-chart-positive: var(--chart-positive);
+  --color-chart-negative: var(--chart-negative);
+  --color-chart-marker-background: var(--chart-marker-background);
+  --color-chart-marker-border: var(--chart-marker-border);
+  --color-chart-marker-foreground: var(--chart-marker-foreground);
+
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument-serif);
+  --font-heading: var(--font-geist);
+
+  --radius-sm: 4px;
+  --radius-md: 6px; /* controls */
+  --radius-lg: 10px; /* cards */
+  --radius-xl: 14px;
+
+  --ease-instrument: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --radius: 0.625rem;
+
+  --background: #0a0c0f;
+  --card: #12161b;
+  --muted: #181d23;
+  --border: #232a32;
+  --foreground: #e9edf1;
+  --muted-foreground: #8a96a3;
+  --primary: #ffb224; /* amber: the ruler (reference, primary action, Measured) */
+  --track: #2fd3e6; /* cyan: the target being measured */
+  --success: #3ddc97;
+  --destructive: #ff5a5f;
+
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary-foreground: var(--background);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--muted);
+  --accent-foreground: var(--foreground);
+  --input: var(--border);
+  --ring: var(--primary);
+
+  /* bklit charts, mapped onto the tokens */
+  --chart-1: var(--track);
+  --chart-2: var(--primary);
+  --chart-3: var(--success);
+  --chart-4: var(--muted-foreground);
+  --chart-5: var(--destructive);
+  --chart-positive: var(--success);
+  --chart-negative: var(--destructive);
+  --chart-background: var(--card);
+  --chart-foreground: var(--muted-foreground);
+  --chart-foreground-muted: var(--muted-foreground);
+  --chart-line-primary: var(--track);
+  --chart-line-secondary: var(--primary);
+  --chart-crosshair: var(--muted-foreground);
+  --chart-grid: var(--border);
+  --chart-brush-border: var(--border);
+  --chart-tooltip-background: var(--card);
+  --chart-tooltip-foreground: var(--foreground);
+  --chart-tooltip-muted: var(--muted-foreground);
+  --chart-marker-background: var(--muted);
+  --chart-marker-border: var(--border);
+  --chart-marker-foreground: var(--foreground);
+  --chart-label: var(--muted-foreground);
+  --chart-scale-mix: var(--card);
+  --chart-scale-01: var(--muted);
+  --chart-scale-02: color-mix(in oklab, var(--chart-1) 35%, var(--chart-scale-mix));
+  --chart-scale-03: color-mix(in oklab, var(--chart-1) 55%, var(--chart-scale-mix));
+  --chart-scale-04: color-mix(in oklab, var(--chart-1) 78%, var(--chart-scale-mix));
+  --chart-scale-05: var(--chart-1);
+  --chart-scale-pattern-color: var(--background);
+  --chart-indicator-color: var(--foreground);
+  --chart-indicator-secondary-color: var(--background);
+  --chart-marker-badge-background: var(--foreground);
+  --chart-marker-badge-foreground: var(--background);
+  --chart-segment-background: color-mix(in oklab, var(--track) 10%, transparent);
+  --chart-segment-line: color-mix(in oklab, var(--foreground) 25%, transparent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Measurement grid motif (DESIGN section 4): 1 px border lines every 24 px. */
+@utility measure-grid {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    transition-duration: 150ms !important;
+  }
+}
