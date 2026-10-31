@@ -36,3 +36,6 @@ data/field/normalized/
 Thumbs.db
 .idea/
 .vscode/
+
+# Browser automation output (screenshots, logs)
+.playwright-mcp/

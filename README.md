@@ -41,6 +41,8 @@ make dev-api            # http://localhost:8000
 make dev-web            # http://localhost:3000
 ```
 
+Recorded runs live in `web/public/runs/` and work without the backend. Until our field clips are in, they are placeholders built from synthetic clips (`python scripts/make_placeholder_runs.py`, no API calls) and are labelled as placeholders in the app. Live runs need `LIVE_RUNS_ENABLED=true` and stay inside the caps in `.env`.
+
 ## Limitations
 
 _Filled in from the evaluation: categories where Caliper is weak, abstention rate, audit false vetoes, what the field set does not cover._
@@ -55,7 +57,8 @@ During the building period (Oct 27 to Nov 4 2026): all application code in `back
 
 - Models: Muse Spark 1.3 and SAM 3.1 via [Meta Model API](https://dev.meta.ai/docs/overview); Muse Spark Open via Baseten if the open-weights backend is used.
 - Benchmark: [QuantiPhy](https://github.com/Paulineli/QuantiPhy) (annotations CC BY 4.0; videos keep their original licenses, are used only for evaluation, and are not redistributed or shown here).
-- UI components and fonts: listed with their licenses as they are added.
+- UI components: [shadcn/ui](https://ui.shadcn.com) (MIT) on [Radix UI](https://www.radix-ui.com) (MIT); charts from [bklit](https://github.com/bklit/bklit-ui) chart components (MIT); [Motion](https://motion.dev) (MIT); [lucide](https://lucide.dev) icons (ISC); [Sonner](https://sonner.emilkowal.ski) (MIT); d3-shape, d3-scale, d3-array (ISC).
+- Fonts: Geist and Geist Mono (SIL OFL 1.1), Instrument Serif (SIL OFL 1.1), via next/font/google.
 
 ## License
 
