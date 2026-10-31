@@ -153,11 +153,11 @@ function ChecksTable({ checks }: { checks: Check[] }) {
       <TableBody>
         {checks.map((c) => (
           <TableRow key={c.name}>
-            <TableCell className="font-mono text-xs">{c.name}</TableCell>
+            <TableCell className="font-mono text-xs whitespace-normal break-all">{c.name}</TableCell>
             <TableCell className="font-mono tabular text-right text-xs">
               {c.value !== null ? Number(c.value.toPrecision(3)) : "n/a"}
             </TableCell>
-            <TableCell className="text-xs text-muted-foreground">{c.threshold}</TableCell>
+            <TableCell className="text-xs whitespace-normal text-muted-foreground">{c.threshold}</TableCell>
             <TableCell className={cn("text-xs", c.passed ? "text-success" : "text-destructive")}>
               {c.passed ? "pass" : "fail"}
             </TableCell>

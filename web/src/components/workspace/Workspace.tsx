@@ -127,7 +127,7 @@ export function Workspace() {
 
   return (
     <div className="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-12 lg:px-8">
-      <div className="flex flex-col gap-4 lg:col-span-7">
+      <div className="flex min-w-0 flex-col gap-4 lg:col-span-7">
         <VideoStage src={src} poster={poster} overlay={run?.overlay ?? null} fitWindow={fitWindow}
           seekTo={seekTo} />
         <p className="min-h-5 text-sm text-muted-foreground">
@@ -135,7 +135,7 @@ export function Workspace() {
         </p>
       </div>
       <LayoutGroup>
-        <motion.div layout transition={layoutSpring} className="flex flex-col gap-5 lg:col-span-5">
+        <motion.div layout transition={layoutSpring} className="flex min-w-0 flex-col gap-5 lg:col-span-5">
           <ControlPanel
             question={question} onQuestion={setQuestion} prior={prior} onPrior={setPrior}
             compare={compare} onCompare={setCompare} clip={clip} onClip={onClip} busy={busy}

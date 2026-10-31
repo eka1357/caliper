@@ -49,7 +49,7 @@ export function ControlPanel(p: ControlPanelProps) {
           dragging ? "border-primary bg-muted" : "bg-card hover:bg-muted",
         )}
       >
-        <span>{p.clip ? p.clip.name : COPY.idle}</span>
+        <span className="break-all">{p.clip ? p.clip.name : COPY.idle}</span>
         <span className="text-muted-foreground">MP4 or MOV, a few seconds long.</span>
         <input
           id={ids.file}
