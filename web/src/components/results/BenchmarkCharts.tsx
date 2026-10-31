@@ -100,14 +100,20 @@ function Legend({ items }: { items: { label: string; color: string; dashed?: boo
 }
 
 function VariantChart({ rows }: { rows: ResultRow[] }) {
+  // A blank value stays null: bklit skips non-numbers, so no bar is drawn and the label says n/a.
   const data = rows.map((r) => ({
-    variant: variantLabel(r.variant),
-    official: pct(r.mra_average) ?? 0,
-    answered: pct(r.mra_answered) ?? 0,
+    variant: [
+      variantLabel(r.variant),
+      r.mra_average == null ? "(official n/a)" : "",
+      r.mra_answered == null ? "(answered n/a)" : "",
+    ].filter(Boolean).join(" "),
+    official: pct(r.mra_average),
+    answered: pct(r.mra_answered),
   }));
+  const blanks = rows.filter((r) => r.mra_average == null || r.mra_answered == null);
   const usable = rows.filter((r) => r.mra_average != null || r.mra_answered != null);
   return (
-    <figure className="flex min-w-0 flex-col gap-3 rounded-lg border bg-card p-4">
+    <figure className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg border bg-card p-4">
       <figcaption className="flex flex-col gap-2">
         <span className="text-sm font-medium">Official and answered-only MRA</span>
         <Legend
@@ -128,10 +134,12 @@ function VariantChart({ rows }: { rows: ResultRow[] }) {
           <ChartTooltip />
         </BarChart>
       )}
-      <p className="text-xs text-muted-foreground">
-        Rows with blank official MRA (2D-only and 3D-only splits) show 0 for that bar; the table
-        below has the exact values.
-      </p>
+      {blanks.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          n/a means the CSV has no value, so no bar is drawn. The 2D-only and 3D-only splits have no
+          official all-category MRA.
+        </p>
+      )}
     </figure>
   );
 }
@@ -141,11 +149,14 @@ function CategoryChart({ rows }: { rows: ResultRow[] }) {
   const variants = rows.filter((r) => cats.some((c) => r[`mra_${c}`] != null));
   const data = cats.map((c) => {
     const d: Record<string, unknown> = { category: c };
-    for (const r of variants) d[r.variant] = pct(r[`mra_${c}`]) ?? 0;
+    for (const r of variants) d[r.variant] = pct(r[`mra_${c}`]);
     return d;
   });
+  const naCats = variants.flatMap((r) =>
+    cats.filter((c) => r[`mra_${c}`] == null).map((c) => `${variantLabel(r.variant)} ${c}`),
+  );
   return (
-    <figure className="flex min-w-0 flex-col gap-3 rounded-lg border bg-card p-4">
+    <figure className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg border bg-card p-4">
       <figcaption className="flex flex-col gap-2">
         <span className="text-sm font-medium">Official MRA by category</span>
         <Legend
@@ -170,6 +181,7 @@ function CategoryChart({ rows }: { rows: ResultRow[] }) {
       )}
       <p className="text-xs text-muted-foreground">
         {cats.map((c) => `${c}: ${CATEGORY_NOTE[c]}`).join(". ")}.
+        {naCats.length > 0 && ` No bar (n/a): ${naCats.join("; ")}.`}
       </p>
     </figure>
   );
@@ -180,11 +192,11 @@ export function PairedChart({ rows }: { rows: PairedRow[] }) {
   const usable = rows.filter((r) => r.category === "all" && r.n_answered > 0);
   const data = usable.map((r) => ({
     pair: `${variantLabel(r.variant)} · ${splitLabel(r.split)} (n=${r.n_answered})`,
-    caliper: pct(r.mra_variant) ?? 0,
-    muse: pct(r.mra_muse) ?? 0,
+    caliper: pct(r.mra_variant),
+    muse: pct(r.mra_muse),
   }));
   return (
-    <figure className="flex min-w-0 flex-col gap-3 rounded-lg border bg-card p-4">
+    <figure className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg border bg-card p-4">
       <figcaption className="flex flex-col gap-2">
         <span className="text-sm font-medium">
           Answered-only MRA: Caliper and Muse Spark alone on the same questions
