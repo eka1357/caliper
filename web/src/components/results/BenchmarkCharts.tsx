@@ -12,6 +12,7 @@ import {
   splitLabel,
   VARIANT_COLOR,
   variantLabel,
+  variantShort,
 } from "@/lib/labels";
 import type { PairedRow, ResultRow } from "@/lib/results";
 import { cn } from "@/lib/utils";
@@ -103,7 +104,7 @@ function VariantChart({ rows }: { rows: ResultRow[] }) {
   // A blank value stays null: bklit skips non-numbers, so no bar is drawn and the label says n/a.
   const data = rows.map((r) => ({
     variant: [
-      variantLabel(r.variant),
+      variantShort(r.variant),
       r.mra_average == null ? "(official n/a)" : "",
       r.mra_answered == null ? "(answered n/a)" : "",
     ].filter(Boolean).join(" "),
@@ -116,6 +117,9 @@ function VariantChart({ rows }: { rows: ResultRow[] }) {
     <figure className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-lg border bg-card p-4">
       <figcaption className="flex flex-col gap-2">
         <span className="text-sm font-medium">Official and answered-only MRA</span>
+        <span className="text-xs text-muted-foreground">
+          {rows.map((r) => `${variantShort(r.variant)} = ${variantLabel(r.variant)}`).join("; ")}
+        </span>
         <Legend
           items={[
             { label: "Official MRA", color: "var(--primary)" },
@@ -191,7 +195,7 @@ function CategoryChart({ rows }: { rows: ResultRow[] }) {
 export function PairedChart({ rows }: { rows: PairedRow[] }) {
   const usable = rows.filter((r) => r.category === "all" && r.n_answered > 0);
   const data = usable.map((r) => ({
-    pair: `${variantLabel(r.variant)} · ${splitLabel(r.split)} (n=${r.n_answered})`,
+    pair: `${variantShort(r.variant)} · ${splitLabel(r.split)}`,
     caliper: pct(r.mra_variant),
     muse: pct(r.mra_muse),
   }));
@@ -217,8 +221,8 @@ export function PairedChart({ rows }: { rows: PairedRow[] }) {
         <ChartTooltip />
       </BarChart>
       <p className="text-xs text-muted-foreground">
-        n is the number of questions the Caliper variant answered. Small n means a wide margin of
-        error: {usable.filter((r) => r.n_answered < 10).map((r) => `${variantLabel(r.variant)} on ${splitLabel(r.split)} has n=${r.n_answered}`).join("; ") || "none below 10"}.
+        Questions answered (n): {usable.map((r) => `${variantShort(r.variant)} · ${splitLabel(r.split)} n=${r.n_answered}`).join("; ")}.
+        Small n means a wide margin of error. {usable.map((r) => `${variantShort(r.variant)} = ${variantLabel(r.variant)}`).filter((v, i, a) => a.indexOf(v) === i).join("; ")}.
       </p>
     </figure>
   );

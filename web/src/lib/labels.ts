@@ -9,6 +9,15 @@ export const VARIANT_LABEL: Record<string, string> = {
   caliper_open: "Caliper on Muse Spark Open",
 };
 
+/** Short names for chart axes, where long labels collide. */
+export const VARIANT_SHORT: Record<string, string> = {
+  muse_spark_alone: "Muse alone",
+  caliper: "With audit",
+  caliper_no_audit: "Audit off",
+  caliper_rule_parser: "Rule parser",
+  caliper_hand_spec: "Hand specs",
+};
+
 export const VARIANT_NOTE: Record<string, string> = {
   muse_spark_alone: "The model answers from the video alone (QuantiPhy's official zero-shot prompt).",
   caliper: "Full pipeline: spec, SAM 3.1 tracks, engine, checks, visual audit.",
@@ -49,6 +58,7 @@ export const CATEGORY_NOTE: Record<string, string> = {
 };
 
 export const variantLabel = (v: string) => VARIANT_LABEL[v] ?? v;
+export const variantShort = (v: string) => VARIANT_SHORT[v] ?? variantLabel(v);
 export const splitLabel = (s: string) => SPLIT_LABEL[s] ?? s;
 
 /** MRA on the leaderboard's 0 to 100 scale. */
