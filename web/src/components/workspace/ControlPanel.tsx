@@ -1,0 +1,123 @@
+"use client";
+
+import { ChevronDown } from "lucide-react";
+import { useId, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { CaptureFlow } from "./CaptureFlow";
+import { COPY, EXAMPLES } from "./copy";
+
+interface ControlPanelProps {
+  question: string;
+  onQuestion: (q: string) => void;
+  prior: string;
+  onPrior: (p: string) => void;
+  compare: boolean;
+  onCompare: (c: boolean) => void;
+  clip: File | null;
+  onClip: (f: File) => void;
+  busy: boolean;
+  onMeasure: () => void;
+}
+
+export function ControlPanel(p: ControlPanelProps) {
+  const ids = { q: useId(), prior: useId(), compare: useId(), file: useId() };
+  const [priorOpen, setPriorOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const canMeasure = !p.busy && p.clip !== null && p.question.trim().length >= 3;
+
+  return (
+    <section aria-label="Question" className="flex flex-col gap-4">
+      <label
+        htmlFor={ids.file}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          const f = e.dataTransfer.files[0];
+          if (f && f.type.startsWith("video/")) p.onClip(f);
+        }}
+        className={cn(
+          "flex cursor-pointer flex-col gap-1 rounded-lg border border-dashed px-4 py-5 text-sm transition-colors focus-within:outline-2 focus-within:outline-ring",
+          dragging ? "border-primary bg-muted" : "bg-card hover:bg-muted",
+        )}
+      >
+        <span>{p.clip ? p.clip.name : COPY.idle}</span>
+        <span className="text-muted-foreground">MP4 or MOV, a few seconds long.</span>
+        <input
+          id={ids.file}
+          type="file"
+          accept="video/*"
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) p.onClip(f);
+          }}
+        />
+      </label>
+      <CaptureFlow onClip={p.onClip} />
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor={ids.q} className="text-sm font-medium">
+          Question
+        </label>
+        <Textarea
+          id={ids.q}
+          value={p.question}
+          onChange={(e) => p.onQuestion(e.target.value)}
+          placeholder="How fast is the white car in m/s?"
+          maxLength={500}
+          rows={3}
+        />
+        <div className="flex flex-wrap gap-2" aria-label="Example questions">
+          {EXAMPLES.map((q) => (
+            <Button key={q} variant="secondary" size="xs" onClick={() => p.onQuestion(q)}>
+              {q}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <Collapsible open={priorOpen} onOpenChange={setPriorOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="px-0 text-muted-foreground hover:bg-transparent">
+            I know one real size or speed
+            <ChevronDown className={cn("transition-transform", priorOpen && "rotate-180")} aria-hidden />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">
+          <label htmlFor={ids.prior} className="sr-only">
+            One real size or speed
+          </label>
+          <input
+            id={ids.prior}
+            value={p.prior}
+            onChange={(e) => p.onPrior(e.target.value)}
+            placeholder="the box is 50 cm wide"
+            maxLength={300}
+            className="h-9 w-full rounded-md border bg-muted px-3 text-sm placeholder:text-muted-foreground"
+          />
+        </CollapsibleContent>
+      </Collapsible>
+
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Switch id={ids.compare} checked={p.compare} onCheckedChange={p.onCompare} />
+          <label htmlFor={ids.compare} className="text-sm">
+            Compare with Muse Spark alone
+          </label>
+        </div>
+        <Button size="lg" onClick={p.onMeasure} disabled={!canMeasure} className="px-5">
+          Measure
+        </Button>
+      </div>
+    </section>
+  );
+}
