@@ -135,7 +135,7 @@ export function Workspace() {
         </p>
       </div>
       <LayoutGroup>
-        <motion.div layout transition={layoutSpring} className="flex min-w-0 flex-col gap-5 lg:col-span-5">
+        <motion.div layout="position" transition={layoutSpring} className="flex min-w-0 flex-col gap-5 lg:col-span-5">
           <ControlPanel
             question={question} onQuestion={setQuestion} prior={prior} onPrior={setPrior}
             compare={compare} onCompare={setCompare} clip={clip} onClip={onClip} busy={busy}

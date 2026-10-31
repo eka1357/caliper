@@ -18,7 +18,7 @@ export function PositionChart({ rows }: { rows: FitRow[] }) {
   if (rows.length < 2) return <Empty />;
   const data = rows.map((r) => ({ date: toDate(r.t_s), pos: r.pos_m, fit: r.fit_m }));
   return (
-    <figure className="flex flex-col gap-2">
+    <figure className="flex min-w-0 flex-col gap-2 overflow-hidden">
       <figcaption className="text-sm text-muted-foreground">
         Position along the motion (m): <span className="text-track">measured</span>,{" "}
         <span className="text-primary">local fit</span>
@@ -37,7 +37,7 @@ export function SpeedChart({ rows }: { rows: SpeedRow[] }) {
   if (rows.length < 2) return <Empty />;
   const data = rows.map((r) => ({ date: toDate(r.t_s), speed: r.speed_m_s }));
   return (
-    <figure className="flex flex-col gap-2">
+    <figure className="flex min-w-0 flex-col gap-2 overflow-hidden">
       <figcaption className="text-sm text-muted-foreground">Speed over time (m/s)</figcaption>
       <LineChart data={data} aspectRatio="5 / 2">
         <Grid horizontal />

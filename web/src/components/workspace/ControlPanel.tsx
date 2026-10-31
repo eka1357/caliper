@@ -78,7 +78,8 @@ export function ControlPanel(p: ControlPanelProps) {
         />
         <div className="flex flex-wrap gap-2" aria-label="Example questions">
           {EXAMPLES.map((q) => (
-            <Button key={q} variant="secondary" size="xs" onClick={() => p.onQuestion(q)}>
+            <Button key={q} variant="secondary" size="xs" onClick={() => p.onQuestion(q)}
+              className="h-auto min-h-6 max-w-full whitespace-normal py-1 text-left">
               {q}
             </Button>
           ))}
@@ -87,7 +88,7 @@ export function ControlPanel(p: ControlPanelProps) {
 
       <Collapsible open={priorOpen} onOpenChange={setPriorOpen}>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="px-0 text-muted-foreground hover:bg-transparent">
+          <Button variant="ghost" size="sm" className="h-auto max-w-full whitespace-normal px-0 text-left text-muted-foreground hover:bg-transparent">
             I know one real size or speed
             <ChevronDown className={cn("transition-transform", priorOpen && "rotate-180")} aria-hidden />
           </Button>
@@ -107,8 +108,8 @@ export function ControlPanel(p: ControlPanelProps) {
         </CollapsibleContent>
       </Collapsible>
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-2">
           <Switch id={ids.compare} checked={p.compare} onCheckedChange={p.onCompare} />
           <label htmlFor={ids.compare} className="text-sm">
             Compare with Muse Spark alone

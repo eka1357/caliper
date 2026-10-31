@@ -28,7 +28,7 @@ export function RunPicker({ runs, selected, onPick }: RunPickerProps) {
                 selected === r.run_id && "bg-muted",
               )}
             >
-              <span className="truncate">{r.title}</span>
+              <span className="min-w-0 whitespace-normal break-words">{r.title}</span>
               <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
                 {r.placeholder && <span className="rounded-sm border border-dashed px-1">placeholder</span>}
                 <span className={r.status === "measured" ? "text-primary" : "text-foreground"}>
