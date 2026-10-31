@@ -122,6 +122,7 @@ export interface CachedRun {
   meta: RunMeta;
   result: Result; // measure runs; study runs arrive with Phase 4
   overlay: Overlay;
+  guess?: Pick<Guess, "text" | "parsed_value"> | null; // recorded Muse Spark alone answer
 }
 
 export interface RunIndexEntry {

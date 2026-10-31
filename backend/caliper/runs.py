@@ -4,7 +4,7 @@ Schema v1 (DECISIONS.md, Phase 5). Placeholder, field and saved live runs all us
 so new runs appear in the UI without code changes:
 
     runs/index.json              [{run_id, kind, title, status, source, placeholder, created_utc}]
-    runs/<run_id>/run.json       {schema_version, kind, meta, result, overlay}
+    runs/<run_id>/run.json       {schema_version, kind, meta, result, overlay, guess?}
     runs/<run_id>/clip.mp4       H.264, faststart, under MAX_CLIP_BYTES
     runs/<run_id>/poster.jpg     first frame
 """
@@ -53,6 +53,7 @@ class CachedRun(BaseModel):
     meta: RunMeta
     result: dict[str, Any]  # Result for measure, StudySummary for study (Phase 4)
     overlay: dict[str, Any]
+    guess: dict[str, Any] | None = None  # optional Muse Spark alone answer {text, parsed_value}
 
 
 class RunIndexEntry(BaseModel):
@@ -108,6 +109,7 @@ def save_cached_run(
     meta: RunMeta,
     clip: Path | None = None,
     root: Path | None = None,
+    guess: dict[str, Any] | None = None,
 ) -> CachedRun:
     """Write runs/<run_id>/ (run.json, clip, poster) and upsert the manifest entry."""
     root = root or config.RUNS_DIR
@@ -126,7 +128,7 @@ def save_cached_run(
             meta.poster = None
     else:
         meta.clip = meta.poster = None
-    run = CachedRun(kind=kind, meta=meta, result=payload, overlay=overlay)
+    run = CachedRun(kind=kind, meta=meta, result=payload, overlay=overlay, guess=guess)
     (folder / "run.json").write_text(run.model_dump_json(indent=1), encoding="utf-8")
     entry = RunIndexEntry(
         run_id=run_id, kind=kind, title=meta.title, status=str(payload.get("status", "")),

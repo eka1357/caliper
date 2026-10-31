@@ -49,7 +49,9 @@ export function ResultCard({ run, guess, compare }: ResultCardProps) {
               <p className="text-sm text-muted-foreground">Try this: {fixFor(r)}</p>
             </div>
           )}
-          {compare && <GuessLine guess={guess} live={run.meta.source === "live"} />}
+          {compare && (
+            <GuessLine guess={guess ?? run.guess ?? null} live={run.meta.source === "live"} />
+          )}
         </CardContent>
       </Card>
     </motion.div>
@@ -65,7 +67,13 @@ export function PlaceholderBadge() {
 }
 
 /** Guesses look like guesses: dimmed, dashed border, labelled (DESIGN principle 4). */
-function GuessLine({ guess, live }: { guess: Guess | null; live: boolean }) {
+function GuessLine({
+  guess,
+  live,
+}: {
+  guess: Pick<Guess, "text" | "parsed_value"> | null;
+  live: boolean;
+}) {
   return (
     <div className="rounded-md border border-dashed border-border px-3 py-2 text-muted-foreground">
       <p className="text-xs uppercase tracking-wide">Muse Spark alone · guess</p>

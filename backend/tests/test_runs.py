@@ -54,6 +54,13 @@ def test_upsert_and_real_runs_listed_first(tmp_path):
     assert [e.run_id for e in entries] == ["a", "b"]
     assert entries[1].status == "abstained"
     assert runs.load_run("a", tmp_path).meta.clip is None
+    assert runs.load_run("a", tmp_path).guess is None
+
+
+def test_optional_guess_round_trips(tmp_path):
+    g = {"text": "About 2 m/s.", "parsed_value": 2.0}
+    runs.save_cached_run("g", "measure", result("g"), {}, meta(), root=tmp_path, guess=g)
+    assert runs.load_run("g", tmp_path).guess == g
 
 
 def test_rejects_bad_ids_and_missing_runs(tmp_path):
