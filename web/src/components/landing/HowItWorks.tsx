@@ -1,12 +1,13 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PlaceholderTag } from "@/components/site/Placeholder";
-import { PositionChart } from "@/components/workspace/FitChart";
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { gsap, ScrollTrigger, useGSAP } from "./gsap";
+import { LazyInView } from "./LazyInView";
+import { LazyPositionChart } from "./lazy-charts";
+import { useGsapLib } from "./motion-lib";
 import { useMedia, useMotionAllowed } from "./motion-pref";
 
 const SPEC_KEYS = [
@@ -28,7 +29,8 @@ export function HowItWorks({ run }: { run: CachedRun }) {
   const allowed = useMotionAllowed();
   const root = useRef<HTMLDivElement>(null);
   const wide = useMedia("(min-width: 1024px)");
-  const scene = allowed && wide;
+  const lib = useGsapLib();
+  const scene = allowed && wide && lib != null;
   const r = run.result;
   const o = run.overlay;
   const f = midFrame(o.frames ?? []);
@@ -65,7 +67,11 @@ export function HowItWorks({ run }: { run: CachedRun }) {
     {
       name: "Measure",
       line: `Python sets the scale, fits the motion locally and bootstraps a 90% range. Method: ${r.method}.`,
-      art: <PositionChart rows={o.fit ?? []} />,
+      art: (
+        <LazyInView minHeight={240}>
+          <LazyPositionChart rows={o.fit ?? []} />
+        </LazyInView>
+      ),
     },
     {
       name: "Check",
@@ -87,33 +93,34 @@ export function HowItWorks({ run }: { run: CachedRun }) {
     },
   ];
 
-  useGSAP(
-    () => {
-      if (!scene || !root.current) return;
-      const panels = gsap.utils.toArray<HTMLElement>("[data-step]", root.current);
-      const marks = gsap.utils.toArray<HTMLElement>("[data-mark]", root.current);
-      gsap.set(panels.slice(1), { autoAlpha: 0, y: 16 });
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: root.current,
-          pin: true,
-          pinSpacing: true, // the parent is flex, where ScrollTrigger defaults it to false
-          scrub: 0.6,
-          start: "top top+=64",
-          end: `+=${panels.length * 500}`,
-        },
+  useEffect(() => {
+    if (!scene || !lib || !root.current) return;
+    const { gsap, ScrollTrigger } = lib;
+    const ctx = gsap.context(() => {
+        const panels = gsap.utils.toArray<HTMLElement>("[data-step]", root.current);
+        const marks = gsap.utils.toArray<HTMLElement>("[data-mark]", root.current);
+        gsap.set(panels.slice(1), { autoAlpha: 0, y: 16 });
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: root.current,
+            pin: true,
+            pinSpacing: true, // the parent is flex, where ScrollTrigger defaults it to false
+            scrub: 0.6,
+            start: "top top+=64",
+            end: `+=${panels.length * 500}`,
+          },
+        });
+        panels.forEach((p, i) => {
+          if (i === 0) return;
+          tl.to(panels[i - 1], { autoAlpha: 0, y: -16, duration: 1 })
+            .to(marks[i - 1], { color: "var(--muted-foreground)", duration: 0.2 }, "<")
+            .to(p, { autoAlpha: 1, y: 0, duration: 1 }, "<0.3")
+            .to(marks[i], { color: "var(--foreground)", duration: 0.2 }, "<");
+        });
       });
-      panels.forEach((p, i) => {
-        if (i === 0) return;
-        tl.to(panels[i - 1], { autoAlpha: 0, y: -16, duration: 1 })
-          .to(marks[i - 1], { color: "var(--muted-foreground)", duration: 0.2 }, "<")
-          .to(p, { autoAlpha: 1, y: 0, duration: 1 }, "<0.3")
-          .to(marks[i], { color: "var(--foreground)", duration: 0.2 }, "<");
-      });
-      ScrollTrigger.refresh();
-    },
-    { dependencies: [scene], scope: root, revertOnUpdate: true },
-  );
+    ScrollTrigger.refresh();
+    return () => ctx.revert();
+  }, [scene, lib]);
 
   return (
     <div ref={root} className="flex flex-col gap-8">

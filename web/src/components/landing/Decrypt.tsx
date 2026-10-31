@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useMotionAllowed } from "./motion-pref";
 
 const GLYPHS = "0123456789";
@@ -14,8 +14,8 @@ const DURATION_MS = 900;
  */
 export function Decrypt({ text, className }: { text: string; className?: string }) {
   const allowed = useMotionAllowed();
-  const [shown, setShown] = useState(text);
   const ref = useRef<HTMLSpanElement>(null);
+  const out = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!allowed || !ref.current) return;
@@ -25,13 +25,14 @@ export function Decrypt({ text, className }: { text: string; className?: string 
       if (!start) start = now;
       const p = Math.min(1, (now - start) / DURATION_MS);
       const locked = Math.floor(p * text.length);
-      setShown(
+      // Written to the DOM directly: no React render per animation frame.
+      if (out.current) out.current.textContent = (
         text
           .split("")
           .map((c, i) =>
             i < locked || !/\d/.test(c) ? c : GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
           )
-          .join(""),
+          .join("")
       );
       if (p < 1) raf = requestAnimationFrame(run);
     };
@@ -53,7 +54,7 @@ export function Decrypt({ text, className }: { text: string; className?: string 
 
   return (
     <span ref={ref} className={className}>
-      <span aria-hidden>{shown}</span>
+      <span aria-hidden ref={out}>{text}</span>
       <span className="sr-only">{text}</span>
     </span>
   );

@@ -3,8 +3,9 @@ import { HeroHeadline } from "@/components/landing/HeroHeadline";
 import { HeroVisual } from "@/components/landing/HeroVisual";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { KeyframeStill } from "@/components/landing/KeyframeStill";
+import { LazyInView } from "@/components/landing/LazyInView";
+import { LazyPairedChart } from "@/components/landing/lazy-charts";
 import { SmoothScroll } from "@/components/landing/SmoothScroll";
-import { PairedChart } from "@/components/results/BenchmarkCharts";
 import { FindingList } from "@/components/results/FindingList";
 import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
@@ -163,7 +164,9 @@ export default async function Home() {
             sentences are generated from our results files.
           </p>
           <FindingList items={findings(bench)} />
-          <PairedChart rows={bench.paired} />
+          <LazyInView minHeight={480}>
+            <LazyPairedChart rows={bench.paired} />
+          </LazyInView>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Placeholder title="Field set accuracy">
               Median relative error on our own instrument-checked clips (target 10% or less).
