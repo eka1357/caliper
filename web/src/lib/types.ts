@@ -125,6 +125,59 @@ export interface CachedRun {
   guess?: Pick<Guess, "text" | "parsed_value"> | null; // recorded Muse Spark alone answer
 }
 
+// Street speed study (ARCHITECTURE section 3 StudySummary, section 11 study overlay).
+// Phase 4 writes these through runs.save_cached_run(kind="study", result=StudySummary, overlay=...).
+export interface VehicleReading {
+  vehicle_id: string;
+  vehicle_class: string; // car, motorcycle, auto rickshaw, bus
+  status: "measured" | "no_reading";
+  speed_kmh: number | null;
+  interval_90_kmh: [number, number] | null;
+  t_gate_a_s: number | null;
+  t_gate_b_s: number | null;
+  reason: string | null;
+}
+
+export interface StudySummary {
+  run_id: string;
+  gate_distance_m: number;
+  duration_s: number;
+  vehicles_seen: number;
+  vehicles_measured: number;
+  median_kmh: number | null;
+  p85_kmh: number | null;
+  p85_interval_90_kmh: [number, number] | null;
+  speed_limit_kmh: number | null;
+  share_over_limit: number | null;
+  readings: VehicleReading[];
+}
+
+/** A gate line in video pixels: two points across the road. */
+export type GateLine = [[number, number], [number, number]];
+
+export interface StudyCrossing {
+  frame: number;
+  path: string; // SVG outline in video pixels at the crossing
+  anchor: [number, number]; // where the label sits
+}
+
+export interface StudyOverlay {
+  fps?: number;
+  width?: number;
+  height?: number;
+  gate_a?: GateLine;
+  gate_b?: GateLine;
+  vehicles?: { vehicle_id: string; crossings: StudyCrossing[] }[];
+}
+
+export interface CachedStudyRun {
+  schema_version: number;
+  kind: "study";
+  meta: RunMeta;
+  result: StudySummary;
+  overlay: StudyOverlay;
+}
+
 export interface RunIndexEntry {
   run_id: string;
   kind: "measure" | "study";
