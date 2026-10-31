@@ -1,0 +1,29 @@
+[
+ {
+  "run_id": "placeholder-audit-veto",
+  "kind": "measure",
+  "title": "Wrong ball tracked (placeholder)",
+  "status": "abstained",
+  "source": "placeholder_synthetic",
+  "placeholder": true,
+  "created_utc": "2026-10-31T16:34:21+00:00"
+ },
+ {
+  "run_id": "placeholder-check-abstain",
+  "kind": "measure",
+  "title": "Reference too small (placeholder)",
+  "status": "abstained",
+  "source": "placeholder_synthetic",
+  "placeholder": true,
+  "created_utc": "2026-10-31T16:34:19+00:00"
+ },
+ {
+  "run_id": "placeholder-measured",
+  "kind": "measure",
+  "title": "Rolling ball (placeholder)",
+  "status": "measured",
+  "source": "placeholder_synthetic",
+  "placeholder": true,
+  "created_utc": "2026-10-31T16:34:17+00:00"
+ }
+]
