@@ -25,12 +25,25 @@ SCHEMA: dict[str, Any] = {
 }
 
 
+PRIOR_LINE = "\nKnown: {prior}"
+
+
+def prompt_for(question: str, prior: str | None = None) -> str:
+    """The question, plus the user's known size or speed when given: Muse Spark alone gets
+    exactly the text Caliper gets. Without a prior the prompt is unchanged (cache still hits)."""
+    text = PROMPT.format(question=question)
+    return text + PRIOR_LINE.format(prior=prior.strip()) if prior and prior.strip() else text
+
+
 def guess(
-    video: Path, question: str, backend: LanguageBackend | None = None
+    video: Path,
+    question: str,
+    backend: LanguageBackend | None = None,
+    prior: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Returns ({text, parsed_value}, call info with cost_usd)."""
     out, info = (backend or MetaApiBackend()).json_with_video(
-        video, PROMPT.format(question=question), SCHEMA, "guess"
+        video, prompt_for(question, prior), SCHEMA, "guess"
     )
     value = out.get("value")
     parsed = float(value) if isinstance(value, int | float) else None

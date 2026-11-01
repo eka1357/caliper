@@ -198,7 +198,7 @@ def guess_endpoint(
         ticket = caps.admit("guess", _ip(request), duration, frames)
         cost = 0.0
         try:
-            out, info = guess.guess(normalize(path), question)
+            out, info = guess.guess(normalize(path), question, prior=prior or None)
             cost = info["cost_usd"]
         except Exception as exc:
             log.exception("live guess failed")
