@@ -142,3 +142,28 @@ def test_same_object_conflict():
         same_object_conflict(a, "largest", [(b, "smallest", "reference"), (None, "auto", "x")])
         is None
     )
+
+
+def test_parallel_parse_matches_serial():
+    # Grouped parsing (what the worker pool runs) gives exactly the serial result, and a frame's
+    # lines never land in two groups.
+    from caliper import segment
+
+    bits = [1, 1, 0, 0, 1, 1, 0, 0]
+    raw = "\n".join(_line(f, o, 3 * f, 2 * o, bits, 4, 2, 0.7) for f in range(12) for o in (0, 1))
+    serial = segment._parse_text((raw, 0))
+    groups = segment._frame_line_groups(raw, 4)
+    assert len(groups) > 1 and segment._frames_disjoint(groups)
+    parts = [segment._parse_text(g) for g in groups]
+    grouped = sorted((d for p in parts for d in p[0]), key=lambda d: (d.frame, d.object_id))
+    assert [d.model_dump() for d in grouped] == [d.model_dump() for d in serial[0]]
+    assert [x for p in parts for x in p[1]] == serial[1]
+
+
+def test_out_of_order_frames_are_not_split():
+    from caliper import segment
+
+    bits = [1] * 8
+    lines = [_line(f, 0, 0, 0, bits, 4, 2, 0.5) for f in (0, 1, 2, 3, 0, 1)]  # 0 and 1 repeat
+    groups = segment._frame_line_groups("\n".join(lines), 3)
+    assert len(groups) == 1 or not segment._frames_disjoint(groups)

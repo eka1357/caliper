@@ -7,8 +7,13 @@ so a rerun never calls the API.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
+import os
+import re
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +26,7 @@ from meta_sam_parser import (
     decode_mask_to_raster,
     video_segmentation_format,
 )
+from meta_sam_parser import _segmentation as _parser_segmentation
 from pydantic import BaseModel
 
 from caliper import config
@@ -129,7 +135,7 @@ def _mask_stats(
 ) -> tuple[int, tuple[float, float] | None, dict[str, float] | None]:
     """Pixel count, centroid and extents of a box-local mask, mapped into frame coordinates."""
     m = rec.mask
-    raster = np.frombuffer(decode_mask_to_raster(m), dtype=np.uint8).reshape(m.height, m.width)
+    raster = np.frombuffer(_decode_once(m), dtype=np.uint8).reshape(m.height, m.width)
     b = rec.bounds
     return mask_geometry(
         raster, b.left, b.top, (b.right - b.left) / m.width, (b.bottom - b.top) / m.height
@@ -137,7 +143,103 @@ def _mask_stats(
 
 
 def parse_raw(raw: str) -> tuple[list[Detection], list[str]]:
-    """Parse cached SAM stream text into detections. Reads the frame marker on every record."""
+    """Parse cached SAM stream text into detections. Reads the frame marker on every record.
+
+    The lossless mask codec is pure Python and slow on large masks, so: each mask is decoded
+    once (the parser's validation and the stats share it), streams above PARSE_PARALLEL_BYTES
+    are parsed in parallel on whole-frame line groups, and the result is kept in a derived disk
+    cache keyed by the raw text's sha256. Output is identical to a single serial parse.
+    """
+    cache_path = config.CACHE_DIR / "sam_parsed" / f"{_text_sha(raw)}.json"
+    if cache_path.exists():
+        doc = json.loads(cache_path.read_text(encoding="utf-8"))
+        return [Detection(**d) for d in doc["detections"]], doc["diagnostics"]
+    groups = _frame_line_groups(raw, PARSE_WORKERS) if len(raw) > PARSE_PARALLEL_BYTES else []
+    if len(groups) > 1 and _frames_disjoint(groups):
+        with ProcessPoolExecutor(max_workers=len(groups)) as pool:
+            parts = list(pool.map(_parse_text, groups))
+    else:  # small stream, or a frame split across groups (box prompts may come out of order)
+        parts = [_parse_text((raw, 0))]
+    detections = sorted((d for p in parts for d in p[0]), key=lambda d: (d.frame, d.object_id))
+    diagnostics = [x for p in parts for x in p[1]]
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = cache_path.with_suffix(".tmp")
+    tmp.write_text(
+        json.dumps({"detections": [d.model_dump() for d in detections],
+                    "diagnostics": diagnostics}),
+        encoding="utf-8",
+    )  # fmt: skip
+    tmp.replace(cache_path)
+    return detections, diagnostics
+
+
+# Speed-only settings for parse_raw (no effect on any result).
+PARSE_PARALLEL_BYTES = 300_000
+PARSE_WORKERS = max(1, min(8, (os.cpu_count() or 2) - 1))
+_FRAME_MARK = re.compile(r"^\s*<(\d+)f>")
+_DECODED: dict[tuple[str, int, int, str], bytes] = {}
+
+
+def _decode_once(mask: Any) -> bytes:
+    """decode_mask_to_raster with a per-parse memo: the parser validates every mask by decoding
+    it, and _mask_stats needs the same raster, so each payload is decoded once."""
+    key = (mask.encoding, mask.width, mask.height, mask.payload)
+    hit = _DECODED.get(key)
+    if hit is None:
+        hit = _DECODED[key] = decode_mask_to_raster(mask)
+    return hit
+
+
+# The parser's validation calls this module-level name; point it at the memo (same function,
+# same errors, decoded once). Covered by test_parallel_parse_matches_serial.
+_parser_segmentation.decode_mask_to_raster = _decode_once
+
+
+def _text_sha(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _frame_line_groups(raw: str, n: int) -> list[tuple[str, int]]:
+    """Split the stream into about n contiguous groups of lines, never splitting one frame's
+    lines across groups. Returns (text, line offset) pairs."""
+    lines = raw.splitlines(keepends=True)
+    if n <= 1 or len(lines) < 2:
+        return [(raw, 0)]
+    target = len(raw) / n
+    groups: list[tuple[str, int]] = []
+    start, size, last_frame = 0, 0, None
+    for i, line in enumerate(lines):
+        m = _FRAME_MARK.match(line)
+        frame = int(m.group(1)) if m else last_frame
+        if size >= target and frame != last_frame and i > start:
+            groups.append(("".join(lines[start:i]), start))
+            start, size = i, 0
+        size += len(line)
+        last_frame = frame
+    groups.append(("".join(lines[start:]), start))
+    return groups
+
+
+def _frames_disjoint(groups: list[tuple[str, int]]) -> bool:
+    """True when no frame index appears in two groups, so per-group merging equals a full one."""
+    seen: set[int] = set()
+    for text, _ in groups:
+        frames = {int(m.group(1)) for ln in text.splitlines() if (m := _FRAME_MARK.match(ln))}
+        if frames & seen:
+            return False
+        seen |= frames
+    return True
+
+
+def _parse_text(part: tuple[str, int]) -> tuple[list[Detection], list[str]]:
+    text, line_offset = part
+    try:
+        return _parse_serial(text, line_offset)
+    finally:
+        _DECODED.clear()
+
+
+def _parse_serial(raw: str, line_offset: int = 0) -> tuple[list[Detection], list[str]]:
     parser = video_segmentation_format().create_parser()
     parser.push(raw, emit=False)
     result = parser.finish(CompletedOutcome()).result
@@ -166,7 +268,11 @@ def parse_raw(raw: str) -> tuple[list[Detection], list[str]]:
         )
         for (frame, oid), v in sorted(merged.items())
     ]
-    diagnostics = [f"{d.severity} {d.code} line {d.line}: {d.message}" for d in result.diagnostics]
+    diagnostics = [
+        f"{d.severity} {d.code} line {d.line + line_offset if d.line is not None else d.line}: "
+        f"{d.message}"
+        for d in result.diagnostics
+    ]
     return detections, diagnostics
 
 
@@ -336,9 +442,13 @@ def mask_rasters(
     record = (cache or DiskCache()).get(request_key({"kind": "sam", **payload}))
     if record is None:
         return {}
-    parser = video_segmentation_format().create_parser()
-    parser.push(record["response"]["raw_output"], emit=False)
     wanted = set(frames)
+    # Only the wanted frames' lines are parsed (each line carries its own frame marker), so the
+    # slow mask codec runs on at most len(frames) lines instead of the whole stream.
+    lines = [ln for ln in record["response"]["raw_output"].splitlines(keepends=True)
+             if (m := _FRAME_MARK.match(ln)) is None or int(m.group(1)) in wanted]  # fmt: skip
+    parser = video_segmentation_format().create_parser()
+    parser.push("".join(lines), emit=False)
     out: dict[int, np.ndarray] = {}
     for rec in parser.finish(CompletedOutcome()).result.records:
         if not isinstance(rec, SegmentationMaskRecord) or rec.frame is None:
@@ -347,7 +457,7 @@ def mask_rasters(
         if f not in wanted or rec.object_id != object_id:
             continue
         m, b = rec.mask, rec.bounds
-        local = np.frombuffer(decode_mask_to_raster(m), dtype=np.uint8).reshape(m.height, m.width)
+        local = np.frombuffer(_decode_once(m), dtype=np.uint8).reshape(m.height, m.width)
         x0, y0 = int(round(b.left)), int(round(b.top))
         w, h = max(1, int(round(b.right - b.left))), max(1, int(round(b.bottom - b.top)))
         if (w, h) != (m.width, m.height):
@@ -356,4 +466,5 @@ def mask_rasters(
         x1, y1 = min(width, x0 + w), min(height, y0 + h)
         full[max(0, y0) : y1, max(0, x0) : x1] = local[max(0, -y0) : y1 - y0, max(0, -x0) : x1 - x0]
         out[f] = full
+    _DECODED.clear()
     return out
