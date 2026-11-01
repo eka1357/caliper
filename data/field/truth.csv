@@ -1,1 +1,36 @@
 clip_id,file,set,question,quantity,true_value,unit,instrument,reference_object,reference_size_m,same_plane,fps,resolution,notes
+A01,A_01.MOV,speed,How fast is the car in m/s?,speed,11.11,m/s,GPS app reading 40 km/h,two markers 10.0 m apart,10.0,yes,59.94,1920x1080,
+A02,A_02.MOV,speed,How fast is the car in m/s?,speed,11.11,m/s,GPS app reading 40 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A03,A_03.MOV,speed,How fast is the car in m/s?,speed,8.33,m/s,GPS app reading 30 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A04,A_04.MOV,speed,How fast is the car in m/s?,speed,8.33,m/s,GPS app reading 30 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A05,A_05.MOV,speed,How fast is the car in m/s?,speed,6.94,m/s,GPS app reading 25 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A06,A_06.MOV,speed,How fast is the car in m/s?,speed,6.94,m/s,GPS app reading 25 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A07,A_07.MOV,speed,How fast is the car in m/s?,speed,5.556,m/s,GPS app reading 20 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A08,A_08.MOV,speed,How fast is the car in m/s?,speed,5.556,m/s,GPS app reading 20 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A09,A_09.MOV,speed,How fast is the car in m/s?,speed,4.167,m/s,GPS app reading 15 km/h,two markers 10.0 m apart,10.0,yes,29.97,3840x2160,
+A10,A_10.MOV,speed,How fast is the car in m/s?,speed,4.167,m/s,GPS app reading 15 km/h,two markers 10.0 m apart,10.0,yes,59.94,1920x1080,
+B01,B_01.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,774x3370,
+B02,B_02.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,752x3174,
+B03,B_03.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,864x2910,
+B04,B_04.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,880x3320,
+B05,B_05.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,876x3106,
+B06,B_06.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,652x2756,
+B07,B_07.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,844x3148,
+B08,B_08.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,582x3076,
+B09,B_09.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,632x3566,
+B10,B_10.MOV,gravity,What is the acceleration of the falling ball in m/s^2?,acceleration,9.81,m/s^2,known gravity,A4 sheet long side,0.297,yes,30,742x3382,
+C01,C_01.MOV,size,What is the width of the ipad in cm?,size,18.0,cm,tape measure,INR 10 coin,0.027,yes,59.94,1080x862,
+C02,C_02.MOV,size,What is the diameter of the moisturizer in cm?,size,7.2,cm,tape measure,INR 10 coin,0.027,yes,30,916x1048,
+C03,C_03.MOV,size,What is the length of the cardboard in cm?,size,8,cm,tape measure,INR 10 coin,0.027,yes,59.94,1080x1008,
+C04,C_04.MOV,size,What is the length of the AC Remote in cm?,size,11,cm,tape measure,INR 10 coin,0.027,yes,59.94,1080x892,
+C05,C_05.MOV,size,What is the length of the tablet box in cm?,size,9,cm,tape measure,INR 10 coin,0.027,yes,30,1080x1074,
+C06,C_06.MOV,size,What is the length of the UNO cards box in cm?,size,14,cm,tape measure,INR 10 coin,0.027,yes,30,1080x1060,
+C07,C_07.MOV,size,What is the length of the phone in cm?,size,14,cm,tape measure,INR 10 coin,0.027,yes,59.94,1080x796,
+C08,C_08.MOV,size,What is the length of the earpods in cm?,size,4,cm,tape measure,INR 10 coin,0.027,yes,59.94,880x904,
+C09,C_09.MOV,size,What is the length of the book in cm?,size,21,cm,tape measure,INR 10 coin,0.027,yes,59.94,1038x1106,
+C10,C_10.MOV,size,What is the length of the wallet in cm?,size,7,cm,tape measure,INR 10 coin,0.027,yes,30,976x1076,
+D01,D_01.MOV,none,What is the length of the ipad in cm?,size,,cm,none,none,,no,59.94,1080x1050,no reference in view
+D02,D_02.MOV,none,What is the length of the book in cm?,size,,cm,none,none,,no,59.94,1080x1054,no reference in view
+D03,D_03.MOV,none,How fast is the fan blade moving in m/s?,speed,,m/s,none,none,,no,59.94,1080x1582,no reference in view
+D04,D_04.MOV,none,How fast is the ball in m/s?,speed,,m/s,none,none,,no,30,1798x1078,no reference in view
+S01,S_01.MOV,street,Street speed study,speed,,km/h,none,two marks 10.0 m apart,10.0,yes,29.97,1920x1080,speed limit 35 km/h
