@@ -175,7 +175,8 @@ def parse_raw(raw: str) -> tuple[list[Detection], list[str]]:
 
 # Speed-only settings for parse_raw (no effect on any result).
 PARSE_PARALLEL_BYTES = 300_000
-PARSE_WORKERS = max(1, min(8, (os.cpu_count() or 2) - 1))
+# 3 workers: 8 ran the machine out of memory during the step 2 field run (2026-11-02)
+PARSE_WORKERS = max(1, min(3, (os.cpu_count() or 2) - 1))
 _FRAME_MARK = re.compile(r"^\s*<(\d+)f>")
 _DECODED: dict[tuple[str, int, int, str], bytes] = {}
 
