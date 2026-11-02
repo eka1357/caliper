@@ -1,0 +1,75 @@
+{
+ "schema_version": 1,
+ "kind": "measure",
+ "meta": {
+  "title": "Ceiling fan, no reference in view",
+  "question": "How fast is the fan blade moving in m/s?",
+  "source": "field",
+  "placeholder": false,
+  "notes": "Field clip D03 from Set D: nothing of known size is in view and no size is given.",
+  "created_utc": "2026-11-02T06:06:03+00:00",
+  "clip": "clip.mp4",
+  "poster": "poster.jpg",
+  "instrument": null
+ },
+ "result": {
+  "run_id": "field-D03",
+  "status": "abstained",
+  "value": null,
+  "unit": "",
+  "interval_90": null,
+  "quantity": "size",
+  "spec": {
+   "target_phrase": "",
+   "target_alt_phrases": [],
+   "target_instance": "auto",
+   "second_phrase": null,
+   "second_instance": "auto",
+   "reference_phrase": null,
+   "reference_alt_phrases": [],
+   "reference_instance": "auto",
+   "reference_kind": "given_prior",
+   "reference_statistic": "extent",
+   "reference_axis": "longest",
+   "reference_value_si": null,
+   "reference_source": "",
+   "quantity": "size",
+   "statistic": "extent",
+   "axis": "path",
+   "timestamp_s": null,
+   "time_anchor": "timestamp",
+   "time_range_s": null,
+   "output_unit": "",
+   "depth_info": null,
+   "target_depth_key": null,
+   "reference_depth_key": null,
+   "plausible_range_si": [
+    0.0,
+    0.0
+   ],
+   "notes": ""
+  },
+  "scale_m_per_px": null,
+  "method": "spec writer",
+  "checks": [],
+  "audit": null,
+  "abstain_reason": "No reference value.",
+  "artifacts": {
+   "video": "D_03",
+   "fps": 59.94005994005994,
+   "fps_mismatch": null
+  },
+  "backend": "meta_api",
+  "cost_usd": 0.0,
+  "timings_ms": {}
+ },
+ "overlay": {
+  "fps": 59.94005994005994,
+  "width": 874,
+  "height": 1280
+ },
+ "guess": {
+  "text": "The blade tip moves at about 12 m/s.",
+  "parsed_value": 12.0
+ }
+}

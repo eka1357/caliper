@@ -45,6 +45,8 @@ class RunMeta(BaseModel):
     )
     clip: str | None = "clip.mp4"
     poster: str | None = "poster.jpg"
+    # Field runs: the instrument reading from data/field/truth.csv {value, unit, instrument}
+    instrument: dict[str, Any] | None = None
 
 
 class CachedRun(BaseModel):

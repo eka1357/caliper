@@ -1,0 +1,107 @@
+{
+ "schema_version": 1,
+ "kind": "measure",
+ "meta": {
+  "title": "Car passing, the car as its own ruler",
+  "question": "How fast is the car in m/s?",
+  "source": "field",
+  "placeholder": false,
+  "notes": "Field clip A08 from Set A, truth from a GPS app. The car's length is the prior. The driver's window band and both ends of the car (plates) are blurred.",
+  "created_utc": "2026-11-02T06:06:14+00:00",
+  "clip": "clip.mp4",
+  "poster": "poster.jpg",
+  "instrument": {
+   "value": 5.556,
+   "unit": "m/s",
+   "instrument": "GPS app reading 20 km/h"
+  }
+ },
+ "result": {
+  "run_id": "field-A08",
+  "status": "abstained",
+  "value": null,
+  "unit": "m/s",
+  "interval_90": null,
+  "quantity": "speed",
+  "spec": {
+   "target_phrase": "gray car",
+   "target_alt_phrases": [
+    "car",
+    "sedan"
+   ],
+   "target_instance": "auto",
+   "second_phrase": null,
+   "second_instance": "auto",
+   "reference_phrase": null,
+   "reference_alt_phrases": [],
+   "reference_instance": "auto",
+   "reference_kind": "size",
+   "reference_statistic": "extent",
+   "reference_axis": "longest",
+   "reference_value_si": 3.995,
+   "reference_source": "question prior",
+   "quantity": "speed",
+   "statistic": "average",
+   "axis": "path",
+   "timestamp_s": null,
+   "time_anchor": "timestamp",
+   "time_range_s": null,
+   "output_unit": "m/s",
+   "depth_info": null,
+   "target_depth_key": null,
+   "reference_depth_key": null,
+   "plausible_range_si": [
+    0.0,
+    30.0
+   ],
+   "notes": "Car enters from the right and exits left so it is only visible for part of the clip."
+  },
+  "scale_m_per_px": null,
+  "method": "engine",
+  "checks": [],
+  "audit": null,
+  "abstain_reason": "The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",
+  "artifacts": {
+   "video": "A_08",
+   "fps": 29.97002997002997,
+   "fps_mismatch": null,
+   "spec_call": {
+    "usage": {
+     "input_tokens": 3481,
+     "output_tokens": 1985
+    },
+    "cost_usd": 0.0127875,
+    "latency_ms": 19333.9
+   },
+   "instances": {
+    "target": "instance 0 of 1: longest continuous track, ties by mean confidence then mean area",
+    "second": "",
+    "reference": "reference = target"
+   },
+   "phrases_used": {
+    "target": "gray car",
+    "second": null,
+    "reference": null
+   },
+   "whole_object_frames": {
+    "kept": 0,
+    "detected": 108
+   },
+   "phrases_tried": [
+    "gray car"
+   ]
+  },
+  "backend": "meta_api",
+  "cost_usd": 0.0733875,
+  "timings_ms": {}
+ },
+ "overlay": {
+  "fps": 29.97002997002997,
+  "width": 1280,
+  "height": 720
+ },
+ "guess": {
+  "text": "The car is traveling at about 3 m/s.",
+  "parsed_value": 3.0
+ }
+}

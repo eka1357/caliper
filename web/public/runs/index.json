@@ -1,29 +1,47 @@
 [
  {
-  "run_id": "placeholder-audit-veto",
+  "run_id": "field-a08",
   "kind": "measure",
-  "title": "Wrong ball tracked (placeholder)",
+  "title": "Car passing, the car as its own ruler",
   "status": "abstained",
-  "source": "placeholder_synthetic",
-  "placeholder": true,
-  "created_utc": "2026-10-31T16:34:21+00:00"
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T06:06:14+00:00"
  },
  {
-  "run_id": "placeholder-check-abstain",
+  "run_id": "field-b03",
   "kind": "measure",
-  "title": "Reference too small (placeholder)",
+  "title": "Ball dropped in front of a paper sheet",
   "status": "abstained",
-  "source": "placeholder_synthetic",
-  "placeholder": true,
-  "created_utc": "2026-10-31T16:34:19+00:00"
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T06:06:07+00:00"
  },
  {
-  "run_id": "placeholder-measured",
+  "run_id": "field-c01",
   "kind": "measure",
-  "title": "Rolling ball (placeholder)",
+  "title": "Tablet next to a coin (a miss we show)",
   "status": "measured",
-  "source": "placeholder_synthetic",
-  "placeholder": true,
-  "created_utc": "2026-10-31T16:34:17+00:00"
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T06:05:59+00:00"
+ },
+ {
+  "run_id": "field-c07",
+  "kind": "measure",
+  "title": "Phone next to a coin",
+  "status": "measured",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T06:05:56+00:00"
+ },
+ {
+  "run_id": "field-d03",
+  "kind": "measure",
+  "title": "Ceiling fan, no reference in view",
+  "status": "abstained",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T06:06:03+00:00"
  }
 ]

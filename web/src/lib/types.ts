@@ -114,6 +114,8 @@ export interface RunMeta {
   created_utc: string;
   clip: string | null;
   poster: string | null;
+  /** Field runs: the instrument reading from data/field/truth.csv. */
+  instrument?: { value: number | null; unit: string; instrument: string } | null;
 }
 
 export interface CachedRun {
