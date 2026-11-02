@@ -1,13 +1,13 @@
-// Build-time reader for the benchmark files. The only sources are eval/results.csv and
-// eval/paired_results.csv (AGENTS.md rule 4). Pages that import this are prerendered, so the
-// deployed site carries the numbers without shipping eval/. Server only: it uses node:fs.
+// Build-time reader for web/public/results.json, which eval/report.py generates from
+// eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv and
+// eval/interval_calibration.csv (AGENTS.md rule 4: nothing typed). Pages that import this are
+// prerendered. Server only: it uses node:fs. The CSV download routes still serve eval/ as is.
 import { readFile } from "node:fs/promises";
 import { cacheLife } from "next/cache";
 import path from "node:path";
 
 export const EVAL_DIR = path.join(process.cwd(), "..", "eval");
-export const RESULTS_CSV = "results.csv";
-export const PAIRED_CSV = "paired_results.csv";
+export const RESULTS_JSON = path.join(process.cwd(), "public", "results.json");
 
 export interface ResultRow {
   variant: string;
@@ -43,59 +43,59 @@ export interface PairedRow {
   off2x_muse: number | null;
 }
 
+/** One row of eval/field_results.csv with Muse Spark alone's answer from field_guesses.csv. */
+export interface FieldRow {
+  clip_id: string;
+  set: string;
+  path: string;
+  truth: number | null;
+  pred: number | null;
+  lo: number | null;
+  hi: number | null;
+  rel_error: number | null;
+  covered: boolean | null;
+  status: "measured" | "abstained";
+  reason: string;
+  audit_approve: boolean | null;
+  unit: string;
+  guess_pred: number | null;
+  guess_rel_error: number | null;
+}
+
+/** eval/field.py summary() for one set. */
+export interface FieldSetSummary {
+  n: number;
+  measured: number;
+  abstained: number;
+  median_rel_error: number | null;
+  p90_rel_error: number | null;
+  coverage: number | null;
+  guess_n: number;
+  guess_answered: number;
+  guess_median_rel_error: number | null;
+}
+
+/** One row of eval/interval_calibration.csv (QuantiPhy dev split only). */
+export interface CalibrationRow {
+  variant: string;
+  split: string;
+  interval_log_term: number;
+  answered: number;
+  covered: number;
+  coverage: number | null;
+  newly_refused_interval_width: number;
+  k_for_90pct: number | null;
+  source: string;
+}
+
 export interface Benchmark {
+  generated_utc: string;
   results: ResultRow[];
   paired: PairedRow[];
+  field: FieldRow[];
+  field_summary: Record<string, FieldSetSummary>;
+  interval_calibration: CalibrationRow[];
 }
-
-/** RFC 4180 style: commas, double quotes, "" escapes. Enough for our own CSVs. */
-export function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = "";
-  let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"' && text[i + 1] === '"') {
-        cell += '"';
-        i++;
-      } else if (c === '"') quoted = false;
-      else cell += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ",") {
-      row.push(cell);
-      cell = "";
-    } else if (c === "\n" || c === "\r") {
-      if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(cell);
-      cell = "";
-      if (row.some((v) => v !== "")) rows.push(row);
-      row = [];
-    } else cell += c;
-  }
-  row.push(cell);
-  if (row.some((v) => v !== "")) rows.push(row);
-  const [header, ...body] = rows;
-  if (!header) return [];
-  return body.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""])));
-}
-
-function num(v: string | undefined): number | null {
-  if (v == null || v === "" || v.toLowerCase() === "nan") return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-const RESULT_NUMERIC = [
-  "mra_average", "mra_S2", "mra_D2", "mra_S3", "mra_D3", "abstain_rate", "share_within_10pct",
-  "share_off_2x", "coverage", "mra_answered", "share_within_10pct_answered",
-  "share_off_2x_answered", "n", "cost_usd",
-] as const;
-
-const PAIRED_NUMERIC = [
-  "mra_variant", "mra_muse", "within10_variant", "within10_muse", "off2x_variant", "off2x_muse",
-] as const;
 
 /** Read once at build time and never revalidate: the deployed server need not have eval/. */
 export function buildTimeOnly(): void {
@@ -109,19 +109,7 @@ export async function readEvalFile(name: string): Promise<string> {
 export async function loadBenchmark(): Promise<Benchmark> {
   "use cache";
   buildTimeOnly();
-  const [r, p] = await Promise.all([readEvalFile(RESULTS_CSV), readEvalFile(PAIRED_CSV)]);
-  const results = parseCsv(r).map((row) => {
-    const out: Record<string, unknown> = { ...row };
-    for (const k of RESULT_NUMERIC) out[k] = num(row[k]);
-    return out as unknown as ResultRow;
-  });
-  const paired = parseCsv(p).map((row) => {
-    const out: Record<string, unknown> = { ...row };
-    for (const k of PAIRED_NUMERIC) out[k] = num(row[k]);
-    out.n_answered = num(row.n_answered) ?? 0;
-    return out as unknown as PairedRow;
-  });
-  return { results, paired };
+  return JSON.parse(await readFile(RESULTS_JSON, "utf8")) as Benchmark;
 }
 
 // ---- Lookups and the findings both / and /results state ----
@@ -147,4 +135,26 @@ export function splitsPresent(b: Benchmark): string[] {
 /** True when some Caliper variant has a row on this split. */
 export function caliperOn(b: Benchmark, split: string): boolean {
   return b.results.some((r) => r.split === split && r.variant.startsWith("caliper"));
+}
+
+// ---- Field set (eval/field_results.csv through results.json) ----
+
+/** Field sets in display order with what each one tests. */
+export const FIELD_SETS = [
+  { set: "speed", label: "Set A", what: "car speed against a GPS app" },
+  { set: "gravity", label: "Set B", what: "a dropped ball, acceleration against 9.81 m/s²" },
+  { set: "size", label: "Set C", what: "object size against a tape measure" },
+  { set: "none", label: "Set D", what: "no reference in view: should refuse" },
+] as const;
+
+export function fieldRows(b: Benchmark, set: string, path = "measure"): FieldRow[] {
+  return b.field.filter((r) => r.set === set && r.path === path);
+}
+
+export function calibration(b: Benchmark, variant: string, k0: boolean): CalibrationRow | null {
+  return (
+    b.interval_calibration.find(
+      (r) => r.variant === variant && (k0 ? r.interval_log_term === 0 : r.interval_log_term > 0),
+    ) ?? null
+  );
 }

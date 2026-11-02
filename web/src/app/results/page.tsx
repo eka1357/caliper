@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PairedChart, SplitCharts } from "@/components/results/BenchmarkCharts";
+import { FieldResults } from "@/components/results/FieldResults";
 import { FindingList } from "@/components/results/FindingList";
 import { Placeholder } from "@/components/site/Placeholder";
 import { SiteHeader } from "@/components/site/SiteHeader";
@@ -21,12 +22,15 @@ export const metadata: Metadata = { title: "Evidence · Caliper" };
 const REPO = "https://github.com/eka1357/caliper/blob/main";
 
 // No GSAP, no Lenis, no decorative components on this route (AGENTS.md section 9).
-// Every number below is read from eval/results.csv or eval/paired_results.csv at build time.
+// Every number below is read at build time from web/public/results.json, which eval/report.py
+// generates from the eval CSVs.
 export default async function ResultsPage() {
   const bench = await loadBenchmark();
   const splits = splitsPresent(bench);
   const initial = splits.find((s) => caliperOn(bench, s)) ?? splits[0] ?? "dev";
   const variants = [...new Set(bench.results.map((r) => r.variant))];
+  const auditApproved = bench.field.filter((r) => r.audit_approve === true).length;
+  const auditVetoed = bench.field.filter((r) => r.reason.startsWith("Evidence check")).length;
 
   return (
     <>
@@ -171,23 +175,20 @@ export default async function ResultsPage() {
               Our own clips and the street study
             </h2>
             <p className="text-sm text-muted-foreground">
-              These charts read eval/field_results.csv, which does not exist yet: the field clips
-              are recorded with an instrument (GPS, tape, timing) and are scored in Phase 4.
+              Clips we filmed ourselves, each checked with an instrument: a tape measure, a GPS app,
+              or gravity. Read from eval/field_results.csv.
             </p>
           </div>
+          <FieldResults bench={bench} />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Placeholder title="Field set: relative error per clip">
-              One dot per clip with a 10% target line (claim H2). No field clip has been scored.
-            </Placeholder>
             <Placeholder title="Street study: speed error against GPS">
-              Set A cars through the study code path (claim H5). Not run yet.
-            </Placeholder>
-            <Placeholder title="Interval coverage">
-              Share of field clips whose 90% range contains the truth, target 80% (claim H3).
+              Not validated yet (claim H5). The first Set A put its markers on the far kerb, so the
+              gate method could not be tested; it needs a refilmed set with the markers in the
+              car&apos;s lane.
             </Placeholder>
             <Placeholder title="Audit catches and false vetoes">
-              Wrong-object tracks the audit caught and correct results it wrongly vetoed (claim
-              A2), counted on the field set.
+              On the field set the audit approved {auditApproved} clips and vetoed {auditVetoed}{" "}
+              (claim A2 needs wrong-object tracks to catch, which the field set did not produce).
             </Placeholder>
           </div>
         </section>
@@ -217,7 +218,11 @@ export default async function ResultsPage() {
                 paired_results.csv
               </a>
             </li>
-            <li className="text-muted-foreground">field_results.csv (after Phase 4)</li>
+            <li>
+              <a className="underline underline-offset-4" href="/results/field_results.csv" download>
+                field_results.csv
+              </a>
+            </li>
           </ul>
           <p className="text-xs text-muted-foreground">
             QuantiPhy (Stanford) annotations are CC BY 4.0. The benchmark videos keep
