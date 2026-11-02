@@ -125,6 +125,18 @@ def global_acceleration_px(s: Series, axis: str) -> float:
     return _component(2 * coef[2], axis)
 
 
+def average_acceleration_px(s: Series, t_range: tuple[float, float] | None, axis: str) -> float:
+    """One quadratic over the time range (or the whole track): the average acceleration.
+
+    Found on the field set (Set B): "average" used to go to average_speed_px for every quantity,
+    so an average acceleration came out as an average speed.
+    """
+    part = in_range(s, t_range)
+    if len(part) < config.FIT_MIN_POINTS or len(np.unique(part.t)) < 3:
+        raise Abstain(f"too few detections for an average acceleration ({len(part)})")
+    return global_acceleration_px(part, axis)
+
+
 def smoothed(s: Series, half: float) -> np.ndarray:
     """Each detected position replaced by the local quadratic's value there (no new points)."""
     out = s.pos.copy()
@@ -249,6 +261,8 @@ def measure_px(
             return speed_px(tgt, spec.timestamp_s, spec.axis, half)
         return acceleration_px(tgt, spec.timestamp_s, spec.axis, accel_half)
     if st == "average":
+        if spec.quantity == "acceleration":
+            return average_acceleration_px(tgt, spec.time_range_s, spec.axis)
         return average_speed_px(tgt, spec.time_range_s, spec.axis, half)
     if st == "extent":
         return extent_px(tgt, spec.axis)

@@ -208,3 +208,37 @@ def test_acceleration_window_is_at_least_config_value():
     assert 2 * engine.accel_half_window(30) == pytest.approx(
         max(9 / 30, 0.30, config.ACCEL_WINDOW_MIN_S)
     )
+
+
+def _falling(a_px: float, n: int = 40, rest: int = 0) -> Track:
+    """Box falling with constant acceleration a_px (px/s^2) from rest, after `rest` still frames."""
+    out = []
+    for i in range(n + rest):
+        t = max(0, i - rest) / FPS
+        y = 30 + 0.5 * a_px * t * t
+        out.append(TrackFrame(frame=i, t_s=i / FPS, box=(300, y - 10, 320, y + 10),
+                              confidence=0.9, area_px=400, centroid_px=(310.0, y),
+                              extent_px={a: 20.0 for a in engine.AXES}))  # fmt: skip
+    return Track(phrase="ball", object_ordinal=0, frames=out, fps=FPS, width=W, height=H)
+
+
+def test_average_acceleration_is_a_fit_not_an_average_speed():
+    """Found on the field set (Set B): "average" acceleration was routed to average_speed_px."""
+    a_px = 400.0  # px/s^2; 20 px = 0.2 m below, so 4.0 m/s^2
+    sp = spec(reference_phrase=None, reference_kind="given_prior", reference_axis="horizontal",
+              reference_value_si=0.2, quantity="acceleration", statistic="average",
+              axis="vertical", timestamp_s=None, output_unit="m/s^2")  # fmt: skip
+    m = engine.measure(sp, _falling(a_px), None, boot=50)
+    assert m.value_px == pytest.approx(a_px, rel=1e-6)
+    assert m.value_si == pytest.approx(4.0, rel=1e-6)
+    # Still frames before the drop are outside the given time range, so they do not dilute it
+    rest = _falling(a_px, rest=15)
+    ranged = sp.model_copy(update={"time_range_s": (15 / FPS, (15 + 39) / FPS)})
+    assert engine.measure(ranged, rest, None, boot=50).value_px == pytest.approx(a_px, rel=1e-6)
+
+
+def test_average_acceleration_needs_enough_frames():
+    sp = spec(quantity="acceleration", statistic="average", axis="vertical", timestamp_s=None,
+              time_range_s=(0.0, 0.1))  # fmt: skip
+    with pytest.raises(Abstain, match="average acceleration"):
+        engine.measure_px(sp, engine.Series.from_track(_falling(400.0)), None, 0.15, 0.15)
