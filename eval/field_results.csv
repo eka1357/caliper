@@ -30,6 +30,6 @@ C08,size,measure,4.0,4.9607259566820865,3.1937601701267226,7.704880049105923,0.2
 C09,size,measure,21.0,19.24938445599321,12.35700003473266,29.973878267083208,0.08336264495270436,True,measured,,True,cm
 C10,size,measure,7.0,10.223833051769805,6.573043056885679,15.89713154848912,0.4605475788242579,True,measured,,True,cm
 D01,none,measure,,,,,,,abstained,"SAM found no 'gold tablet', 'tablet computer', 'beige tablet'",,cm
-D02,none,measure,,,,,,,abstained,no reference value,,cm
+D02,none,measure,,,,,,,abstained,No reference value.,,cm
 D03,none,measure,,,,,,,abstained,No reference value.,,m/s
 D04,none,measure,,,,,,,abstained,The yellow ball moves towards or away from the camera.,,m/s
