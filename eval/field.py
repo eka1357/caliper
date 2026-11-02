@@ -29,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from caliper import config, engine, guess, pipeline  # noqa: E402
+from caliper import checks, config, engine, guess, pipeline  # noqa: E402
 from caliper.meta_client import muse_cost_usd  # noqa: E402
 from caliper.models import Result  # noqa: E402
 from caliper.normalize import normalize, probe  # noqa: E402
@@ -130,7 +130,12 @@ def run_clip(row: dict[str, str], measure_sets: tuple[str, ...] = MEASURE_SETS) 
     video = normalize(src)  # the pipeline normalizes src itself; guess() takes the normalized copy
     car = "speed" in measure_sets
     prior = prior_text(row, car_reference=car)
-    rec: dict = {"clip_id": row["clip_id"], "prior": prior, "video": video.name}
+    rec: dict = {
+        "clip_id": row["clip_id"],
+        "prior": prior,
+        "video": video.name,
+        "interval_log_term": config.INTERVAL_LOG_TERM,
+    }
     if row["set"] in measure_sets:
         res = pipeline.measure(
             src, row["question"], prior, run_id=f"field-{row['clip_id']}", audit=True,
@@ -227,12 +232,56 @@ def summary(results: list[dict], guesses: list[dict]) -> dict[str, dict]:
     return out
 
 
+def widen_cached(rec: dict) -> dict:
+    """Apply config.INTERVAL_LOG_TERM to a field run cached before the term existed, exactly as
+    the pipeline now would: widen the interval, rerun the interval_width check, and abstain
+    before the audit if it fails (the audit only runs after every check passes)."""
+    if "interval_log_term" in rec or "result" not in rec:
+        return rec
+    res = Result.model_validate(rec["result"])
+    rec = {**rec, "interval_log_term": config.INTERVAL_LOG_TERM, "widened_from": res.interval_90}
+    if res.status != "measured" or res.interval_90 is None or res.value is None:
+        rec["result"] = json.loads(res.model_dump_json())
+        return rec
+    lo, hi = engine.widen(*res.interval_90)
+    rel = (hi - lo) / 2 / abs(res.value)
+    ok = rel <= config.INTERVAL_HALF_MAX
+    new_checks = [
+        c.model_copy(update={"passed": ok, "value": rel}) if c.name == "interval_width" else c
+        for c in res.checks
+    ]
+    if ok:
+        res = res.model_copy(update={"interval_90": (lo, hi), "checks": new_checks})
+    else:
+        res = pipeline.abstained(
+            checks.first_failure(new_checks, res.spec.target_phrase) or "", res.run_id,
+            res.spec, res.method, res.artifacts, res.cost_usd, new_checks,
+        )  # fmt: skip
+    rec["result"] = json.loads(res.model_dump_json())
+    return rec
+
+
+def rescore_cached(truth: list[dict]) -> None:
+    """--widen-cached: rewrite field rows from cached runs with the interval term ($0)."""
+    results = []
+    for row in truth:
+        path = RUNS / f"{row['clip_id']}.json"
+        rec = widen_cached(json.loads(path.read_text(encoding="utf-8")))
+        path.write_text(json.dumps(rec, indent=1), encoding="utf-8")
+        if (r := result_row(row, rec)) is not None:
+            results.append(r)
+            log.info("%s %s pred=%s [%s, %s] truth=%s covered=%s", row["clip_id"], r["status"],
+                     r["pred"], r["lo"], r["hi"], r["truth"], r["covered"])  # fmt: skip
+    merge_write(OUT, COLUMNS, results, ("clip_id", "path"))
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-spend", type=float, default=9.0)
     ap.add_argument("--clips", nargs="*", default=[])
     ap.add_argument("--measure-speed", action="store_true", help="Set A, car as reference")
+    ap.add_argument("--widen-cached", action="store_true", help="interval term on cached runs")
     args = ap.parse_args()
     measure_sets = MEASURE_SETS + (("speed",) if args.measure_speed else ())
 
@@ -241,6 +290,9 @@ def main() -> None:
     if args.clips:
         truth = [r for r in truth if r["clip_id"] in args.clips]
     RUNS.mkdir(parents=True, exist_ok=True)
+    if args.widen_cached:
+        rescore_cached(truth)
+        return
     meter = SpendMeter()
     results: list[dict] = []
     guesses: list[dict] = []
