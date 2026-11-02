@@ -3,6 +3,7 @@
 import { Check, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { PlaceholderTag } from "@/components/site/Placeholder";
+import { runAssetUrl } from "@/lib/run-assets";
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { LazyInView } from "./LazyInView";
@@ -55,7 +56,7 @@ export function HowItWorks({ run }: { run: CachedRun }) {
         <div className="relative w-full overflow-hidden rounded-md border bg-muted" style={{ aspectRatio: `${w} / ${h}` }}>
           {run.meta.poster && (
             // eslint-disable-next-line @next/next/no-img-element -- recorded run asset, sized by its box
-            <img src={`/runs/${encodeURIComponent(r.run_id)}/${run.meta.poster}`} alt="" className="absolute inset-0 h-full w-full" loading="lazy" />
+            <img src={runAssetUrl(r.run_id, run.meta.poster) ?? undefined} alt="" className="absolute inset-0 h-full w-full" loading="lazy" />
           )}
           <svg viewBox={`0 0 ${w} ${h}`} className="absolute inset-0 h-full w-full" aria-hidden>
             {f?.reference && <path d={f.reference.path} fill="none" stroke="var(--primary)" strokeWidth={w / 260} />}

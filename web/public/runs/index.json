@@ -1,21 +1,12 @@
 [
  {
-  "run_id": "field-a08",
+  "run_id": "field-c07",
   "kind": "measure",
-  "title": "Car passing, the car as its own ruler",
-  "status": "abstained",
+  "title": "Phone next to a coin",
+  "status": "measured",
   "source": "field",
   "placeholder": false,
-  "created_utc": "2026-11-02T07:00:10+00:00"
- },
- {
-  "run_id": "field-b03",
-  "kind": "measure",
-  "title": "Ball dropped in front of a paper sheet",
-  "status": "abstained",
-  "source": "field",
-  "placeholder": false,
-  "created_utc": "2026-11-02T07:00:03+00:00"
+  "created_utc": "2026-11-02T12:50:56+00:00"
  },
  {
   "run_id": "field-c01",
@@ -24,16 +15,7 @@
   "status": "measured",
   "source": "field",
   "placeholder": false,
-  "created_utc": "2026-11-02T06:59:55+00:00"
- },
- {
-  "run_id": "field-c07",
-  "kind": "measure",
-  "title": "Phone next to a coin",
-  "status": "measured",
-  "source": "field",
-  "placeholder": false,
-  "created_utc": "2026-11-02T06:59:53+00:00"
+  "created_utc": "2026-11-02T12:51:20+00:00"
  },
  {
   "run_id": "field-d03",
@@ -42,6 +24,24 @@
   "status": "abstained",
   "source": "field",
   "placeholder": false,
-  "created_utc": "2026-11-02T07:00:00+00:00"
+  "created_utc": "2026-11-02T12:51:44+00:00"
+ },
+ {
+  "run_id": "field-b03",
+  "kind": "measure",
+  "title": "Ball dropped in front of a paper sheet",
+  "status": "abstained",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T12:51:48+00:00"
+ },
+ {
+  "run_id": "field-a08",
+  "kind": "measure",
+  "title": "Car passing, the car as its own ruler",
+  "status": "abstained",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-02T12:51:58+00:00"
  }
 ]

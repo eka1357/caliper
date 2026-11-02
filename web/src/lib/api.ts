@@ -1,3 +1,4 @@
+import { runAssetUrl } from "./run-assets";
 // The only place the web app talks to the backend (AGENTS.md section 8).
 // Cached runs also load straight from /runs/ (web/public) when the backend is unreachable,
 // so the recorded runs work with no backend at all (ARCHITECTURE section 12).
@@ -71,14 +72,12 @@ async function fetchRun<T>(runId: string): Promise<T> {
   try {
     return await getJson<T>(`${API_URL}/api/runs/${encodeURIComponent(runId)}`);
   } catch {
-    return getJson<T>(`/runs/${encodeURIComponent(runId)}/run.json`);
+    return getJson<T>(runAssetUrl(runId, "run.json") as string);
   }
 }
 
 /** URL of a cached run's clip or poster, served by the web app from public/runs. */
-export function runAsset(runId: string, file: string | null): string | null {
-  return file ? `/runs/${encodeURIComponent(runId)}/${file}` : null;
-}
+export const runAsset = runAssetUrl;
 
 export interface MeasureInput {
   video: Blob;

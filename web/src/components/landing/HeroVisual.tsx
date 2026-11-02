@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { PlaceholderTag } from "@/components/site/Placeholder";
 import { decimalsFor, fmt } from "@/lib/format";
+import { runAssetUrl } from "@/lib/run-assets";
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 import { Decrypt } from "./Decrypt";
 import { useGsapLib } from "./motion-lib";
@@ -40,7 +41,6 @@ export function HeroVisual({ run }: { run: CachedRun }) {
   }, [frames]);
   const first = frameAt(frames, 0) ?? frames[0] ?? null;
   const r = run.result;
-  const base = `/runs/${encodeURIComponent(r.run_id)}/`;
 
   // Outlines follow presented frames (requestVideoFrameCallback), never timeupdate. The paths
   // are updated on the DOM directly, so playback costs no React render per frame.
@@ -111,8 +111,8 @@ export function HeroVisual({ run }: { run: CachedRun }) {
       >
         <video
           ref={video}
-          src={run.meta.clip ? base + run.meta.clip : undefined}
-          poster={run.meta.poster ? base + run.meta.poster : undefined}
+          src={runAssetUrl(r.run_id, run.meta.clip) ?? undefined}
+          poster={runAssetUrl(r.run_id, run.meta.poster) ?? undefined}
           className="absolute inset-0 h-full w-full max-w-full object-contain"
           muted
           loop

@@ -122,7 +122,10 @@ def save_cached_run(
     root = root or config.RUNS_DIR
     folder = root / _check_id(run_id)
     folder.mkdir(parents=True, exist_ok=True)
-    payload = result.model_dump(mode="json") if isinstance(result, Result) else result
+    payload = result.model_dump(mode="json") if isinstance(result, Result) else dict(result)
+    # The folder name is the run's id everywhere: asset URLs are built from it, and public files
+    # match case-sensitively in production (a "field-A08" result in "field-a08/" 404s).
+    payload["run_id"] = run_id
     if kind == "measure":
         Result.model_validate(payload)
     meta = meta.model_copy()

@@ -1,3 +1,4 @@
+import { runAssetUrl } from "@/lib/run-assets";
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 
 const MAX_H = 420; // px: portrait clips stay a sensible height in a card
@@ -14,7 +15,7 @@ export function KeyframeStill({ run, className }: { run: CachedRun; className?: 
       style={{ aspectRatio: `${w} / ${h}`, width: `min(100%, ${Math.round((MAX_H * w) / h)}px)` }}>
       {run.meta.poster && (
         // eslint-disable-next-line @next/next/no-img-element -- recorded run asset, sized by its box
-        <img src={`/runs/${encodeURIComponent(run.result.run_id)}/${run.meta.poster}`} alt=""
+        <img src={runAssetUrl(run.result.run_id, run.meta.poster) ?? undefined} alt=""
           className="absolute inset-0 h-full w-full" loading="lazy" />
       )}
       <svg viewBox={`0 0 ${w} ${h}`} className="absolute inset-0 h-full w-full" aria-hidden>

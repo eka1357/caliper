@@ -1,5 +1,7 @@
 """Cached-run store: write, list, load, upsert, limits (tmp dir, no network)."""
 
+import os
+
 import cv2
 import numpy as np
 import pytest
@@ -75,3 +77,26 @@ def test_rejects_large_clip(tmp_path):
     big.write_bytes(b"0" * (runs.MAX_CLIP_BYTES + 1))
     with pytest.raises(ValueError, match="3 MB"):
         runs.save_cached_run("r", "measure", result(), {}, meta(), big, tmp_path / "runs")
+
+
+def test_public_runs_have_exact_case_assets():
+    """Every manifest entry has run.json, clip.mp4 and poster.jpg at exact-case paths, and its
+    result.run_id is the folder name. Production servers (next start, Vercel) match public files
+    case-sensitively; the Windows dev server does not, which hid a 404 on every run asset."""
+    import json
+
+    from caliper import config
+
+    root = config.RUNS_DIR
+    entries = json.loads((root / "index.json").read_text(encoding="utf-8"))
+    assert entries, "no cached runs in web/public/runs/index.json"
+    folders = set(os.listdir(root))
+    for e in entries:
+        rid = e["run_id"]
+        assert rid in folders, f"{rid}: no folder with exactly this name"
+        files = set(os.listdir(root / rid))
+        for name in ("run.json", "clip.mp4", "poster.jpg"):
+            assert name in files, f"{rid}/{name} missing (exact case)"
+        run = json.loads((root / rid / "run.json").read_text(encoding="utf-8"))
+        assert run["result"]["run_id"] == rid, f"{rid}: result.run_id is {run['result']['run_id']}"
+        assert run["meta"]["clip"] in files and run["meta"]["poster"] in files
