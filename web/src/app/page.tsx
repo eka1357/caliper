@@ -12,6 +12,7 @@ import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings } from "@/lib/findings";
 import { decimalsFor, fmt } from "@/lib/format";
+import { fmtPct } from "@/lib/labels";
 import { loadBenchmark } from "@/lib/results";
 import { landingRuns } from "@/lib/runs-static";
 import type { CachedRun } from "@/lib/types";
@@ -24,7 +25,8 @@ const MORTH =
 // read at build time from eval/results.csv, eval/paired_results.csv or a recorded run JSON.
 export default async function Home() {
   const [bench, runs] = await Promise.all([loadBenchmark(), landingRuns()]);
-  const { measured, vetoed, abstained } = runs;
+  const { measured, missed, vetoed, abstained } = runs;
+  const sizeSet = bench.field_summary.size;
 
   return (
     <>
@@ -80,15 +82,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <GuessCard run={measured} />
             <MeasuredCard run={measured} />
-            <div className="flex flex-col gap-2 rounded-lg border border-dashed bg-card/40 p-5">
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                Instrument <PlaceholderTag />
-              </p>
-              <p className="text-sm text-muted-foreground">
-                GPS, tape or timing gate on our own filmed clips. The field set is scored in Phase
-                4; no instrument value is shown until then.
-              </p>
-            </div>
+            <InstrumentCard run={measured} />
           </div>
           {measured && <p className="text-sm text-muted-foreground">Question: {measured.meta.question}</p>}
         </Section>
@@ -168,14 +162,27 @@ export default async function Home() {
             <LazyPairedChart rows={bench.paired} />
           </LazyInView>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Placeholder title="Field set accuracy">
-              Median relative error on our own instrument-checked clips (target 10% or less).
-              Scored in Phase 4.
-            </Placeholder>
-            <Placeholder title="Speed study against GPS">
-              Per-vehicle error against GPS on set A (target median 3 km/h or less). Scored in Phase
-              4.
-            </Placeholder>
+            {sizeSet ? (
+              <div className="flex flex-col gap-2 rounded-lg border bg-card p-5">
+                <p className="text-sm text-muted-foreground">Our own clips: size against a tape measure</p>
+                <p className="flex items-baseline gap-2">
+                  <span className="font-mono text-4xl tabular-nums">{fmtPct(sizeSet.median_rel_error)}</span>
+                  <span className="text-sm text-muted-foreground">median error, {sizeSet.measured} of {sizeSet.n} clips measured</span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Truth inside the 90% range on {sizeSet.coverage == null ? "n/a" : Math.round(sizeSet.coverage * sizeSet.measured)} of{" "}
+                  {sizeSet.measured}. Muse Spark alone, given the same coin size: {fmtPct(sizeSet.guess_median_rel_error)} median
+                  error, with no range.
+                </p>
+              </div>
+            ) : (
+              <Placeholder title="Field set accuracy">No field clip has been scored.</Placeholder>
+            )}
+            {missed ? <MissCard run={missed} /> : (
+              <Placeholder title="Speed study against GPS">
+                Not validated yet: the gate method needs a Set A filmed with the markers in the car&apos;s lane.
+              </Placeholder>
+            )}
           </div>
           <Button asChild variant="outline" className="w-fit">
             <Link href="/results">All results and the method</Link>
@@ -252,6 +259,42 @@ function MeasuredCard({ run }: { run: CachedRun | null }) {
   );
 }
 
+function InstrumentCard({ run }: { run: CachedRun | null }) {
+  const ins = run?.meta.instrument;
+  if (!run || !ins || ins.value == null) {
+    return <Placeholder title="Instrument">No instrument reading for this run.</Placeholder>;
+  }
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border bg-card p-5">
+      <p className="text-sm text-muted-foreground">Instrument · {ins.instrument}</p>
+      <p className="flex items-baseline gap-2">
+        <span className="font-mono text-4xl tabular-nums">{ins.value}</span>
+        <span className="font-mono text-muted-foreground">{ins.unit}</span>
+      </p>
+      <p className="text-xs text-muted-foreground">Measured by hand when the clip was filmed.</p>
+    </div>
+  );
+}
+
+/** A measured run whose instrument reading falls outside its range: shown, not hidden. */
+function MissCard({ run }: { run: CachedRun }) {
+  const r = run.result;
+  const ins = run.meta.instrument;
+  if (r.value == null || !ins || ins.value == null) return null;
+  const d = decimalsFor(r.interval_90, r.value);
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border bg-card p-5">
+      <KeyframeStill run={run} />
+      <p className="text-sm"><span className="text-destructive">A miss we show</span> · {run.meta.question}</p>
+      <p className="font-mono text-sm tabular-nums">
+        Caliper {fmt(r.value, d)} {r.unit}
+        {r.interval_90 && ` (90% range ${fmt(r.interval_90[0], d)} to ${fmt(r.interval_90[1], d)})`} · {ins.instrument} {ins.value} {ins.unit}
+      </p>
+      <p className="text-sm text-muted-foreground">{run.meta.notes}</p>
+    </div>
+  );
+}
+
 function GuessCard({ run }: { run: CachedRun | null }) {
   const g = run?.guess;
   if (!g || g.parsed_value == null) {
@@ -260,9 +303,7 @@ function GuessCard({ run }: { run: CachedRun | null }) {
         <p className="flex items-center gap-2 text-sm">
           Muse Spark alone <PlaceholderTag />
         </p>
-        <p className="text-sm">
-          No recorded guess for this run: the placeholder runs were made without model calls.
-        </p>
+        <p className="text-sm">No recorded guess for this run.</p>
       </div>
     );
   }

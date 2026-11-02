@@ -1,5 +1,7 @@
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 
+const MAX_H = 420; // px: portrait clips stay a sensible height in a card
+
 /** A recorded run's poster with the target and reference outlines of one frame (static). */
 export function KeyframeStill({ run, className }: { run: CachedRun; className?: string }) {
   const o = run.overlay;
@@ -8,8 +10,8 @@ export function KeyframeStill({ run, className }: { run: CachedRun; className?: 
   const frames: OverlayFrame[] = o.frames ?? [];
   const f = frames.filter((x) => x.target)[Math.floor(frames.length / 2)] ?? frames[0] ?? null;
   return (
-    <div className={`relative w-full overflow-hidden rounded-md border bg-muted ${className ?? ""}`}
-      style={{ aspectRatio: `${w} / ${h}` }}>
+    <div className={`relative mx-auto overflow-hidden rounded-md border bg-muted ${className ?? ""}`}
+      style={{ aspectRatio: `${w} / ${h}`, width: `min(100%, ${Math.round((MAX_H * w) / h)}px)` }}>
       {run.meta.poster && (
         // eslint-disable-next-line @next/next/no-img-element -- recorded run asset, sized by its box
         <img src={`/runs/${encodeURIComponent(run.result.run_id)}/${run.meta.poster}`} alt=""

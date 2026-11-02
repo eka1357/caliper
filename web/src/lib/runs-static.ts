@@ -27,14 +27,22 @@ export async function loadRun(runId: string): Promise<CachedRun | null> {
   }
 }
 
-/** The recorded measure runs the landing uses: real field runs first, placeholders otherwise. */
+/** The recorded measure runs the landing uses (real field runs; placeholders only if none). */
 export async function landingRuns() {
   const index = (await loadRunIndex()).filter((r) => r.kind === "measure");
   const runs = (await Promise.all(index.map((r) => loadRun(r.run_id)))).filter(
     (r): r is CachedRun => r != null,
   );
-  const measured = runs.find((r) => r.result.status === "measured") ?? null;
+  const inside = (r: CachedRun) => {
+    const iv = r.result.interval_90;
+    const t = r.meta.instrument?.value;
+    return iv != null && t != null && iv[0] <= t && t <= iv[1];
+  };
+  const done = runs.filter((r) => r.result.status === "measured");
+  // Hero: a measured run whose instrument reading lies inside its 90% range; the miss is shown too.
+  const measured = done.find(inside) ?? done[0] ?? null;
+  const missed = done.find((r) => r !== measured && r.meta.instrument?.value != null && !inside(r)) ?? null;
   const vetoed = runs.find((r) => r.result.status === "abstained" && r.result.audit && !r.result.audit.approve) ?? null;
   const abstained = runs.filter((r) => r.result.status === "abstained");
-  return { measured, vetoed, abstained };
+  return { measured, missed, vetoed, abstained };
 }

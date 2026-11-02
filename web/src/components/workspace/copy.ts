@@ -54,5 +54,13 @@ export function fixFor(result: Result): string {
     return "Make the object you mean the only one of its kind in view, or name it more precisely.";
   }
   const failed = result.checks.find((c) => !c.passed);
-  return (failed && FIX_BY_CHECK[failed.name]) ?? "Add a coin next to the object.";
+  if (failed && FIX_BY_CHECK[failed.name]) return FIX_BY_CHECK[failed.name];
+  const reason = result.abstain_reason ?? "";
+  if (reason.includes("never fully inside the picture")) {
+    return "Film from farther back so the whole object stays in the picture while it moves.";
+  }
+  if (reason.startsWith("No reference value")) {
+    return "Type one known size, or put a coin or an A4 sheet next to the object.";
+  }
+  return "Add a coin next to the object.";
 }
