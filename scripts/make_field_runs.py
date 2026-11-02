@@ -11,7 +11,10 @@ plates are blurred before encoding:
        the window band (the driver) and both ends at bumper height (plates); boxes from the
        cached SAM "gray car" response;
   B03  the top-right corner where the back of a head appears at the edge (no face visible).
-C01, C07 and D03 show no faces or plates. The placeholder runs are removed.
+C07's phone case carries a drawing of a recognizable character: the inside of the phone's SAM
+mask, shrunk so the outline stays sharp, is blurred on its drawing side (the camera end stays).
+A08's poster is a frame with the (blurred) car. C01 and D03 need no blur.
+The placeholder runs are removed.
 """
 
 from __future__ import annotations
@@ -40,6 +43,10 @@ FIELD_RUNS = config.CACHE_DIR / "field_runs"
 TRUTH = config.FIELD_DIR / "truth.csv"
 LONG_SIDE = 854
 CRF = 28
+CASE_INSET_PX = 14  # C07: blur stays this far inside the phone outline
+CASE_SPLIT = 0.74  # C07: the drawing covers the case left of this share of the phone's width
+CASE_SIGMA = 32  # C07: strong enough that the drawing is not recognizable
+POSTER_FRAME = {"A08": 216}  # a frame with the whole (blurred) car in view
 Box = tuple[float, float, float, float]
 
 # run_id, clip, title, notes (no numbers: every number is read from the run JSON)
@@ -102,6 +109,41 @@ def car_blur(boxes: list[list[Box]]) -> Callable[[np.ndarray, int], None]:
     return apply
 
 
+def nearest_masks(masks: dict[int, np.ndarray], n: int) -> list[np.ndarray | None]:
+    """A mask for every frame: frames SAM missed take the nearest frame's mask."""
+    keys = np.array(sorted(masks))
+    if not len(keys):
+        return [None] * n
+    return [masks[int(keys[np.abs(keys - k).argmin()])] for k in range(n)]
+
+
+def case_blur(video: Path, phrase: str, n: int) -> Callable[[np.ndarray, int], None]:
+    """Blur the phone case's printed drawing: the phone mask eroded by CASE_INSET_PX (outline kept
+    sharp), left of CASE_SPLIT of the mask's width (the drawing side; the camera end stays)."""
+    info = probe(video)
+    w, h = int(info["width"]), int(info["height"])
+    seg = segment.segment(video, phrase)
+    tracks = segment.tracks_from_segmentation(seg, float(info["fps"]), w, h)
+    track = max(tracks, key=lambda t: len(t.frames))
+    raw = segment.mask_rasters(video, phrase, str(track.object_ordinal), list(range(n)), w, h)
+    kernel = np.ones((2 * CASE_INSET_PX + 1, 2 * CASE_INSET_PX + 1), np.uint8)
+    regions: dict[int, np.ndarray] = {}
+    for k, m in raw.items():
+        inner = cv2.erode(m, kernel)
+        xs = np.nonzero(m.any(axis=0))[0]
+        if len(xs):
+            inner[:, int(xs[0] + CASE_SPLIT * (xs[-1] - xs[0])) :] = 0
+        regions[k] = inner.astype(bool)
+    per_frame = nearest_masks(regions, n)
+
+    def apply(frame: np.ndarray, k: int) -> None:
+        region = per_frame[k] if k < len(per_frame) else None
+        if region is not None and region.any():
+            frame[region] = cv2.GaussianBlur(frame, (0, 0), CASE_SIGMA)[region]
+
+    return apply
+
+
 def corner_blur(x0: float, y0: float, x1: float, y1: float) -> Callable[[np.ndarray, int], None]:
     return lambda frame, k: blur(frame, x0, y0, x1, y1)
 
@@ -160,8 +202,12 @@ def main() -> None:
         n, fps = int(info["frames"]), float(info["fps"])
         overlay = result["artifacts"].pop("overlay", None) or {
             "fps": fps, "width": int(info["width"]), "height": int(info["height"])}  # fmt: skip
-        apply = {"A08": lambda: car_blur(car_boxes(video, n)),
-                 "B03": lambda: corner_blur(300, 0, 380, 220)}.get(cid, lambda: None)()  # fmt: skip
+        blurs = {
+            "A08": lambda: car_blur(car_boxes(video, n)),
+            "B03": lambda: corner_blur(300, 0, 380, 220),
+            "C07": lambda: case_blur(video, "white phone", n),
+        }
+        apply = blurs[cid]() if cid in blurs else None
         with tempfile.TemporaryDirectory() as tmp:
             clip = Path(tmp) / "clip.mp4"
             export(video, clip, apply)
@@ -169,7 +215,8 @@ def main() -> None:
                                 placeholder=False, notes=notes,
                                 instrument=instrument(truth[cid]))  # fmt: skip
             guess = {k: rec["guess"].get(k) for k in ("text", "parsed_value")}
-            runs.save_cached_run(run_id, "measure", result, overlay, meta, clip, guess=guess)
+            runs.save_cached_run(run_id, "measure", result, overlay, meta, clip, guess=guess,
+                                 poster_frame=POSTER_FRAME.get(cid, 0))  # fmt: skip
             log.info("%s: %s, clip %d bytes", run_id, result["status"], clip.stat().st_size)
 
 

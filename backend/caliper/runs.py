@@ -96,8 +96,10 @@ def load_run(run_id: str, root: Path | None = None) -> CachedRun:
     return CachedRun.model_validate_json(path.read_text(encoding="utf-8"))
 
 
-def _write_poster(clip: Path, dest: Path) -> bool:
+def _write_poster(clip: Path, dest: Path, frame_index: int = 0) -> bool:
     cap = cv2.VideoCapture(str(clip))
+    if frame_index:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
     ok, frame = cap.read()
     cap.release()
     return bool(ok and cv2.imwrite(str(dest), frame))
@@ -112,8 +114,11 @@ def save_cached_run(
     clip: Path | None = None,
     root: Path | None = None,
     guess: dict[str, Any] | None = None,
+    poster_frame: int = 0,
 ) -> CachedRun:
-    """Write runs/<run_id>/ (run.json, clip, poster) and upsert the manifest entry."""
+    """Write runs/<run_id>/ (run.json, clip, poster) and upsert the manifest entry.
+
+    poster_frame: which clip frame becomes poster.jpg (default the first)."""
     root = root or config.RUNS_DIR
     folder = root / _check_id(run_id)
     folder.mkdir(parents=True, exist_ok=True)
@@ -126,7 +131,7 @@ def save_cached_run(
         if size > MAX_CLIP_BYTES:
             raise ValueError(f"{clip.name} is {size} bytes; demo clips must be under 3 MB")
         shutil.copyfile(clip, folder / "clip.mp4")
-        if not _write_poster(folder / "clip.mp4", folder / "poster.jpg"):
+        if not _write_poster(folder / "clip.mp4", folder / "poster.jpg", poster_frame):
             meta.poster = None
     else:
         meta.clip = meta.poster = None
