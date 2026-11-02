@@ -1,5 +1,6 @@
 // The findings stated on / and /results, written as templates over the benchmark rows. A
 // finding whose rows are missing is left out rather than filled with a typed number.
+import { auditFinding, dimsFinding } from "./audit-finding";
 import { fmtMra, fmtPct } from "./labels";
 import { type Benchmark, caliperOn, findPaired, findRow } from "./results";
 
@@ -31,7 +32,7 @@ export function findings(b: Benchmark): Finding[] {
   }
 
   const museDev = findRow(b, "muse_spark_alone", "dev");
-  const calDev = findRow(b, "caliper_no_audit", "dev");
+  const calDev = findRow(b, "caliper", "dev"); // with the audit: the product as shipped
   if (museDev && calDev && calDev.n != null && calDev.coverage != null) {
     out.push({
       id: "coverage",
@@ -42,7 +43,7 @@ export function findings(b: Benchmark): Finding[] {
     });
   }
 
-  const pDev = findPaired(b, "caliper_no_audit", "dev");
+  const pDev = findPaired(b, "caliper", "dev");
   if (pDev && pDev.n_answered > 0) {
     out.push({
       id: "answered",
@@ -53,29 +54,15 @@ export function findings(b: Benchmark): Finding[] {
     });
   }
 
-  const p2 = findPaired(b, "caliper_no_audit", "dev_2d");
-  const p3 = findPaired(b, "caliper_no_audit", "dev_3d");
-  if (p2 && p3 && p2.n_answered > 0 && p3.n_answered > 0) {
-    out.push({
-      id: "dims",
-      title: "2D works, 3D does not yet",
-      body: `On 2D questions Caliper's answers beat the model alone (${fmtMra(p2.mra_variant)} against ${fmtMra(p2.mra_muse)}, ${p2.n_answered} questions). On 3D questions they are worse (${fmtMra(p3.mra_variant)} against ${fmtMra(p3.mra_muse)}, only ${p3.n_answered} answered).`,
-      kind: "limit",
-      source: SRC_P,
-    });
-  }
+  const p2 = findPaired(b, "caliper", "dev_2d");
+  const p3 = findPaired(b, "caliper", "dev_3d");
+  const dims = p2 && p3 && p2.n_answered > 0 && p3.n_answered > 0 ? dimsFinding(p2, p3) : null;
+  if (dims) out.push({ id: "dims", ...dims, kind: "limit", source: SRC_P });
 
-  const a2 = findRow(b, "caliper", "dev_2d");
-  const n2 = findRow(b, "caliper_no_audit", "dev_2d");
-  if (a2 && n2) {
-    out.push({
-      id: "audit",
-      title: "The audit trades coverage for accuracy",
-      body: `On dev 2D the visual audit lowers coverage from ${fmtPct(n2.coverage)} to ${fmtPct(a2.coverage)} and moves answered-only MRA from ${fmtMra(n2.mra_answered)} to ${fmtMra(a2.mra_answered)}. The samples are small.`,
-      kind: "finding",
-      source: SRC_R,
-    });
-  }
+  const onDev = findRow(b, "caliper", "dev");
+  const offDev = findRow(b, "caliper_no_audit", "dev");
+  const audit = onDev && offDev ? auditFinding(offDev, onDev) : null;
+  if (audit) out.push({ id: "audit", ...audit, kind: "finding", source: SRC_R });
 
   if (!caliperOn(b, "holdout")) {
     out.push({

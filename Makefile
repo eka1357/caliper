@@ -18,6 +18,7 @@ dev-web:
 test:
 	cd backend && .venv/bin/python -m pytest -q
 	cd web && npx tsc --noEmit
+	cd web && node --test tests/*.test.mjs
 
 lint:
 	cd backend && .venv/bin/ruff check . && .venv/bin/ruff format --check .
