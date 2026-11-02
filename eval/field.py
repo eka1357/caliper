@@ -1,10 +1,11 @@
 """Caliper on the field set: measure path on Sets B, C and D, plus Muse Spark alone's answer on
 every measurement clip (Sets A to D). Writes eval/field_results.csv (EVAL_PROTOCOL section 5).
 
-Set A normally runs only through the study path (DECISIONS 2026-11-01). --measure-speed also
-runs the measure path on Set A as a field test of refusal: as filmed, its markers stand on the
-far kerb and the car passes near the camera, so a correct system should refuse (DECISIONS
-2026-11-02). Each clip's reference from
+Set A normally runs only through the study path (DECISIONS 2026-11-01). As filmed, its markers
+stand on the far kerb while the car drives in the near lane, so they cannot set the scale.
+--measure-speed runs the measure path on Set A with the car as its own reference (CAR_PRIOR) and
+only the frames where the whole car is in the picture (DECISIONS 2026-11-02). Each clip's
+reference from
 truth.csv is passed as the prior, the sentence a user types in "I know one real size"; Set D gets
 none. Muse Spark alone gets exactly the same question and prior.
 
@@ -66,7 +67,13 @@ PRIOR_TEMPLATES = {
 }
 
 
-def prior_text(row: dict[str, str]) -> str | None:
+# Set A fallback (human, 2026-11-02): the test car is a Maruti Suzuki Dzire, 3.995 m long.
+CAR_PRIOR = "The car is 3.995 m long."
+
+
+def prior_text(row: dict[str, str], car_reference: bool = False) -> str | None:
+    if car_reference and row["set"] == "speed":
+        return CAR_PRIOR
     ref = row["reference_object"].strip()
     if ref in ("", "none"):
         return None
@@ -121,12 +128,13 @@ def worst_case(frames: int, measure: bool) -> float:
 def run_clip(row: dict[str, str], measure_sets: tuple[str, ...] = MEASURE_SETS) -> dict:
     src = FIELD / row["file"]
     video = normalize(src)  # the pipeline normalizes src itself; guess() takes the normalized copy
-    prior = prior_text(row)
+    car = "speed" in measure_sets
+    prior = prior_text(row, car_reference=car)
     rec: dict = {"clip_id": row["clip_id"], "prior": prior, "video": video.name}
     if row["set"] in measure_sets:
         res = pipeline.measure(
             src, row["question"], prior, run_id=f"field-{row['clip_id']}", audit=True,
-            with_overlay=True,
+            with_overlay=True, whole_object_only=car and row["set"] == "speed",
         )  # fmt: skip
         rec["result"] = json.loads(res.model_dump_json())
     out, info = guess.guess(video, row["question"], prior=prior)
@@ -224,7 +232,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-spend", type=float, default=9.0)
     ap.add_argument("--clips", nargs="*", default=[])
-    ap.add_argument("--measure-speed", action="store_true", help="measure path on Set A too")
+    ap.add_argument("--measure-speed", action="store_true", help="Set A, car as reference")
     args = ap.parse_args()
     measure_sets = MEASURE_SETS + (("speed",) if args.measure_speed else ())
 
