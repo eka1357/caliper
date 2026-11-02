@@ -3,7 +3,8 @@ every measurement clip (Sets A to D). Writes eval/field_results.csv (EVAL_PROTOC
 
 Set A normally runs only through the study path (DECISIONS 2026-11-01). As filmed, its markers
 stand on the far kerb while the car drives in the near lane, so they cannot set the scale.
---measure-speed runs the measure path on Set A with the car as its own reference (CAR_PRIOR) and
+--measure-speed runs the measure path on Set A with the vehicle as its own reference (truth.csv
+`measure_prior`, e.g. the car's length) and
 only the frames where the whole car is in the picture (DECISIONS 2026-11-02). Each clip's
 reference from
 truth.csv is passed as the prior, the sentence a user types in "I know one real size"; Set D gets
@@ -67,13 +68,15 @@ PRIOR_TEMPLATES = {
 }
 
 
-# Set A fallback (human, 2026-11-02): the test car is a Maruti Suzuki Dzire, 3.995 m long.
-CAR_PRIOR = "The car is 3.995 m long."
-
-
 def prior_text(row: dict[str, str], car_reference: bool = False) -> str | None:
+    """The prior sentence for one clip. With car_reference (--measure-speed), a Set A clip gets its
+    truth.csv `measure_prior`: the vehicle as its own reference, e.g. "The car is 3.995 m long."
+    (DECISIONS 2026-11-02) or "The motorcycle is X m long." for a bike clip."""
     if car_reference and row["set"] == "speed":
-        return CAR_PRIOR
+        prior = (row.get("measure_prior") or "").strip()
+        if not prior:
+            raise ValueError(f"no measure_prior in truth.csv for {row['clip_id']}")
+        return prior
     ref = row["reference_object"].strip()
     if ref in ("", "none"):
         return None
