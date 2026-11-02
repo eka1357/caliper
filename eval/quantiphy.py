@@ -16,6 +16,11 @@ per question under data/cache/runs/<variant>/.
   python eval/quantiphy.py --variant caliper                          # SAM + engine + score
   python eval/quantiphy.py --compare-specs                            # agreement with hand specs
   python eval/quantiphy.py --variant caliper --worst 5                # no API calls
+
+Frozen runs (DECISIONS 2026-11-02 "Freeze"; refuse to start if a frozen file changed):
+  python eval/quantiphy.py --split holdout --specs-only --max-spend 2.50   # Muse spec calls
+  python eval/quantiphy.py --split full --variant caliper --max-spend 5.00 # run JSONs only
+  python eval/holdout_finalize.py                                         # score, results ($0)
 """
 
 from __future__ import annotations
@@ -23,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import subprocess
 import sys
 from datetime import date
 
@@ -37,6 +43,7 @@ from caliper.models import MeasurementSpec, Result
 from caliper.pipeline import VideoContext, abstained, measure
 from caliper.segment import sam_cost_usd
 from caliper.spec import SpecError, write_spec
+from field import SpendMeter
 
 log = logging.getLogger("quantiphy")
 HAND_SPECS = EVAL / "specs" / "phase1_dev_2d.json"
@@ -47,13 +54,24 @@ VARIANTS = ("caliper", "caliper_no_audit", "caliper_rule_parser", "caliper_hand_
 MUSE_SPEC_VARIANTS = ("caliper", "caliper_no_audit")  # same cached Muse specs
 SAM_CEILING_USD = 1.50  # Phase 2 plan: SAM for new phrases, both variants
 MUSE_CEILING_USD = 6.0  # human, Phase 2: stop if the spec writer run is projected above this
+# Phase 4 freeze (DECISIONS 2026-11-02 "Freeze"): --split runs refuse to start if any file that
+# shapes a QuantiPhy answer differs from this commit (EVAL_PROTOCOL section 6).
+FREEZE_COMMIT = "a5733dde6cfb0f806ded5d48781366cacb0d574d"
+FROZEN_FILES = [f"backend/caliper/{m}.py" for m in (
+    "config", "engine", "checks", "audit", "spec", "segment", "pipeline", "depth", "normalize",
+    "models", "priors", "overlay", "backends", "meta_client", "study")]  # fmt: skip
+# Per-question worst case for --max-spend: largest cached Responses call ($0.0309, cost_summary)
+# +50%, the same bound eval/field.py uses; SAM bills every frame of each requested phrase.
+MUSE_CALL_MAX_USD = 0.0309 * 1.5
 SOURCES = {  # what the variant is; the split scope is added by source_for()
     "caliper": "Muse Spark spec writer, checks, visual audit",
     "caliper_no_audit": "Muse Spark spec writer, checks, no audit",
     "caliper_rule_parser": "A1 rule parser, eval/ablation.py",
     "caliper_hand_spec": "hand-written specs eval/specs/phase1_dev_2d.json",
 }
-SCOPES = {"dev_2d": "dev 2D only", "dev_3d": "dev 3D only", "dev": "dev, all four categories"}
+SCOPES = {"dev_2d": "dev 2D only", "dev_3d": "dev 3D only", "dev": "dev, all four categories",
+          "holdout": "holdout, all four categories, frozen at " + FREEZE_COMMIT[:7],
+          "full": "dev + holdout, 158 questions, frozen at " + FREEZE_COMMIT[:7]}  # fmt: skip
 
 
 def source_for(variant: str, split: str) -> str:
@@ -379,8 +397,89 @@ def run(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs, dims: st
           f"run cost ${cost:.4f}")  # fmt: skip
 
 
+def split_entries(split: str, dataset: pd.DataFrame) -> list[dict]:
+    """Every question of a split (dev, holdout or full), all four categories, dataset order."""
+    s = pd.read_csv(EVAL / "split.csv").set_index("video_id")["split"]
+    rows = dataset if split == "full" else dataset[dataset.video_id.map(s) == split]
+    return [{"row_id": int(r), "video_id": v, "abstain_reason": None, "spec": None,
+             "dim": f"{t[1]}D"} for r, v, t in
+            zip(rows["Unnamed: 0"], rows.video_id, rows.video_type, strict=True)]  # fmt: skip
+
+
+def check_frozen() -> None:
+    """Refuse to run if any answer-shaping file differs from the freeze commit (worktree incl.)."""
+    proc = subprocess.run(["git", "diff", "--quiet", FREEZE_COMMIT, "--", *FROZEN_FILES],
+                          cwd=EVAL.parent, check=False)  # fmt: skip
+    if proc.returncode != 0:
+        sys.exit(f"STOP: frozen files differ from {FREEZE_COMMIT[:7]} "
+                 f"(git diff {FREEZE_COMMIT[:7]} -- backend/caliper): not frozen")  # fmt: skip
+    print(f"frozen files match {FREEZE_COMMIT[:7]}")
+
+
+def specs_split(entries: list[dict], dataset: pd.DataFrame, max_spend: float) -> None:
+    """Muse spec call 1 for every question in the split, metered; stops before passing the cap."""
+    ctxs = contexts(entries, dataset)
+    meter, stopped = SpendMeter(), None
+    for e in entries:
+        if muse_spec_cached(e["row_id"]) is None and meter.total + MUSE_CALL_MAX_USD > max_spend:
+            stopped = f"stopped before row {e['row_id']}: spent ${meter.total:.4f}"
+            break
+        spec, why, _ = get_spec("caliper", e, dataset.loc[e["row_id"]], ctxs[e["video_id"]])
+        meter.settle(ctxs[e["video_id"]].frames)
+        print(f"{e['row_id']} {e['video_id']}: {'ok' if spec else 'SPEC ERROR ' + why} "
+              f"total=${meter.total:.4f}")  # fmt: skip
+    print(json.dumps({"step": "specs", "questions": len(entries),
+                      "real_spend_usd": round(meter.total, 4), "stopped": stopped}))  # fmt: skip
+    if stopped:
+        sys.exit(f"STOP: {stopped} (cap ${max_spend:.2f})")
+
+
+def run_split(variant: str, entries: list[dict], dataset: pd.DataFrame, ctxs,
+              max_spend: float) -> None:  # fmt: skip
+    """Run JSONs for every question of the split, metered. Scoring is eval/holdout_finalize.py."""
+    rd = runs_dir(variant)
+    rd.mkdir(parents=True, exist_ok=True)
+    meter, stopped, done = SpendMeter(), None, []
+    for e in entries:
+        q, ctx = dataset.loc[e["row_id"]], ctxs[e["video_id"]]
+        spec, why, _ = get_spec(variant, e, q, ctx)  # cached: specs_split ran first
+        n_sam = sum(not sam_cached(ctx, p) for p in sam_phrases(spec)) if spec else 0
+        bound = n_sam * ctx.frames * config.SAM_USD_PER_FRAME
+        bound += MUSE_CALL_MAX_USD if variant == "caliper" and spec else 0.0
+        if meter.total + bound > max_spend:
+            stopped = (f"stopped before row {e['row_id']}: spent ${meter.total:.4f}, "
+                       f"worst case for it ${bound:.4f}")  # fmt: skip
+            break
+        run_id = f"{variant}-{e['row_id']}"
+        res: Result = (
+            measure(
+                ctx,
+                q.question,
+                q.ground_truth_prior,
+                spec=spec,
+                run_id=run_id,
+                audit=variant == "caliper",
+            )  # fmt: skip
+            if spec is not None
+            else abstained(why, run_id, method="spec")
+        )
+        meter.settle(ctx.frames)
+        (rd / f"{e['row_id']}.json").write_text(res.model_dump_json(indent=1), encoding="utf-8")
+        done.append(res.status)
+        print(f"{e['row_id']} {e['video_id']}: {res.status} {res.value} {res.unit} "
+              f"{res.abstain_reason or ''} total=${meter.total:.4f}")  # fmt: skip
+    print(json.dumps({"step": variant, "questions": len(entries), "written": len(done),
+                      "measured": done.count("measured"), "real_spend_usd": round(meter.total, 4),
+                      "stopped": stopped}))  # fmt: skip
+    if stopped:
+        sys.exit(f"STOP: {stopped} (cap ${max_spend:.2f})")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--split", choices=("dev", "holdout", "full"), default=None,
+                    help="frozen run over a whole split; needs --max-spend")  # fmt: skip
+    ap.add_argument("--max-spend", type=float, default=None, help="USD cap for this command")
     ap.add_argument("--variant", choices=VARIANTS, default="caliper")
     ap.add_argument("--specs-only", action="store_true")
     ap.add_argument("--dims", choices=("2D", "3D", "all"), default="2D", help="dev questions")
@@ -399,6 +498,24 @@ def main() -> None:
     args = ap.parse_args()
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
     dataset = pd.read_csv(DATASET).set_index("Unnamed: 0", drop=False)
+    if args.split:
+        if args.max_spend is None:
+            sys.exit("--split needs --max-spend")
+        if args.variant not in MUSE_SPEC_VARIANTS:
+            sys.exit("--split runs caliper or caliper_no_audit only")
+        check_frozen()
+        entries = split_entries(args.split, dataset)
+        if args.specs_only:
+            specs_split(entries, dataset, args.max_spend)
+            return
+        ctxs = contexts(entries, dataset)
+        estimate(args.variant, entries, dataset, ctxs)  # upper bound, printed for the record
+        if args.estimate:
+            return
+        if any(muse_spec_cached(e["row_id"]) is None for e in entries):
+            sys.exit("STOP: run --split ... --specs-only first")
+        run_split(args.variant, entries, dataset, ctxs, args.max_spend)
+        return
     entries = question_entries(args.dims, dataset)
     if args.worst:
         worst(args.variant, args.worst)
