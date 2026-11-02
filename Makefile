@@ -28,9 +28,13 @@ lint:
 baseline:
 	$(PY) eval/baseline.py
 
-# $ Caliper on QuantiPhy validation: dev, holdout, full
+# $ Caliper on QuantiPhy validation, frozen code (DECISIONS "Freeze"): specs, both variants, then
+# score dev, holdout and full. Each step stops before passing its cap; cached calls cost $0.
 eval:
-	$(PY) eval/quantiphy.py --splits dev holdout full
+	$(PY) eval/quantiphy.py --split full --specs-only --max-spend 4.00
+	$(PY) eval/quantiphy.py --split full --variant caliper --max-spend 6.00
+	$(PY) eval/quantiphy.py --split full --variant caliper_no_audit --max-spend 0.50
+	$(PY) eval/holdout_finalize.py
 
 # $ Caliper on our field clips
 field:
