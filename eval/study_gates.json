@@ -1,0 +1,6 @@
+{
+  "note": "Gate lines for the street speed study, drawn on frame 0 of the normalized video only, and committed before any study run is scored. Empty on purpose (2026-11-02): Set A as filmed breaks the same-plane rule (markers on the far kerb, car close to the camera), so it is not scored; gates for the refilmed Set A (markers on the car's side of the road) are drawn from its first frames and committed before scoring. S01 has no gates: no pair of marks 10 m apart is visible in a lane where vehicles can be tracked (DECISIONS 2026-11-02).",
+  "frame": 0,
+  "video_size": [1280, 720],
+  "clips": {}
+}

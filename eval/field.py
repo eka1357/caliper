@@ -1,11 +1,15 @@
 """Caliper on the field set: measure path on Sets B, C and D, plus Muse Spark alone's answer on
 every measurement clip (Sets A to D). Writes eval/field_results.csv (EVAL_PROTOCOL section 5).
 
-Set A runs only through the study path (DECISIONS 2026-11-01). Each clip's reference from
+Set A normally runs only through the study path (DECISIONS 2026-11-01). --measure-speed also
+runs the measure path on Set A as a field test of refusal: as filmed, its markers stand on the
+far kerb and the car passes near the camera, so a correct system should refuse (DECISIONS
+2026-11-02). Each clip's reference from
 truth.csv is passed as the prior, the sentence a user types in "I know one real size"; Set D gets
 none. Muse Spark alone gets exactly the same question and prior.
 
 Usage: backend/.venv/Scripts/python.exe eval/field.py [--max-spend 9.0] [--clips B01 C02]
+       [--measure-speed]
 Every API response is cached, so a rerun costs $0. Real spend is metered from the new cache
 records each clip creates; the run stops before a clip whose worst case would pass --max-spend.
 """
@@ -114,12 +118,12 @@ def worst_case(frames: int, measure: bool) -> float:
     return sam + (3 if measure else 1) * muse_max
 
 
-def run_clip(row: dict[str, str]) -> dict:
+def run_clip(row: dict[str, str], measure_sets: tuple[str, ...] = MEASURE_SETS) -> dict:
     src = FIELD / row["file"]
     video = normalize(src)  # the pipeline normalizes src itself; guess() takes the normalized copy
     prior = prior_text(row)
     rec: dict = {"clip_id": row["clip_id"], "prior": prior, "video": video.name}
-    if row["set"] in MEASURE_SETS:
+    if row["set"] in measure_sets:
         res = pipeline.measure(
             src, row["question"], prior, run_id=f"field-{row['clip_id']}", audit=True,
             with_overlay=True,
@@ -220,7 +224,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-spend", type=float, default=9.0)
     ap.add_argument("--clips", nargs="*", default=[])
+    ap.add_argument("--measure-speed", action="store_true", help="measure path on Set A too")
     args = ap.parse_args()
+    measure_sets = MEASURE_SETS + (("speed",) if args.measure_speed else ())
 
     with open(TRUTH, encoding="utf-8", newline="") as fh:
         truth = [r for r in csv.DictReader(fh) if r["set"] in GUESS_SETS]
@@ -233,14 +239,14 @@ def main() -> None:
     stopped = None
     for row in truth:
         frames = int(probe(normalize(FIELD / row["file"]))["frames"])
-        bound = worst_case(frames, row["set"] in MEASURE_SETS)
+        bound = worst_case(frames, row["set"] in measure_sets)
         if meter.total + bound > args.max_spend:
             stopped = (f"stopped before {row['clip_id']}: spent ${meter.total:.4f}, "
                        f"worst case for it ${bound:.4f}")  # fmt: skip
             log.warning(stopped)
             break
         t = time.time()
-        rec = run_clip(row)
+        rec = run_clip(row, measure_sets)
         spent = meter.settle(frames)
         (RUNS / f"{row['clip_id']}.json").write_text(json.dumps(rec, indent=1), encoding="utf-8")
         g = guess_row(row, rec)
