@@ -1,0 +1,35 @@
+clip_id,set,path,truth,pred,lo,hi,rel_error,covered,status,reason,audit_approve,unit
+A01,speed,measure,11.11,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A02,speed,measure,11.11,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (3 whole-object frames, 5 needed).",,m/s
+A03,speed,measure,8.33,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (2 whole-object frames, 5 needed).",,m/s
+A04,speed,measure,8.33,,,,,,abstained,Two ways of measuring disagree; the number isn't reliable.,,m/s
+A05,speed,measure,6.94,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A06,speed,measure,6.94,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A07,speed,measure,5.556,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A08,speed,measure,5.556,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A09,speed,measure,4.167,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A10,speed,measure,4.167,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+B01,gravity,measure,9.81,,,,,,abstained,The yellow ball moves towards or away from the camera.,,m/s^2
+B02,gravity,measure,9.81,0.31285502325402215,0.29296221453624766,0.32780928363345657,0.9681085603206909,False,measured,,True,m/s^2
+B03,gravity,measure,9.81,,,,,,abstained,"The scale changes across the picture (perspective), so one ruler doesn't fit.",,m/s^2
+B04,gravity,measure,9.81,0.7755749212854429,0.7318910279901047,0.8243870467592165,0.920940374996387,False,measured,,True,m/s^2
+B05,gravity,measure,9.81,,,,,,abstained,"The scale changes across the picture (perspective), so one ruler doesn't fit.",,m/s^2
+B06,gravity,measure,9.81,,,,,,abstained,I can't find the yellow ball in enough frames.,,m/s^2
+B07,gravity,measure,9.81,0.8491452104798927,0.778729970592544,0.9008672165061323,0.9134408552008264,False,measured,,True,m/s^2
+B08,gravity,measure,9.81,,,,,,abstained,The outline of the yellow ball is unstable.,,m/s^2
+B09,gravity,measure,9.81,,,,,,abstained,"The scale changes across the picture (perspective), so one ruler doesn't fit.",,m/s^2
+B10,gravity,measure,9.81,,,,,,abstained,"The scale changes across the picture (perspective), so one ruler doesn't fit.",,m/s^2
+C01,size,measure,18.0,9.278047100663356,9.219357722657636,9.33869148561179,0.48455293885203576,False,measured,,True,cm
+C02,size,measure,7.2,7.645996246530324,7.607796392521905,7.68418213065118,0.061943923129211695,False,measured,,True,cm
+C03,size,measure,8.0,8.903665718381918,8.861013657570247,8.949456272388078,0.11295821479773971,False,measured,,True,cm
+C04,size,measure,11.0,12.947219056166903,12.885299632483642,13.005786655010079,0.17701991419699115,False,measured,,True,cm
+C05,size,measure,9.0,9.906037294175944,9.854658827034452,9.95543448079239,0.10067081046399373,False,measured,,True,cm
+C06,size,measure,14.0,13.051957857469615,12.990250235496568,13.114980707669659,0.0677172958950275,False,measured,,True,cm
+C07,size,measure,14.0,14.126076766138956,14.057272574644614,14.19241211507551,0.009005483295639724,False,measured,,True,cm
+C08,size,measure,4.0,4.9607259566820865,4.941648398017142,4.979621582610452,0.24018148917052162,False,measured,,True,cm
+C09,size,measure,21.0,19.24938445599321,19.11976672422197,19.371952604327166,0.08336264495270436,False,measured,,True,cm
+C10,size,measure,7.0,10.223833051769805,10.17035280105832,10.274228651961934,0.4605475788242579,False,measured,,True,cm
+D01,none,measure,,,,,,,abstained,"SAM found no 'gold tablet', 'tablet computer', 'beige tablet'",,cm
+D02,none,measure,,,,,,,abstained,no reference value,,cm
+D03,none,measure,,3.2030031373976944,3.152881508838692,3.255862568203607,,,measured,,True,m/s
+D04,none,measure,,,,,,,abstained,The yellow ball moves towards or away from the camera.,,m/s

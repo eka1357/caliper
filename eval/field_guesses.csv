@@ -1,0 +1,35 @@
+clip_id,set,truth,unit,guess_pred,guess_rel_error,guess_text
+A01,speed,11.11,m/s,12.0,0.08010801080108017,The car is going about 12 m/s.
+A02,speed,11.11,m/s,8.0,0.2799279927992799,The car is traveling at about 8 m/s.
+A03,speed,8.33,m/s,6.0,0.2797118847539016,The car is traveling at roughly 6 m/s.
+A04,speed,8.33,m/s,5.0,0.3997599039615846,The car is traveling at roughly 5 m/s.
+A05,speed,6.94,m/s,4.0,0.4236311239193084,The car travels at roughly 4 m/s.
+A06,speed,6.94,m/s,8.0,0.15273775216138322,The car travels at roughly 8 m/s.
+A07,speed,5.556,m/s,3.0,0.46004319654427644,The car is going about 3 m/s.
+A08,speed,5.556,m/s,3.0,0.46004319654427644,The car is traveling at about 3 m/s.
+A09,speed,4.167,m/s,8.0,0.9198464122870171,The car is moving at about 8 m/s.
+A10,speed,4.167,m/s,11.0,1.6397888168946486,The car is moving at about 11 m/s.
+B01,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball falls with acceleration near g.
+B02,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball accelerates at about 9.8 m/s^2.
+B03,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The falling ball accelerates at about 9.8 m/s^2.
+B04,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball falls at about 9.8 m/s^2.
+B05,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball is in free fall at about 9.8 m/s^2.
+B06,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball is in free fall at about 9.8 m/s^2.
+B07,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The falling ball accelerates at about 9.8 m/s^2.
+B08,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The falling ball accelerates at about 9.8 m/s^2.
+B09,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball is in free fall at about 9.8 m/s^2.
+B10,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball is in free fall at about 9.8 m/s^2.
+C01,size,18.0,cm,18.0,0.0,The iPad is about 18 cm wide.
+C02,size,7.2,cm,8.0,0.11111111111111108,The moisturizer diameter is about 8 cm.
+C03,size,8.0,cm,9.0,0.125,The cardboard is about 9 cm long.
+C04,size,11.0,cm,15.0,0.36363636363636365,The AC remote is approximately 15 cm long.
+C05,size,9.0,cm,10.5,0.16666666666666666,The tablet bottle is about 10.5 cm long.
+C06,size,14.0,cm,13.5,0.03571428571428571,The UNO cards box is about 13.5 cm long.
+C07,size,14.0,cm,16.2,0.15714285714285708,The phone is about 16.2 cm long.
+C08,size,4.0,cm,5.2,0.30000000000000004,The earpods case is about 5.2 cm long.
+C09,size,21.0,cm,19.0,0.09523809523809523,The book is about 19 cm long.
+C10,size,7.0,cm,11.0,0.5714285714285714,The wallet length is about 11 cm.
+D01,none,,cm,20.0,,The tablet is about 20 cm long.
+D02,none,,cm,20.0,,The book is about 20 cm long.
+D03,none,,m/s,12.0,,The blade tip moves at about 12 m/s.
+D04,none,,m/s,2.5,,The ball is rolling at about 2.5 m/s.
