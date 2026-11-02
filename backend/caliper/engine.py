@@ -326,7 +326,7 @@ def measure(
         except Abstain:
             continue
     interval = (
-        (float(np.percentile(draws, 5)), float(np.percentile(draws, 95)))
+        widen(float(np.percentile(draws, 5)), float(np.percentile(draws, 95)))
         if len(draws) >= boot // 2
         else None
     )
@@ -338,6 +338,17 @@ def measure(
         f"bootstrap B={boot}"
     )
     return Measurement(value, interval, scale, px, method, len(draws))
+
+
+def widen(lo: float, hi: float, k: float | None = None) -> tuple[float, float]:
+    """Add the empirical error term: each end moves out by a factor exp(k) (log space).
+
+    The bootstrap interval only covers mask and timing noise; k (config.INTERVAL_LOG_TERM,
+    calibrated on the QuantiPhy dev split) covers the rest, such as the reference's own error.
+    """
+    k = config.INTERVAL_LOG_TERM if k is None else k
+    out = np.exp(k)
+    return (lo / out if lo > 0 else lo * out, hi * out if hi > 0 else hi / out)
 
 
 _LENGTH = {"m": 1.0, "cm": 0.01, "mm": 0.001, "km": 1000.0}

@@ -82,6 +82,10 @@ STUDY_P85_BOOTSTRAP_B = 1000  # ARCHITECTURE 9: bootstrap over vehicles for the 
 EDGE_MARGIN_PX = 2.0
 BOOTSTRAP_B = 500  # ARCHITECTURE section 6
 BOOTSTRAP_SEED = 20261027  # fixed so intervals are reproducible; building-period start
+# Empirical interval term in log space (found on the field set: Set C intervals were about
+# +-0.6% wide and covered 0 of 10). Calibrated on the QuantiPhy dev split only: the smallest k
+# for which 90% of answered dev questions fall inside [lo / e^k, hi * e^k]. DECISIONS.md.
+INTERVAL_LOG_TERM = 0.4365  # 2026-11-02: 18 of 20 answered caliper_no_audit dev inside
 JITTER_PX = 1.0  # ARCHITECTURE section 6: reference and target extents jittered by +-1 px
 FPS_MISMATCH_TOL = 0.01  # human, Phase 0 finding 1: log when dataset fps differs from ffprobe
 # Dev tuning C (human-approved, 2026-10-28): minimum window for acceleration fits only, one

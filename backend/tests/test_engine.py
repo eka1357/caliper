@@ -242,3 +242,13 @@ def test_average_acceleration_needs_enough_frames():
               time_range_s=(0.0, 0.1))  # fmt: skip
     with pytest.raises(Abstain, match="average acceleration"):
         engine.measure_px(sp, engine.Series.from_track(_falling(400.0)), None, 0.15, 0.15)
+
+
+def test_interval_gets_the_empirical_term():
+    """Found on the field set (Set C): bootstrap-only intervals were about +-0.6% wide."""
+    assert engine.widen(2.0, 4.0, 0.0) == (2.0, 4.0)
+    lo, hi = engine.widen(2.0, 4.0, np.log(1.5))
+    assert lo == pytest.approx(2.0 / 1.5) and hi == pytest.approx(4.0 * 1.5)
+    assert engine.widen(2.0, 4.0) == engine.widen(2.0, 4.0, config.INTERVAL_LOG_TERM)
+    lo, hi = engine.widen(-1.0, 1.0, np.log(2.0))  # each end moves outwards
+    assert lo == pytest.approx(-2.0) and hi == pytest.approx(2.0)
