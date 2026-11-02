@@ -106,3 +106,29 @@ class Result(BaseModel):
     backend: Literal["meta_api", "muse_spark_open"]
     cost_usd: float
     timings_ms: dict
+
+
+# Street speed study (ARCHITECTURE section 3 and 9; mirrored in web/src/lib/types.ts)
+class VehicleReading(BaseModel):
+    vehicle_id: str
+    vehicle_class: str  # car, motorcycle, auto rickshaw, bus
+    status: Literal["measured", "no_reading"]
+    speed_kmh: float | None
+    interval_90_kmh: tuple[float, float] | None
+    t_gate_a_s: float | None
+    t_gate_b_s: float | None
+    reason: str | None  # why there is no reading
+
+
+class StudySummary(BaseModel):
+    run_id: str
+    gate_distance_m: float
+    duration_s: float
+    vehicles_seen: int
+    vehicles_measured: int
+    median_kmh: float | None
+    p85_kmh: float | None
+    p85_interval_90_kmh: tuple[float, float] | None
+    speed_limit_kmh: float | None
+    share_over_limit: float | None
+    readings: list[VehicleReading]

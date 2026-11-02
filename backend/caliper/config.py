@@ -64,6 +64,18 @@ AREA_STABLE_BAND = 0.15  # human, Phase 0 finding 4: size frames within +-15% of
 AREA_STABLE_MIN_FRAMES = 5  # same finding: fewer stable frames than this abstains
 INSTANCE_MIN_FRAME_SHARE = 0.30  # Phase 1 plan: drop candidates seen on < 30% of frames
 SEPARATION_MAX_GAP_S = 0.10  # both objects must be seen within this of the asked time
+# Street speed study (ARCHITECTURE section 9). Set before any Set A run; never tuned on Set A
+# (the H5 test set) or S01.
+STUDY_MAX_KMH = 150.0  # ARCHITECTURE 9: implausible speed -> no reading
+STUDY_AGREE_TOL = 0.10  # ARCHITECTURE 9: bottom-front vs centroid estimates disagree by > 10%
+STUDY_TIMING_JITTER_FRAMES = 0.5  # ARCHITECTURE 9: +-0.5 frame timing jitter at each gate
+STUDY_GATE_JITTER_PX = 1.0  # ARCHITECTURE 9: +-1 px gate placement
+STUDY_TAPE_TOL_M = 0.05  # ARCHITECTURE 9 "tape distance tolerance": +-5 cm on a 10 m tape run
+STUDY_MAX_GAP_FRAMES = 3  # occluded at a gate: no mask within this many frames of the crossing
+STUDY_ID_SWITCH_AREA_RATIO = 2.0  # identity switch: mask area jumps by more than 2x frame to frame
+STUDY_ID_SWITCH_STEP_RATIO = 4.0  # identity switch: one step > 4x the track's median step
+STUDY_MIN_FRAMES = 5  # a track seen on fewer frames is not a vehicle reading
+STUDY_P85_BOOTSTRAP_B = 1000  # ARCHITECTURE 9: bootstrap over vehicles for the 85th percentile
 BOOTSTRAP_B = 500  # ARCHITECTURE section 6
 BOOTSTRAP_SEED = 20261027  # fixed so intervals are reproducible; building-period start
 JITTER_PX = 1.0  # ARCHITECTURE section 6: reference and target extents jittered by +-1 px
