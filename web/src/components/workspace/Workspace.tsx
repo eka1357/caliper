@@ -46,7 +46,8 @@ export function Workspace() {
   useEffect(() => {
     void api.listRuns().then((list) => {
       setRuns(list);
-      setRunId((id) => id ?? list[0]?.run_id ?? null);
+      // Open on a measured run (the product working), not on whichever run sorts first.
+      setRunId((id) => id ?? list.find((r) => r.status === "measured")?.run_id ?? list[0]?.run_id ?? null);
     });
     void api.health().then(setHealth);
   }, []);
@@ -137,6 +138,7 @@ export function Workspace() {
       <LayoutGroup>
         <motion.div layout="position" transition={layoutSpring} className="flex min-w-0 flex-col gap-5 lg:col-span-5">
           <ControlPanel
+            examples={runs} selected={runId} onExample={pick}
             question={question} onQuestion={setQuestion} prior={prior} onPrior={setPrior}
             compare={compare} onCompare={setCompare} clip={clip} onClip={onClip} busy={busy}
             onMeasure={() => void onMeasure()}

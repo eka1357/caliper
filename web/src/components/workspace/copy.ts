@@ -27,12 +27,6 @@ export const LIVE_STEPS = [
   COPY.auditing,
 ] as const;
 
-export const EXAMPLES = [
-  "How fast is the white car in m/s?",
-  "How long is the box in cm?",
-  "How hard does the ball accelerate in m/s²?",
-] as const;
-
 // One fix per refusal (DESIGN: "followed by the reason ... and one fix").
 const FIX_BY_CHECK: Record<string, string> = {
   reference_found: "Add a coin next to the object.",

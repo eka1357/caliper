@@ -8,9 +8,14 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { CaptureFlow } from "./CaptureFlow";
-import { COPY, EXAMPLES } from "./copy";
+import type { RunIndexEntry } from "@/lib/types";
+import { COPY } from "./copy";
 
 interface ControlPanelProps {
+  /** The recorded runs (runs/index.json); each chip loads one. */
+  examples: RunIndexEntry[];
+  selected: string | null;
+  onExample: (runId: string) => void;
   question: string;
   onQuestion: (q: string) => void;
   prior: string;
@@ -72,15 +77,16 @@ export function ControlPanel(p: ControlPanelProps) {
           id={ids.q}
           value={p.question}
           onChange={(e) => p.onQuestion(e.target.value)}
-          placeholder="How fast is the white car in m/s?"
+          placeholder="What is the length of the phone in cm?"
           maxLength={500}
           rows={3}
         />
-        <div className="flex flex-wrap gap-2" aria-label="Example questions">
-          {EXAMPLES.map((q) => (
-            <Button key={q} variant="secondary" size="xs" onClick={() => p.onQuestion(q)}
+        <div className="flex flex-wrap gap-2" aria-label="Recorded examples">
+          {p.examples.map((r) => (
+            <Button key={r.run_id} variant={r.run_id === p.selected ? "default" : "secondary"} size="xs"
+              aria-pressed={r.run_id === p.selected} onClick={() => p.onExample(r.run_id)}
               className="h-auto min-h-6 max-w-full whitespace-normal py-1 text-left">
-              {q}
+              {r.title}
             </Button>
           ))}
         </div>
