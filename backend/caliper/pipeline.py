@@ -96,6 +96,23 @@ def _depth_ratio(spec: MeasurementSpec, target: Track, reference: Track | None) 
         raise Abstain(f"No depth is given for the {exc.args[0]}.") from exc
 
 
+def _whole_object(
+    target: Track, spec: MeasurementSpec, artifacts: dict[str, Any]
+) -> tuple[Track, MeasurementSpec]:
+    """The target's whole-object frames; an average over no given range covers their span."""
+    whole = engine.whole_object_frames(target)
+    artifacts["whole_object_frames"] = {"kept": len(whole.frames), "detected": len(target.frames)}
+    if len(whole.frames) < config.FIT_MIN_POINTS:
+        raise Abstain(
+            f"The {spec.target_phrase} is never fully inside the picture on enough frames "
+            f"({len(whole.frames)} whole-object frames, {config.FIT_MIN_POINTS} needed)."
+        )
+    if spec.statistic == "average" and spec.time_range_s is None:
+        ts = [f.t_s for f in whole.frames]
+        spec = spec.model_copy(update={"time_range_s": (min(ts), max(ts))})
+    return whole, spec
+
+
 def _overlay(ctx: VideoContext, spec: MeasurementSpec, target: Track, reference: Track | None,
              scale: float | None) -> dict:  # fmt: skip
     """Outlines (from the cached SAM masks) and fit series for the UI (ARCHITECTURE section 11)."""
@@ -147,11 +164,15 @@ def measure(
     audit: bool | None = None,
     bootstrap_b: int = config.BOOTSTRAP_B,
     with_overlay: bool = False,
+    whole_object_only: bool = False,
 ) -> Result:
     """One question on one video. Abstains (never guesses) when any step cannot support a number.
 
     bootstrap_b: the API passes config.LIVE_BOOTSTRAP_B for live runs; eval keeps the default.
     with_overlay: add artifacts["overlay"] (outlines, fit series) once both tracks exist.
+    whole_object_only: when the prior describes the target itself, use only frames where the
+    whole target is in the picture, and abstain if there are too few (field Set A fallback,
+    DECISIONS 2026-11-02). Off by default; QuantiPhy never sets it.
     """
     ctx = video if isinstance(video, VideoContext) else VideoContext(video)
     artifacts: dict[str, Any] = {
@@ -200,6 +221,8 @@ def measure(
         )  # fmt: skip
         if conflict:
             raise Abstain(conflict)
+        if whole_object_only and reference is None:
+            target, spec = _whole_object(target, spec, artifacts)
         artifacts["detected_frames"] = {
             "target": len(target.frames),
             "second": len(second.frames) if second else None,

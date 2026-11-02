@@ -76,6 +76,10 @@ STUDY_ID_SWITCH_AREA_RATIO = 2.0  # identity switch: mask area jumps by more tha
 STUDY_ID_SWITCH_STEP_RATIO = 4.0  # identity switch: one step > 4x the track's median step
 STUDY_MIN_FRAMES = 5  # a track seen on fewer frames is not a vehicle reading
 STUDY_P85_BOOTSTRAP_B = 1000  # ARCHITECTURE 9: bootstrap over vehicles for the 85th percentile
+# Whole-object frames (human, 2026-11-02, Set A fallback): when the caller asks for it and the
+# prior describes the target itself, only frames whose box keeps this far from every picture edge
+# are used. Opt-in (pipeline.measure whole_object_only); never used on QuantiPhy.
+EDGE_MARGIN_PX = 2.0
 BOOTSTRAP_B = 500  # ARCHITECTURE section 6
 BOOTSTRAP_SEED = 20261027  # fixed so intervals are reproducible; building-period start
 JITTER_PX = 1.0  # ARCHITECTURE section 6: reference and target extents jittered by +-1 px

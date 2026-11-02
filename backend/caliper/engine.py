@@ -20,6 +20,18 @@ class Abstain(Exception):
     """The data cannot support a number; the message is the reason shown to the user."""
 
 
+def whole_object_frames(track: Track, margin_px: float = config.EDGE_MARGIN_PX) -> Track:
+    """Only the frames where the object's box keeps margin_px from every picture edge, so the
+    whole object is in view (its extent and centroid are not cut off by the frame)."""
+    w, h = track.width, track.height
+    keep = [
+        f for f in track.frames
+        if f.box[0] > margin_px and f.box[1] > margin_px
+        and f.box[2] < w - margin_px and f.box[3] < h - margin_px
+    ]  # fmt: skip
+    return track.model_copy(update={"frames": keep})
+
+
 @dataclass
 class Series:
     """A track as arrays, sorted by time. ext maps axis name -> extent in pixels per frame."""
