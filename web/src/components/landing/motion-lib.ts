@@ -20,10 +20,13 @@ export function loadMotionLib(): void {
   const go = () =>
     window.requestIdleCallback(
       () =>
-        void import("./gsap").then((m) => {
-          lib = m;
-          subs.forEach((f) => f());
-        }),
+        void import("./gsap").then(
+          (m) => {
+            lib = m;
+            subs.forEach((f) => f());
+          },
+          () => {}, // GSAP failed to load: no effects, native scroll
+        ),
       { timeout: 2000 },
     );
   if (document.readyState === "complete") go();
