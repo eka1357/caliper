@@ -128,6 +128,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Last guard against sideways overflow on every route; layouts must fit on their own. clip
+       (not hidden) creates no scroll container, so native and Lenis scrolling are unaffected. */
+    overflow-x: clip;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;

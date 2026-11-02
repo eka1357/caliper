@@ -103,7 +103,7 @@ export function HeroVisual({ run }: { run: CachedRun }) {
 
   const decimals = r.value != null ? decimalsFor(r.interval_90, r.value) : 2;
   return (
-    <figure className="relative flex flex-col gap-3">
+    <figure className="relative flex w-full min-w-0 max-w-full flex-col gap-3">
       <div
         ref={box}
         className="relative w-full overflow-hidden rounded-lg border bg-muted"
@@ -113,7 +113,7 @@ export function HeroVisual({ run }: { run: CachedRun }) {
           ref={video}
           src={run.meta.clip ? base + run.meta.clip : undefined}
           poster={run.meta.poster ? base + run.meta.poster : undefined}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full max-w-full object-contain"
           muted
           loop
           playsInline

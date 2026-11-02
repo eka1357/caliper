@@ -32,9 +32,9 @@ export default async function Home() {
     <>
       <SmoothScroll />
       <header className="border-b">
-        <div className="mx-auto flex min-h-14 w-full max-w-[1200px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-6 py-2">
+        <div className="mx-auto flex min-h-14 w-full min-w-0 max-w-[1200px] flex-wrap items-center justify-between gap-x-4 gap-y-1 px-6 py-2">
           <span className="font-medium">Caliper</span>
-          <nav aria-label="Main">
+          <nav aria-label="Main" className="min-w-0">
             <ul className="flex flex-wrap items-center gap-1 text-sm">
               {[["/workspace", "Workspace"], ["/study", "Speed study"], ["/results", "Evidence"]].map(([h, l]) => (
                 <li key={h}>
