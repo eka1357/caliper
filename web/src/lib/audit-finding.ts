@@ -47,14 +47,14 @@ export interface PairedMra {
 }
 
 /** 2D against 3D, Caliper (with the audit) against Muse Spark alone on the same questions. */
-export function dimsFinding(p2: PairedMra, p3: PairedMra): { title: string; body: string } | null {
+export function dimsFinding(p2: PairedMra, p3: PairedMra, split = "dev"): { title: string; body: string } | null {
   if (p2.mra_variant == null || p2.mra_muse == null || p3.mra_variant == null || p3.mra_muse == null) return null;
   const cmp = (a: number, b: number) => (mra(a) === mra(b) ? "same" : a > b ? "better" : "worse");
   const c2 = cmp(p2.mra_variant, p2.mra_muse);
   const c3 = cmp(p3.mra_variant, p3.mra_muse);
   const pair = (p: PairedMra) => `${mra(p.mra_variant!)} against ${mra(p.mra_muse!)}, ${p.n_answered} question${p.n_answered === 1 ? "" : "s"}`;
   const word = { better: "beat", same: "tie with", worse: "trail" } as const;
-  const body = `On 2D questions Caliper's answers ${word[c2]} the model alone (${pair(p2)}). On 3D questions they ${word[c3]} it (${pair(p3)}).`;
+  const body = `On ${split} 2D questions Caliper's answers ${word[c2]} the model alone (${pair(p2)}). On ${split} 3D questions they ${word[c3]} it (${pair(p3)}).`;
   const few = p3.n_answered < 3;
   const title =
     c2 === "better" && c3 === "better" ? "Closer than the model in 2D and 3D"

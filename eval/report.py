@@ -1,9 +1,10 @@
 """Build web/public/results.json from the eval CSVs (make report). Costs $0; nothing is typed.
 
 Sources (AGENTS.md rule 4): eval/results.csv, eval/paired_results.csv, eval/field_results.csv,
-eval/field_guesses.csv and eval/interval_calibration.csv. The web app reads only this JSON, so
-every number on /results and the landing comes from these files. The README table is not
-generated yet.
+eval/field_guesses.csv, eval/interval_calibration.csv and eval/quantiphy_answers.csv
+(per-question QuantiPhy answers, eval/quantiphy_answers.py). The web app reads only this JSON, so
+every number on /results and the landing comes from these files. The README results block
+(between its markers) is generated from the same data by readme_results.py.
 
 Usage: backend/.venv/Scripts/python.exe eval/report.py
 """
@@ -22,19 +23,22 @@ EVAL = ROOT / "eval"
 sys.path[:0] = [str(EVAL), str(ROOT / "backend")]
 
 from field import summary  # noqa: E402
+from readme_results import write_readme  # noqa: E402
 
 OUT = ROOT / "web" / "public" / "results.json"
+README = ROOT / "README.md"
 SOURCES = {
     "results": "results.csv",
     "paired": "paired_results.csv",
     "field": "field_results.csv",
     "field_guesses": "field_guesses.csv",
     "interval_calibration": "interval_calibration.csv",
+    "answers": "quantiphy_answers.csv",
 }
 TEXT = {"variant", "split", "run_date", "source", "category", "clip_id", "set", "path", "status",
         "reason", "unit", "guess_text"}  # fmt: skip
-FIELD_BOOL = {"covered", "audit_approve"}  # booleans in field_results.csv only
-COUNTS = {"n", "n_answered", "answered", "covered", "newly_refused_interval_width"}
+FIELD_BOOL = {"covered", "audit_approve"}  # booleans in field_results.csv and quantiphy_answers.csv
+COUNTS = {"n", "n_answered", "answered", "covered", "newly_refused_interval_width", "row_id"}
 
 
 def read(name: str) -> list[dict[str, str]]:
@@ -77,9 +81,12 @@ def main() -> None:
         "field": field,
         "field_summary": summary(raw["field"], raw["field_guesses"]),
         "interval_calibration": [typed(r) for r in raw["interval_calibration"]],
+        "answers": [typed(r, FIELD_BOOL) for r in raw["answers"]],
     }
     OUT.write_text(json.dumps(data, indent=1), encoding="utf-8")
     print(f"wrote {OUT} ({len(data['results'])} results rows, {len(field)} field rows)")
+    if write_readme(README, data):
+        print(f"wrote the results block in {README}")
 
 
 if __name__ == "__main__":

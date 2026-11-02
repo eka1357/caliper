@@ -10,7 +10,7 @@ import { FindingList } from "@/components/results/FindingList";
 import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
-import { findings } from "@/lib/findings";
+import { findings, heroLine } from "@/lib/findings";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
 import { fieldRows, loadBenchmark } from "@/lib/results";
@@ -33,6 +33,7 @@ export default async function Home() {
   const audited = vetoed ?? (measured?.result.audit ? measured : null);
   const sizeRows = fieldRows(bench, "size");
   const sizeSet = bench.field_summary.size;
+  const claim = heroLine(bench);
 
   return (
     <>
@@ -64,6 +65,14 @@ export default async function Home() {
                 Ask how big, how fast, or how hard something accelerates in a video. Get a measured
                 number with an error range, or an honest no.
               </p>
+              {claim && (
+                <p className="max-w-xl text-sm text-muted-foreground">
+                  {claim}{" "}
+                  <Link href="/results" className="underline underline-offset-4">
+                    How this was scored
+                  </Link>
+                </p>
+              )}
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
                   <Link href="/workspace">Measure a clip</Link>

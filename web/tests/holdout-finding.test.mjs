@@ -1,0 +1,49 @@
+// node --test tests/*.test.mjs (Node strips the TypeScript types; no test framework needed)
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { h1Finding, heroClaim, intervalCover, vetoFinding } from "../src/lib/holdout-finding.ts";
+
+const a = (variant, split, row_id, status, rel_error, covered, audit_approve = null) =>
+  ({ variant, split, row_id, status, rel_error, covered, audit_approve });
+
+test("hero claim reads its numbers from the rows", () => {
+  const s = heroClaim({ n: 69, coverage: 15 / 69, mra_average: 0.2 },
+    { n_answered: 15, within10_variant: 0.6, within10_muse: 0.2667, off2x_variant: 0.0667, off2x_muse: 0.2 },
+    { covered: 13, answered: 15 });
+  assert.match(s, /about 1 question in 5\./);
+  assert.match(s, /60% of its answers are within 10%, against 27%/);
+  assert.match(s, /7% are off by more than 2x, against 20%/);
+  assert.match(s, /held on 13 of 15\./);
+});
+
+test("H1 fails when Caliper is not 10 points above", () => {
+  const f = h1Finding({ n: 69, coverage: 15 / 69, mra_average: 0.2011 }, { n: 69, coverage: 0.97, mra_average: 0.5809 });
+  assert.equal(f.title, "Claim H1 failed on holdout");
+  assert.match(f.body, /It did not: 20\.1 against 58\.1\./);
+  assert.match(f.body, /answers 15 of 69 holdout questions/);
+});
+
+test("vetoes of a correct and an in-range answer have not caught a wrong one", () => {
+  const rows = [
+    a("caliper", "holdout", 1, "abstained", null, null, false),
+    a("caliper_no_audit", "holdout", 1, "measured", 0.0154, true),
+    a("caliper", "dev", 2, "abstained", null, null, false),
+    a("caliper_no_audit", "dev", 2, "measured", 0.2222, true),
+    a("caliper", "dev", 3, "abstained", null, null, null), // refused by a check, not the audit
+    a("caliper_no_audit", "dev", 3, "abstained", null, null),
+  ];
+  const f = vetoFinding(rows);
+  assert.equal(f.title, "The audit has not yet caught a wrong answer");
+  assert.match(f.body, /^On holdout it vetoed one that was correct \(1\.5% error\); on dev it vetoed one whose truth was inside its 90% range \(22\.2% error\)\./);
+});
+
+test("a veto of an out-of-range answer counts as caught", () => {
+  const f = vetoFinding([a("caliper", "dev", 1, "abstained", null, null, false), a("caliper_no_audit", "dev", 1, "measured", 1.5, false)]);
+  assert.equal(f.title, "The audit caught 1 wrong answer");
+});
+
+test("interval coverage counts answered rows only", () => {
+  const rows = [a("caliper", "holdout", 1, "measured", 0.1, true), a("caliper", "holdout", 2, "measured", 0.9, false),
+    a("caliper", "holdout", 3, "abstained", null, null), a("caliper", "dev", 4, "measured", 0.1, true)];
+  assert.deepEqual(intervalCover(rows, "caliper", "holdout"), { covered: 1, answered: 2 });
+});

@@ -22,6 +22,7 @@ import sys
 from datetime import date
 
 import pandas as pd
+import quantiphy_answers
 import report
 from baseline import DATASET, EVAL, QP, score, write_results
 from baseline_analysis import update_results
@@ -112,6 +113,7 @@ def main() -> None:
         write_results(out)
         notes.append(coverage_line(variant, runs, dataset, by_split["holdout"]))
     update_results()  # error shares, answered-only columns, paired_results.csv
+    quantiphy_answers.main()  # eval/quantiphy_answers.csv
     report.main()  # web/public/results.json
 
     after = {(r["variant"], r["split"]): r for r in results_rows()}

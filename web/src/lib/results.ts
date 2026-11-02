@@ -1,10 +1,11 @@
 // Build-time reader for web/public/results.json, which eval/report.py generates from
 // eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv and
-// eval/interval_calibration.csv (AGENTS.md rule 4: nothing typed). Pages that import this are
+// eval/interval_calibration.csv, eval/quantiphy_answers.csv (AGENTS.md rule 4: nothing typed). Pages that import this are
 // prerendered. Server only: it uses node:fs. The CSV download routes still serve eval/ as is.
 import { readFile } from "node:fs/promises";
 import { cacheLife } from "next/cache";
 import path from "node:path";
+import type { AnswerRow } from "./holdout-finding";
 
 export const EVAL_DIR = path.join(process.cwd(), "..", "eval");
 export const RESULTS_JSON = path.join(process.cwd(), "public", "results.json");
@@ -95,6 +96,8 @@ export interface Benchmark {
   field: FieldRow[];
   field_summary: Record<string, FieldSetSummary>;
   interval_calibration: CalibrationRow[];
+  /** eval/quantiphy_answers.csv: one row per (variant, question) of the frozen runs. */
+  answers: AnswerRow[];
 }
 
 /** Read once at build time and never revalidate: the deployed server need not have eval/. */

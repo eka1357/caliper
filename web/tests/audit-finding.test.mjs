@@ -28,7 +28,7 @@ import { dimsFinding } from "../src/lib/audit-finding.ts";
 test("3D tie on one answer is not called worse", () => {
   const f = dimsFinding({ n_answered: 9, mra_variant: 0.9333, mra_muse: 0.6667 }, { n_answered: 1, mra_variant: 0.8, mra_muse: 0.8 });
   assert.equal(f.title, "2D works; 3D is barely answered yet");
-  assert.match(f.body, /On 3D questions they tie with it \(80\.0 against 80\.0, 1 question\)/);
+  assert.match(f.body, /On dev 3D questions they tie with it \(80\.0 against 80\.0, 1 question\)/);
   assert.doesNotMatch(f.body, /worse/);
 });
 

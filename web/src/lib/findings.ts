@@ -1,8 +1,9 @@
 // The findings stated on / and /results, written as templates over the benchmark rows. A
 // finding whose rows are missing is left out rather than filled with a typed number.
-import { auditFinding, dimsFinding } from "./audit-finding";
+import { dimsFinding } from "./audit-finding";
+import { h1Finding, heroClaim, intervalCover, vetoFinding } from "./holdout-finding";
 import { fmtMra, fmtPct } from "./labels";
-import { type Benchmark, caliperOn, findPaired, findRow } from "./results";
+import { type Benchmark, findPaired, findRow } from "./results";
 
 export interface Finding {
   id: string;
@@ -15,6 +16,7 @@ export interface Finding {
 
 const SRC_R = "eval/results.csv";
 const SRC_P = "eval/paired_results.csv";
+const SRC_A = "eval/quantiphy_answers.csv";
 
 export function findings(b: Benchmark): Finding[] {
   const out: Finding[] = [];
@@ -31,48 +33,41 @@ export function findings(b: Benchmark): Finding[] {
     });
   }
 
-  const museDev = findRow(b, "muse_spark_alone", "dev");
-  const calDev = findRow(b, "caliper", "dev"); // with the audit: the product as shipped
-  if (museDev && calDev && calDev.n != null && calDev.coverage != null) {
-    out.push({
-      id: "coverage",
-      title: "Caliper answers far fewer questions",
-      body: `On the dev split Caliper answers ${Math.round(calDev.coverage * calDev.n)} of ${calDev.n} questions (${fmtPct(calDev.coverage)}) and abstains on the rest. The official score counts every abstention as a miss, so its MRA is ${fmtMra(calDev.mra_average)} against ${fmtMra(museDev.mra_average)} for the model alone.`,
-      kind: "limit",
-      source: SRC_R,
-    });
-  }
-
+  // Holdout first (EVAL_PROTOCOL section 2): Caliper as shipped, with the audit.
+  const calHold = findRow(b, "caliper", "holdout");
+  const pHold = findPaired(b, "caliper", "holdout");
   const pDev = findPaired(b, "caliper", "dev");
-  if (pDev && pDev.n_answered > 0) {
+  if (pHold && pHold.n_answered > 0) {
+    const dev = pDev && pDev.n_answered > 0
+      ? ` On the dev split, which was used for tuning: ${fmtMra(pDev.mra_variant)} against ${fmtMra(pDev.mra_muse)} on ${pDev.n_answered} answered.`
+      : "";
     out.push({
       id: "answered",
       title: "When it answers, it is closer",
-      body: `On the ${pDev.n_answered} dev questions Caliper answered, its MRA is ${fmtMra(pDev.mra_variant)} against ${fmtMra(pDev.mra_muse)} for Muse Spark alone on the same questions; ${fmtPct(pDev.within10_variant)} of its answers are within 10% against ${fmtPct(pDev.within10_muse)}.`,
+      body: `On the ${pHold.n_answered} holdout questions Caliper answered, its MRA is ${fmtMra(pHold.mra_variant)} against ${fmtMra(pHold.mra_muse)} for Muse Spark alone on the same questions; ${fmtPct(pHold.within10_variant)} of its answers are within 10% against ${fmtPct(pHold.within10_muse)}, and ${fmtPct(pHold.off2x_variant)} are off by more than 2x against ${fmtPct(pHold.off2x_muse)}.${dev}`,
       kind: "finding",
       source: SRC_P,
     });
   }
 
+  const h1 = calHold && museHold ? h1Finding(calHold, museHold) : null;
+  if (h1) out.push({ id: "h1", ...h1, kind: "limit", source: SRC_R });
+
+  const veto = vetoFinding(b.answers ?? []);
+  if (veto) out.push({ id: "audit", ...veto, kind: "limit", source: SRC_A });
+
   const p2 = findPaired(b, "caliper", "dev_2d");
   const p3 = findPaired(b, "caliper", "dev_3d");
-  const dims = p2 && p3 && p2.n_answered > 0 && p3.n_answered > 0 ? dimsFinding(p2, p3) : null;
+  const dims = p2 && p3 && p2.n_answered > 0 && p3.n_answered > 0 ? dimsFinding(p2, p3, "dev") : null;
   if (dims) out.push({ id: "dims", ...dims, kind: "limit", source: SRC_P });
 
-  const onDev = findRow(b, "caliper", "dev");
-  const offDev = findRow(b, "caliper_no_audit", "dev");
-  const audit = onDev && offDev ? auditFinding(offDev, onDev) : null;
-  if (audit) out.push({ id: "audit", ...audit, kind: "finding", source: SRC_R });
-
-  if (!caliperOn(b, "holdout")) {
-    out.push({
-      id: "holdout",
-      title: "No holdout result yet",
-      body: "Caliper has not been scored on the holdout split, so every Caliper number here comes from the dev split that was used for tuning. Whether Caliper beats the model on unseen videos (claim H1) is still open.",
-      kind: "limit",
-      source: SRC_R,
-    });
-  }
-
   return out;
+}
+
+/** The landing hero's claim: holdout, Caliper with the audit. Null when a row is missing. */
+export function heroLine(b: Benchmark): string | null {
+  const row = findRow(b, "caliper", "holdout");
+  const p = findPaired(b, "caliper", "holdout");
+  if (!row || !p) return null;
+  return heroClaim(row, p, intervalCover(b.answers ?? [], "caliper", "holdout"));
 }
