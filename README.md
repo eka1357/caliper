@@ -89,6 +89,40 @@ make dev-web            # http://localhost:3000
 
 Recorded runs live in `web/public/runs/` and work without the backend. Until our field clips are in, they are placeholders built from synthetic clips (`python scripts/make_placeholder_runs.py`, no API calls) and are labelled as placeholders in the app. Live runs need `LIVE_RUNS_ENABLED=true` and stay inside the caps in `.env`.
 
+## Use Caliper from another agent (MCP)
+
+`backend/caliper/mcp_server.py` exposes two tools over MCP (stdio): `measure(video_path, question, prior=None)` returns the same `Result` the app shows (a value with its 90% interval, or an abstention with the reason), and `study(video_path, gates, distance_m)` returns a `StudySummary` (per-vehicle speeds with intervals, median, 85th percentile). Both go through the live-run caps in `.env`, so `LIVE_RUNS_ENABLED=true` is needed, and cached calls cost nothing.
+
+```
+pip install -e "backend[mcp]"
+python -m caliper.mcp_server          # stdio server; run from backend/ or with backend on PYTHONPATH
+```
+
+Another agent calling it (the official `mcp` Python SDK, 2.x):
+
+```python
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+server = StdioServerParameters(command="python", args=["-m", "caliper.mcp_server"])
+
+async def main() -> None:
+    async with stdio_client(server) as (read, write), ClientSession(read, write) as session:
+        await session.initialize()
+        out = await session.call_tool("measure", {
+            "video_path": "clips/phone_on_desk.mp4",
+            "question": "What is the length of the phone in cm?",
+            "prior": "The INR 10 coin is 0.027 m in diameter.",
+        })
+        r = out.structured_content
+        print(r["status"], r["value"], r["unit"], r["interval_90"], r["abstain_reason"])
+
+asyncio.run(main())
+```
+
+Gates for `study` are two lines in pixels on frame 0 of the normalized video: `{"gate_a": {"a": [x, y], "b": [x, y]}, "gate_b": {...}}`. For Claude Code, add it to `.mcp.json` as `{"caliper": {"command": "python", "args": ["-m", "caliper.mcp_server"]}}`.
+
 ## Limitations
 
 _Filled in from the evaluation: categories where Caliper is weak, abstention rate, audit false vetoes, what the field set does not cover._
