@@ -1,0 +1,5 @@
+variant,split,interval_log_term,answered,covered,coverage,newly_refused_interval_width,k_for_90pct,source
+caliper_no_audit,dev,0.0,20,3,0.15,0,0.4365,"eval/calibrate_interval.py, runs_k0/caliper_no_audit"
+caliper_no_audit,dev,0.4365,11,11,1.0,9,,"eval/calibrate_interval.py, runs/caliper_no_audit"
+caliper,dev,0.0,16,2,0.125,0,0.44934,"eval/calibrate_interval.py, runs_k0/caliper"
+caliper,dev,0.4365,10,10,1.0,6,,"eval/calibrate_interval.py, runs/caliper"
