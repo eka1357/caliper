@@ -88,10 +88,24 @@ def test_known_object_only_without_prior():
         postprocess(raw_spec(reference_kind="known_object", reference_phrase="banana"), None, None)
 
 
+def test_size_reference_without_prior_or_known_object_abstains():
+    """Field set D03: the model gave the fan blade 0.55 m from memory; that must not pass."""
+    blade = raw_spec(reference_phrase=None, reference_alt_phrases=[], reference_value_si=0.55,
+                     reference_source="world knowledge: fan blade is 0.55 m long")  # fmt: skip
+    for prior in (None, "", "  "):
+        with pytest.raises(SpecError, match=r"^No reference value\.$"):
+            postprocess(blade, prior, None)
+    with pytest.raises(SpecError, match="No reference value"):
+        postprocess(raw_spec(reference_kind="given_prior", reference_value_si=2.0), None, None)
+    # With a prior the parsed number is used, never the model's
+    spec = postprocess(blade, "the fan blade is 30 cm long", None)
+    assert spec.reference_value_si == pytest.approx(0.30)
+
+
 def test_invalid_spec_raises_without_retry():
     fake = FakeBackend(raw_spec(quantity="temperature"))
     with pytest.raises(SpecError, match="validation"):
-        write_spec(Path("x.mp4"), "q", None, backend=fake)
+        write_spec(Path("x.mp4"), "q", "the bus is 12 m long", backend=fake)
     assert fake.calls == 1
 
 

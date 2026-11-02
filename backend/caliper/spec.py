@@ -227,6 +227,10 @@ def postprocess(raw: dict[str, Any], prior: str | None, depth_info: dict | None)
         data.update(reference_value_si=obj["size_m"], reference_axis=obj["axis"],
                     reference_statistic="extent",
                     reference_source=f"world knowledge: {match}, {obj['source']}")  # fmt: skip
+    elif not (prior or "").strip() and kind in ("size", "given_prior"):
+        # Found on the field set (D03): with no prior and no allowed known object, a size
+        # reference could only come from the model's memory. The model never supplies a number.
+        raise SpecError("No reference value.")
     elif parsed is not None:
         model_value = data.get("reference_value_si")
         if model_value is None or abs(
