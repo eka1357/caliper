@@ -13,7 +13,10 @@ import { Button } from "@/components/ui/button";
 import { findings } from "@/lib/findings";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
-import { loadBenchmark } from "@/lib/results";
+import { fieldRows, loadBenchmark } from "@/lib/results";
+import { SetCRanges } from "@/components/results/SetCRanges";
+import { checkLabel } from "@/lib/labels";
+import { runAssetUrl } from "@/lib/run-assets";
 import { landingRuns } from "@/lib/runs-static";
 import type { CachedRun } from "@/lib/types";
 
@@ -26,6 +29,9 @@ const MORTH =
 export default async function Home() {
   const [bench, runs] = await Promise.all([loadBenchmark(), landingRuns()]);
   const { measured, missed, vetoed, abstained } = runs;
+  // A veto shows best what the audit is for; until one is recorded, the hero run's real verdict.
+  const audited = vetoed ?? (measured?.result.audit ? measured : null);
+  const sizeRows = fieldRows(bench, "size");
   const sizeSet = bench.field_summary.size;
 
   return (
@@ -99,26 +105,10 @@ export default async function Home() {
             them and checks the evidence: the right object, the right reference, the same plane. It
             can veto a result. It can never change a number.
           </p>
-          {vetoed?.result.audit ? (
-            <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-              <KeyframeStill run={vetoed} />
-              <div className="flex flex-col gap-3 rounded-lg border bg-card p-5">
-                <p className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-destructive">Vetoed</span>
-                  {vetoed.meta.placeholder && <PlaceholderTag />}
-                </p>
-                <p>{vetoed.result.audit.reason}</p>
-                <p className="text-sm text-muted-foreground">Question: {vetoed.meta.question}</p>
-                {vetoed.meta.placeholder && (
-                  <p className="text-xs text-muted-foreground">
-                    Placeholder: this verdict is scripted on a synthetic scene to show the flow; no
-                    model was called.
-                  </p>
-                )}
-              </div>
-            </div>
+          {audited?.result.audit ? (
+            <AuditCard run={audited} />
           ) : (
-            <Placeholder title="Audit example">No recorded veto yet.</Placeholder>
+            <Placeholder title="Audit example">No recorded audit verdict yet.</Placeholder>
           )}
         </Section>
 
@@ -174,6 +164,7 @@ export default async function Home() {
                   {sizeSet.measured}. Muse Spark alone, given the same coin size: {fmtPct(sizeSet.guess_median_rel_error)} median
                   error, with no range.
                 </p>
+                <SetCRanges rows={sizeRows} unit={sizeRows[0]?.unit ?? ""} />
               </div>
             ) : (
               <Placeholder title="Field set accuracy">No field clip has been scored.</Placeholder>
@@ -191,7 +182,7 @@ export default async function Home() {
 
         {/* 7. When Caliper says no */}
         <Section id="no" title="When Caliper says no">
-          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {abstained.map((r) => (
               <li key={r.result.run_id} className="flex flex-col gap-3 rounded-lg border bg-card p-5">
                 <KeyframeStill run={r} />
@@ -255,6 +246,53 @@ function MeasuredCard({ run }: { run: CachedRun | null }) {
           90% range {fmt(r.interval_90[0], d)} to {fmt(r.interval_90[1], d)}
         </p>
       )}
+    </div>
+  );
+}
+
+const AUDIT_QUESTIONS = [
+  ["target_is_right_object", "Is the cyan outline on the object the question asks about?"],
+  ["reference_is_right_object", "Is the amber outline on the stated reference?"],
+  ["reference_same_plane", "Are they at about the same distance from the camera?"],
+  ["occlusion_or_identity_switch", "Does an outline jump to another object or get hidden?"],
+] as const;
+
+/** The audit's real verdict on a recorded run: the keyframes it saw, its answers, its reason. */
+function AuditCard({ run }: { run: CachedRun }) {
+  const a = run.result.audit;
+  if (!a) return null;
+  const frames = run.meta.keyframes ?? [];
+  const answer = (v: boolean | string) => (v === true ? "yes" : v === false ? "no" : String(v));
+  return (
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2">
+        {frames.map((f) => (
+          // eslint-disable-next-line @next/next/no-img-element -- recorded audit keyframe, sized by its box
+          <img key={f} src={runAssetUrl(run.result.run_id, f) ?? undefined} alt={`Audit keyframe ${f.replace(/D/g, "")}`}
+            className="w-full rounded-md border" loading="lazy" />
+        ))}
+        {frames.length === 0 && <KeyframeStill run={run} className="col-span-2" />}
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg border bg-card p-5">
+        <p className="text-sm">
+          <span className={a.approve ? "text-success" : "text-destructive"}>{a.approve ? "Approved" : "Vetoed"}</span>
+          <span className="text-muted-foreground"> · {run.meta.title}</span>
+        </p>
+        <p>&ldquo;{a.reason}&rdquo;</p>
+        <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+          {AUDIT_QUESTIONS.map(([k, q]) => (
+            <div key={k} className="contents">
+              <dt className="text-muted-foreground">{q}</dt>
+              <dd className="font-mono">{answer(a[k])}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="text-xs text-muted-foreground">
+          These are the {frames.length || "recorded"} keyframes Muse Spark was shown, with the outlines SAM drew. It answered the four
+          questions above; it never sees the measured number. Checks before it: {run.result.checks.filter((c) => c.passed).length} of{" "}
+          {run.result.checks.length} passed ({run.result.checks.filter((c) => !c.passed).map((c) => checkLabel(c.name)).join(", ") || "none failed"}).
+        </p>
+      </div>
     </div>
   );
 }

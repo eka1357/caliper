@@ -7,7 +7,8 @@ import { runAssetUrl } from "@/lib/run-assets";
 import type { CachedRun, OverlayFrame } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { LazyInView } from "./LazyInView";
-import { LazyPositionChart } from "./lazy-charts";
+import { checkLabel } from "@/lib/labels";
+import { LazyPositionChart, LazySizeChart } from "./lazy-charts";
 import { useGsapLib } from "./motion-lib";
 import { useMedia, useMotionAllowed } from "./motion-pref";
 
@@ -38,6 +39,7 @@ export function HowItWorks({ run }: { run: CachedRun }) {
   const w = o.width ?? 640;
   const h = o.height ?? 360;
   const spec = Object.fromEntries(SPEC_KEYS.map((k) => [k, r.spec[k]]));
+  const isSize = r.quantity === "size";
 
   const steps = [
     {
@@ -67,10 +69,16 @@ export function HowItWorks({ run }: { run: CachedRun }) {
     },
     {
       name: "Measure",
-      line: `Python sets the scale, fits the motion locally and bootstraps a 90% range. Method: ${r.method}.`,
+      line: isSize
+        ? `Plain Python, no AI: the reference (${r.spec.reference_phrase ?? "the known size"}) turns pixels into ${r.unit}, the ${r.spec.target_phrase} is measured on every frame, and the middle value is reported with a 90% range that also allows for the reference's own error.`
+        : `Plain Python, no AI: the reference turns pixels into metres, the motion is fitted a few frames at a time, and resampling the frames gives the 90% range.`,
       art: (
         <LazyInView minHeight={240}>
-          <LazyPositionChart rows={o.fit ?? []} />
+          {isSize ? (
+            <LazySizeChart rows={o.size ?? []} value={r.value} interval={r.interval_90} unit={r.unit} />
+          ) : (
+            <LazyPositionChart rows={o.fit ?? []} />
+          )}
         </LazyInView>
       ),
     },
@@ -86,7 +94,9 @@ export function HowItWorks({ run }: { run: CachedRun }) {
               ) : (
                 <X className="size-4 shrink-0 text-destructive" aria-label="failed" />
               )}
-              <span className="min-w-0 break-words font-mono text-xs">{c.name}</span>
+              <span className="min-w-0 break-words">
+                {checkLabel(c.name)} <span className="font-mono text-[11px] text-muted-foreground">{c.name}</span>
+              </span>
             </li>
           ))}
         </ul>

@@ -9,6 +9,11 @@ export const LazyPairedChart = dynamic(
   { ssr: false },
 );
 
+export const LazySizeChart = dynamic(
+  () => import("@/components/workspace/FitChart").then((m) => m.SizeChart),
+  { ssr: false },
+);
+
 export const LazyPositionChart = dynamic(
   () => import("@/components/workspace/FitChart").then((m) => m.PositionChart),
   { ssr: false },

@@ -47,6 +47,8 @@ class RunMeta(BaseModel):
     poster: str | None = "poster.jpg"
     # Field runs: the instrument reading from data/field/truth.csv {value, unit, instrument}
     instrument: dict[str, Any] | None = None
+    # The audit's keyframes as the audit saw them (re-rendered, same outlines), file names
+    keyframes: list[str] | None = None
 
 
 class CachedRun(BaseModel):
@@ -144,8 +146,14 @@ def save_cached_run(
         run_id=run_id, kind=kind, title=meta.title, status=str(payload.get("status", "")),
         source=meta.source, placeholder=meta.placeholder, created_utc=meta.created_utc,
     )  # fmt: skip
-    entries = [e for e in list_runs(root) if e.run_id != run_id] + [entry]
-    entries.sort(key=lambda e: (e.placeholder, e.run_id))  # real runs first
+    entries = list_runs(root)
+    at = next((i for i, e in enumerate(entries) if e.run_id == run_id), None)
+    if at is None:
+        entries.append(entry)
+    else:
+        entries[at] = entry  # an update keeps its place
+    # Real runs first; otherwise the order runs were saved in (the UI's curated order).
+    entries.sort(key=lambda e: e.placeholder)
     _index_path(root).write_text(
         json.dumps([e.model_dump() for e in entries], indent=1), encoding="utf-8"
     )

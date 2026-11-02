@@ -100,6 +100,13 @@ export interface Overlay {
   frames?: OverlayFrame[];
   fit?: FitRow[];
   speed?: SpeedRow[];
+  /** Size runs: the measured length on each detected frame, in the answer's unit. */
+  size?: SizeRow[];
+}
+
+export interface SizeRow {
+  t_s: number;
+  value: number;
 }
 
 // Cached runs (backend/caliper/runs.py, schema v1)
@@ -114,6 +121,8 @@ export interface RunMeta {
   created_utc: string;
   clip: string | null;
   poster: string | null;
+  /** The audit's keyframes as it saw them (file names in the run folder). */
+  keyframes?: string[] | null;
   /** Field runs: the instrument reading from data/field/truth.csv. */
   instrument?: { value: number | null; unit: string; instrument: string } | null;
 }

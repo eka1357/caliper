@@ -64,3 +64,20 @@ export const splitLabel = (s: string) => SPLIT_LABEL[s] ?? s;
 /** MRA on the leaderboard's 0 to 100 scale. */
 export const fmtMra = (v: number | null) => (v == null ? "n/a" : (v * 100).toFixed(1));
 export const fmtPct = (v: number | null) => (v == null ? "n/a" : `${Math.round(v * 100)}%`);
+
+/** Plain-English names for the checks (backend/caliper/checks.py); the code name is shown small. */
+export const CHECK_LABEL: Record<string, string> = {
+  physical_bounds: "The value is physically possible",
+  scene_scale: "The scene is a sensible size",
+  reference_too_small: "The reference is big enough in the picture",
+  gravity_reference: "A falling reference really falls like gravity",
+  estimates_agree: "Two independent scale estimates agree",
+  same_plane: "Reference and object are at the same distance",
+  depth_change: "The object does not move toward or away from the camera",
+  target_found: "The object is found in enough frames",
+  reference_found: "The reference is found in enough frames",
+  track_continuity: "The track has no gaps where it matters",
+  mask_stability: "The outline stays stable from frame to frame",
+  interval_width: "The error range is narrow enough to be useful",
+};
+export const checkLabel = (name: string) => CHECK_LABEL[name] ?? name.replace(/_/g, " ");

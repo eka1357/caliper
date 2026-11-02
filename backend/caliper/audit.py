@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -96,9 +97,13 @@ def keyframe_ids(target: Track, lo_s: float, hi_s: float, k: int = 4) -> list[in
 
 
 def render(
-    video: Path, target: Track, reference: Track | None, frames: list[int], max_width: int = 640
-) -> list[bytes]:
-    """PNG keyframes with outlines, trajectory and frame number; no measured numbers."""
+    video: Path, target: Track, reference: Track | None, frames: list[int], max_width: int = 640,
+    before_draw: Callable[[np.ndarray, int], None] | None = None,
+) -> list[bytes]:  # fmt: skip
+    """PNG keyframes with outlines, trajectory and frame number; no measured numbers.
+
+    before_draw(img, frame) edits the raw frame first (demo copies blur faces, plates and
+    artwork there); the audit itself never passes it, so its images are unchanged."""
     w, h = target.width, target.height
     t_masks = mask_rasters(video, target.phrase, str(target.object_ordinal), frames, w, h)
     r_masks = (
@@ -114,6 +119,8 @@ def render(
         ok, img = cap.read()
         if not ok:
             continue
+        if before_draw is not None:
+            before_draw(img, f)
         cv2.polylines(img, [path], False, WHITE, 1, cv2.LINE_AA)
         for masks, color in ((r_masks, AMBER), (t_masks, CYAN)):
             if f in masks:

@@ -1,6 +1,6 @@
 """Cached demo runs from real field runs (Phase 4 step 4). Costs $0: everything is read from cache.
 
-Usage: backend/.venv/Scripts/python.exe scripts/make_field_runs.py
+Usage: backend/.venv/Scripts/python.exe scripts/make_field_runs.py [--index-only]
 
 For each chosen clip: the Result and Muse Spark alone's answer from
 data/cache/field_runs/<clip>.json (eval/field.py), the instrument reading from
@@ -35,7 +35,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from caliper import config, runs, segment  # noqa: E402
+from caliper import audit, config, engine, runs, segment  # noqa: E402
 from caliper.normalize import probe  # noqa: E402
 
 log = logging.getLogger("field_runs")
@@ -177,6 +177,54 @@ def export(video: Path, dest: Path, apply: Callable[[np.ndarray, int], None] | N
         raise RuntimeError(f"ffmpeg failed for {video.name}")
 
 
+def longest_track(video: Path, phrase: str | None):
+    if not phrase:
+        return None
+    info = probe(video)
+    seg = segment.segment(video, phrase)
+    tracks = segment.tracks_from_segmentation(seg, float(info["fps"]), int(info["width"]),
+                                              int(info["height"]))  # fmt: skip
+    return max(tracks, key=lambda t: len(t.frames)) if tracks else None
+
+
+def write_keyframes(run_id: str, result: dict, video: Path,
+                    apply: Callable[[np.ndarray, int], None] | None) -> list[str]:  # fmt: skip
+    """The audit's keyframes, re-rendered with the same audit.render (same outlines, trajectory
+    and frame numbers) from the cached masks, after the demo blur. JPEG files in the run folder."""
+    frames = (result["artifacts"].get("audit_call") or {}).get("keyframes") or []
+    if not frames or not result.get("audit"):
+        return []
+    used = result["artifacts"].get("phrases_used") or {}
+    target = longest_track(video, used.get("target"))
+    if target is None:
+        return []
+    reference = longest_track(video, used.get("reference"))
+    pngs = audit.render(video, target, reference, frames, before_draw=apply)
+    names = []
+    for f, png in zip(frames, pngs, strict=False):
+        img = cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_COLOR)
+        name = f"keyframe-{f}.jpg"
+        cv2.imwrite(str(config.RUNS_DIR / run_id / name), img, [cv2.IMWRITE_JPEG_QUALITY, 82])
+        names.append(name)
+    return names
+
+
+def size_series(result: dict, video: Path) -> list[dict]:
+    """Size runs: the measured length on every detected frame, in the answer's unit (extent along
+    the spec's axis times the run's scale), for the 'measure' step chart."""
+    spec = result.get("spec") or {}
+    scale = result.get("scale_m_per_px")
+    if spec.get("quantity") != "size" or not scale:
+        return []
+    target = longest_track(video, (result["artifacts"].get("phrases_used") or {}).get("target"))
+    if target is None:
+        return []
+    axis = "longest" if spec.get("axis") == "path" else spec.get("axis", "longest")
+    per_m = engine.to_unit(1.0, spec.get("output_unit", "m"))
+    return [{"t_s": round(f.t_s, 4), "value": round(f.extent_px[axis] * scale * per_m, 4)}
+            for f in sorted(target.frames, key=lambda f: f.frame)]  # fmt: skip
+
+
 def instrument(row: dict[str, str]) -> dict | None:
     if not row["true_value"]:
         return None
@@ -184,8 +232,20 @@ def instrument(row: dict[str, str]) -> dict | None:
             "instrument": row["instrument"]}  # fmt: skip
 
 
+def order_index() -> None:
+    """runs/index.json in CHOSEN order: the measured run the UI opens on comes first."""
+    index = config.RUNS_DIR / "index.json"
+    entries = json.loads(index.read_text(encoding="utf-8"))
+    rank = {run_id: i for i, (run_id, *_rest) in enumerate(CHOSEN)}
+    entries.sort(key=lambda e: (e["placeholder"], rank.get(e["run_id"], len(rank))))
+    index.write_text(json.dumps(entries, indent=1), encoding="utf-8")
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+    if "--index-only" in sys.argv:
+        order_index()
+        return
     with open(TRUTH, encoding="utf-8", newline="") as fh:
         truth = {r["clip_id"]: r for r in csv.DictReader(fh)}
     for old in config.RUNS_DIR.glob("placeholder-*"):
@@ -202,6 +262,8 @@ def main() -> None:
         n, fps = int(info["frames"]), float(info["fps"])
         overlay = result["artifacts"].pop("overlay", None) or {
             "fps": fps, "width": int(info["width"]), "height": int(info["height"])}  # fmt: skip
+        if sizes := size_series(result, video):
+            overlay["size"] = sizes
         blurs = {
             "A08": lambda: car_blur(car_boxes(video, n)),
             "B03": lambda: corner_blur(300, 0, 380, 220),
@@ -218,6 +280,14 @@ def main() -> None:
             runs.save_cached_run(run_id, "measure", result, overlay, meta, clip, guess=guess,
                                  poster_frame=POSTER_FRAME.get(cid, 0))  # fmt: skip
             log.info("%s: %s, clip %d bytes", run_id, result["status"], clip.stat().st_size)
+        keyframes = write_keyframes(run_id, result, video, apply)
+        if keyframes:
+            path = config.RUNS_DIR / run_id / "run.json"
+            run = runs.load_run(run_id)
+            run.meta.keyframes = keyframes
+            path.write_text(run.model_dump_json(indent=1), encoding="utf-8")
+
+    order_index()
 
 
 if __name__ == "__main__":
