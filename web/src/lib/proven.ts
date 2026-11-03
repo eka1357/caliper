@@ -57,7 +57,7 @@ export function provenLine(summary: Record<string, FieldSummary>, rows: FieldCli
   if (!size || size.measured === 0 || size.median_rel_error == null) return null;
   const covered = size.coverage == null ? null : Math.round(size.coverage * size.measured);
   const sizePart =
-    `Proven on our own clips: size, ${size.measured} of ${size.n} measured against a tape, median error ${pct(size.median_rel_error)}` +
+    `On our own clips so far (n=${size.n}): size, ${size.measured} of ${size.n} measured against a tape, median error ${pct(size.median_rel_error)}` +
     (covered == null ? "" : `, truth inside the 90% range on ${covered} of ${size.measured}`) +
     ".";
   const measured: string[] = [];
@@ -68,14 +68,9 @@ export function provenLine(summary: Record<string, FieldSummary>, rows: FieldCli
     if (s.measured > 0) measured.push(measuredPart(label, s));
     else refused.push(refusedPart(label, s, rows, set));
   }
-  if (summary.gravity) {
-    if (summary.gravity.measured > 0) measured.push(`drops, ${summary.gravity.measured} of ${summary.gravity.n} measured`);
-    else refused.push(refusedPart("drop clips", summary.gravity, rows, "gravity"));
-  }
+  // Acceleration (drops) has its own line: accelLine.
   if (measured.length === 0) {
-    return refused.length
-      ? `${sizePart} Speed and acceleration work on the QuantiPhy benchmark but are not yet measured on our own footage: ${refused.join(", and ")}.`
-      : sizePart;
+    return refused.length ? `${sizePart} Speed is not yet measured on our own footage: ${refused.join(", and ")}.` : sizePart;
   }
   const speed = `Speed on our own footage: ${measured.join("; ")}.`;
   return refused.length ? `${sizePart} ${speed} Refused on our own footage: ${refused.join(", and ")}.` : `${sizePart} ${speed}`;
@@ -155,7 +150,7 @@ export function gateLine(rows: SpeedRow[], set: string, distanceM: number | null
   if (!s) return null;
   const dist = distanceM == null ? "" : ` (two gate lines ${distanceM} m apart on the riding line)`;
   return (
-    `The gate method${dist} timed ${s.measured} of ${s.n} passes, median error ${s.medianErrKmh.toFixed(1)} km/h. ` +
+    `A companion gate-timing method (study.py), so far on single scooter passes${dist}, timed ${s.measured} of ${s.n} passes, median error ${s.medianErrKmh.toFixed(1)} km/h. ` +
     `Its 90% range covers only frame timing, gate placement and the tape tolerance (about ±${pct1(s.halfMin)} to ${pct1(s.halfMax)}), ` +
     `so GPS falls inside it on ${s.covered} of ${s.measured}.`
   );
@@ -191,4 +186,38 @@ export function h5Line(rows: SpeedRow[], set: string): string | null {
   const met = s.medianErrKmh <= H5_TARGET_KMH && s.covered >= H5_COVER_SHARE * s.measured;
   const verdict = met ? "met" : s.medianErrKmh > H5_DISPROVED_KMH ? "disproved" : "not met (not disproved: that needs a median above 6 km/h)";
   return `Claim H5 (median error at most ${H5_TARGET_KMH} km/h, GPS inside the range on at least 8 of 10 passes): ${s.medianErrKmh.toFixed(1)} km/h and ${s.covered} of ${s.measured}, ${verdict}.`;
+}
+
+/** One per-question benchmark answer (eval/quantiphy_answers.csv), as much as accelLine needs. */
+export interface QuantityAnswer {
+  variant: string;
+  quantity?: string;
+  status: "measured" | "abstained";
+}
+
+/**
+ * Acceleration, said plainly: how many QuantiPhy acceleration questions Caliper (as shipped)
+ * answered, and how many of our drop clips it measured, with the most common refusal reason.
+ */
+export function accelLine(answers: QuantityAnswer[], summary: Record<string, FieldSummary>, rows: FieldClip[]): string | null {
+  const q = answers.filter((a) => a.variant === "caliper" && a.quantity === "acceleration");
+  const drops = summary.gravity;
+  if (q.length === 0 && !drops) return null;
+  const qMeasured = q.filter((a) => a.status === "measured").length;
+  const parts: string[] = [];
+  if (q.length) parts.push(qMeasured === 0 ? `all ${q.length} QuantiPhy acceleration questions were refused` : `${qMeasured} of ${q.length} QuantiPhy acceleration questions were answered`);
+  if (drops) parts.push(drops.measured === 0 ? refusedPart("drop clips", drops, rows, "gravity") : `${drops.measured} of ${drops.n} of our drop clips were measured`);
+  const none = qMeasured === 0 && (drops?.measured ?? 0) === 0;
+  return `${none ? "Acceleration is not measured yet" : "Acceleration"}: ${parts.join(", and ")}.`;
+}
+
+/** The audit on our clips and on QuantiPhy (veto counts from the answers; approvals from the field rows). */
+export function auditLine(field: { path: string; status: string; audit_approve: boolean | null }[], falseAlarms: number, vetoes: number): string | null {
+  const measured = field.filter((r) => r.path === "measure" && r.status === "measured");
+  if (measured.length === 0) return null;
+  const approved = measured.filter((r) => r.audit_approve === true).length;
+  const clips = approved === measured.length ? `approved every measured clip of ours (${approved} of ${measured.length})` : `approved ${approved} of ${measured.length} measured clips of ours`;
+  if (vetoes === 0) return `So far the audit ${clips}, and vetoed no QuantiPhy answer.`;
+  const alarms = falseAlarms === vetoes ? (vetoes === 2 ? "both its QuantiPhy vetoes were false alarms" : `all ${vetoes} of its QuantiPhy vetoes were false alarms`) : `${falseAlarms} of its ${vetoes} QuantiPhy vetoes were false alarms`;
+  return `So far the audit ${clips}, and ${alarms}.`;
 }

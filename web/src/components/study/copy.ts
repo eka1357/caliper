@@ -1,11 +1,12 @@
-// /study copy (docs/DESIGN.md section 6). Never implies enforcement; no plates or faces.
+// /study copy (docs/DESIGN.md section 6). Never implies enforcement.
 export const STUDY_COPY = {
   title: "Speed survey for road-safety requests",
   guide:
     "Phone fixed, side-on to the road. Two marks a measured distance apart along the road edge, both in frame.",
   gates: "Drag the ends of the two gate lines onto the marks on the first frame.",
   noReading: "no reading",
-  privacy: "No number plates or faces are stored or shown.",
+  privacy:
+    "Recorded studies are blurred (faces and number plates) before publishing. Live uploads go to the Meta Model API and are cached on the server.",
   method:
     "Two gate lines are drawn across the road on marks a measured distance apart. SAM 3.1 tracks each vehicle; the time each one takes between the gates gives its speed, with a 90% range from frame timing, gate placement and the tape tolerance. Vehicles that are hidden at a gate, change identity, or give inconsistent estimates get no reading instead of a guess. The 85th-percentile speed has its own range, bootstrapped over vehicles.",
   limitations: [

@@ -39,13 +39,15 @@ export function intervalCover(answers: AnswerRow[], variant: string, split: stri
 }
 
 /** The hero claim: holdout, Caliper as shipped (with the audit). */
-export function heroClaim(row: SplitRow, p: PairedShares, cover: { covered: number; answered: number }): string | null {
+export function heroClaim(row: SplitRow, p: PairedShares, cover: { covered: number; answered: number }, full?: SplitRow | null): string | null {
   if (!row.coverage || p.within10_variant == null || p.within10_muse == null) return null;
   if (p.off2x_variant == null || p.off2x_muse == null || cover.answered === 0) return null;
   const oneIn = Math.round(1 / row.coverage);
   const n = p.n_answered;
+  const asked = row.n == null ? "" : ` (${Math.round(row.coverage * row.n)} of ${row.n})`;
+  const fullPart = full?.coverage != null && full.n != null ? `; on the full set, ${Math.round(full.coverage * full.n)} of ${full.n}` : "";
   return (
-    `Caliper answers about 1 question in ${oneIn}. When it answers, on unseen videos (QuantiPhy holdout) ` +
+    `On holdout (videos never used for tuning), Caliper answers about 1 question in ${oneIn}${asked}${fullPart}. When it answers on holdout, ` +
     `${shareOf(p.within10_variant, n)} of its answers are within 10%, against ${shareOf(p.within10_muse, n)} for Muse Spark alone ` +
     `on the same questions; ${shareOf(p.off2x_variant, n)} are off by more than 2x, against ${shareOf(p.off2x_muse, n)}; ` +
     `and its 90% range held on ${cover.covered} of ${cover.answered}.`
@@ -117,4 +119,15 @@ export function posthocFinding(hybrid: SplitRow, muse: SplitRow, cal: SplitRow):
       `On holdout that scores ${mra(hybrid.mra_average)} official MRA, ${rel} Muse Spark alone (${mra(muse.mra_average)}); Caliper on its own scores ${mra(cal.mra_average)}. ` +
       `Caliper itself never returns a guess.`,
   };
+}
+
+/** How many answers the audit vetoed (caliper refused where caliper_no_audit answered) and how
+ * many of those were not wrong (truth inside the vetoed answer's 90% range). */
+export function vetoCounts(answers: AnswerRow[]): { vetoes: number; falseAlarms: number } {
+  const off = new Map(answers.filter((r) => r.variant === "caliper_no_audit").map((r) => [r.row_id, r]));
+  const v = answers
+    .filter((r) => r.variant === "caliper" && r.status === "abstained" && r.audit_approve === false)
+    .map((r) => off.get(r.row_id))
+    .filter((r): r is AnswerRow => r != null && r.status === "measured");
+  return { vetoes: v.length, falseAlarms: v.filter((r) => r.covered !== false).length };
 }

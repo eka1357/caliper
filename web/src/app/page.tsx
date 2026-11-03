@@ -11,7 +11,8 @@ import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings, heroLine } from "@/lib/findings";
-import { gateLine, gpsDisagreeNote, provenLine, scooterLine } from "@/lib/proven";
+import { accelLine, auditLine, gateLine, gpsDisagreeNote, provenLine, scooterLine } from "@/lib/proven";
+import { vetoCounts } from "@/lib/holdout-finding";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
 import { fieldRows, GPS_DISAGREE_PASSES, loadBenchmark, setGateDistance } from "@/lib/results";
@@ -22,6 +23,7 @@ import { landingRuns } from "@/lib/runs-static";
 import type { CachedRun } from "@/lib/types";
 
 const REPO = "https://github.com/eka1357/caliper";
+export const RANGE_NOTE = "The range includes an error term calibrated on QuantiPhy dev, which is why it is wide.";
 const MORTH =
   "https://www.hindustantimes.com/india-news/road-accident-deaths-increased-2-5-in-2024-from-2023-morth-report-101781204793385.html";
 
@@ -39,6 +41,9 @@ export default async function Home() {
   const sizeSet = bench.field_summary.size;
   const claim = heroLine(bench);
   const proven = provenLine(bench.field_summary, bench.field);
+  const accel = accelLine(bench.answers ?? [], bench.field_summary, bench.field);
+  const veto = vetoCounts(bench.answers ?? []);
+  const auditSays = auditLine(bench.field, veto.falseAlarms, veto.vetoes);
 
   return (
     <>
@@ -79,6 +84,7 @@ export default async function Home() {
                 </Button>
               </div>
               {proven && <p className="max-w-xl text-sm text-muted-foreground">{proven}</p>}
+              {accel && <p className="max-w-xl text-sm text-muted-foreground">{accel}</p>}
               <p className="max-w-xl text-sm text-muted-foreground">
                 New against Tracker, MotionLab, VeloCV and Speedcam Anywhere: a plain question
                 becomes a measurement plan (Muse Spark), SAM 3.1 tracks, plain Python computes, and
@@ -124,7 +130,7 @@ export default async function Home() {
           <p className="max-w-3xl text-muted-foreground">
             After the numbers are computed, Muse Spark looks at keyframes with the outlines drawn on
             them and checks the evidence: the right object, the right reference, the same plane. It
-            can veto a result. It can never change a number.
+            can veto a result. It can never change a number.{auditSays && ` ${auditSays}`}
           </p>
           {audited?.result.audit ? (
             <AuditCard run={audited} />
@@ -173,14 +179,14 @@ export default async function Home() {
             Scored with the official evaluator on Stanford&apos;s QuantiPhy validation set. These
             sentences are generated from our results files.
           </p>
-          <FindingList items={findings(bench)} />
+          <FindingList items={findings(bench, { posthoc: false })} />
           <LazyInView minHeight={480}>
             <LazyPairedChart rows={bench.paired} />
           </LazyInView>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {sizeSet ? (
               <div className="flex flex-col gap-2 rounded-lg border bg-card p-5">
-                <p className="text-sm text-muted-foreground">Our own clips: size against a tape measure</p>
+                <p className="text-sm text-muted-foreground">On our own clips so far (n={sizeSet.n}): size against a tape measure</p>
                 <p className="flex items-baseline gap-2">
                   <span className="font-mono text-4xl tabular-nums">{fmtPct(sizeSet.median_rel_error)}</span>
                   <span className="text-sm text-muted-foreground">median error, {sizeSet.measured} of {sizeSet.n} clips measured</span>
@@ -268,9 +274,12 @@ function MeasuredCard({ run }: { run: CachedRun | null }) {
         <span className="font-mono text-muted-foreground">{r.unit}</span>
       </p>
       {r.interval_90 && (
-        <p className="font-mono text-xs tabular-nums text-muted-foreground">
-          90% range {fmt(r.interval_90[0], d)} to {fmt(r.interval_90[1], d)}
-        </p>
+        <>
+          <p className="font-mono text-xs tabular-nums text-muted-foreground">
+            90% range {fmt(r.interval_90[0], d)} to {fmt(r.interval_90[1], d)}
+          </p>
+          <p className="text-xs text-muted-foreground">{RANGE_NOTE}</p>
+        </>
       )}
     </div>
   );
@@ -356,9 +365,12 @@ function SpeedCard({ run }: { run: CachedRun }) {
         <span className="font-mono text-muted-foreground">km/h</span>
       </p>
       {r.interval_90 && (
-        <p className="font-mono text-xs tabular-nums text-muted-foreground">
-          90% range {kmh(r.interval_90[0])} to {kmh(r.interval_90[1])} km/h
-        </p>
+        <>
+          <p className="font-mono text-xs tabular-nums text-muted-foreground">
+            90% range {kmh(r.interval_90[0])} to {kmh(r.interval_90[1])} km/h
+          </p>
+          <p className="text-xs text-muted-foreground">{RANGE_NOTE}</p>
+        </>
       )}
       <p className="text-sm">{ins.instrument}</p>
     </div>

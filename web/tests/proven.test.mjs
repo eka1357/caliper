@@ -1,7 +1,7 @@
 // node --test tests/*.test.mjs (Node strips the TypeScript types; no test framework needed)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { provenLine, reasonKey, scooterLine, topReason } from "../src/lib/proven.ts";
+import { accelLine, auditLine, provenLine, reasonKey, scooterLine, topReason } from "../src/lib/proven.ts";
 
 const clip = (set, status, reason = "") => ({ set, path: "measure", status, reason });
 
@@ -31,9 +31,11 @@ test("hero subline: size proven, speed and drops refused with reasons", () => {
     ...Array.from({ length: 6 }, (_, i) => clip("gravity", "abstained", `Other reason ${i < 3 ? "a" : String.fromCharCode(98 + i)}.`)),
   ];
   const s = provenLine(summary, rows);
-  assert.match(s, /^Proven on our own clips: size, 10 of 10 measured against a tape, median error 11%, truth inside the 90% range on 9 of 10\./);
-  assert.match(s, /not yet measured on our own footage: all 10 of our first car-speed clips were refused \(most often "Car never fully inside", 9 of 10\)/);
-  assert.match(s, /and all 10 of our drop clips were refused \(most often "Scale changes \(perspective\)", 4 of 10\)\.$/);
+  assert.match(s, /^On our own clips so far \(n=10\): size, 10 of 10 measured against a tape, median error 11%, truth inside the 90% range on 9 of 10\./);
+  assert.match(s, /Speed is not yet measured on our own footage: all 10 of our first car-speed clips were refused \(most often "Car never fully inside", 9 of 10\)\.$/);
+  assert.doesNotMatch(s, /drop/); // acceleration has its own line
+  assert.equal(accelLine([{ variant: "caliper", quantity: "acceleration", status: "abstained" }, { variant: "caliper_no_audit", quantity: "acceleration", status: "abstained" }], summary, rows),
+    'Acceleration is not measured yet: all 1 QuantiPhy acceleration questions were refused, and all 10 of our drop clips were refused (most often "Scale changes (perspective)", 4 of 10).');
 });
 
 test("hero subline: a measured speed set is stated with its counts, refusals stay listed", () => {
@@ -50,7 +52,7 @@ test("hero subline: a measured speed set is stated with its counts, refusals sta
   ];
   const s = provenLine(summary, rows);
   assert.match(s, /Speed on our own footage: our scooter passes, 5 of 6 measured against GPS, median error 7%, GPS inside the 90% range on 5 of 5\./);
-  assert.match(s, /Refused on our own footage: all 10 of our first car-speed clips were refused \(most often "Car never fully inside", 10 of 10\), and all 10 of our drop clips were refused/);
+  assert.match(s, /Refused on our own footage: all 10 of our first car-speed clips were refused \(most often "Car never fully inside", 10 of 10\)\.$/);
   assert.doesNotMatch(s, /not yet measured/);
 });
 
@@ -73,7 +75,7 @@ test("gate summary reads error, coverage and range width from the rows", () => {
   assert.equal(s.covered, 1);
   assert.ok(Math.abs(s.medianErrKmh - 0.8) < 1e-9);
   const line = gateLine(rows, "scooter", 7.92);
-  assert.match(line, /^The gate method \(two gate lines 7\.92 m apart on the riding line\) timed 3 of 3 passes, median error 0\.8 km\/h\./);
+  assert.match(line, /^A companion gate-timing method \(study\.py\), so far on single scooter passes \(two gate lines 7\.92 m apart on the riding line\), timed 3 of 3 passes, median error 0\.8 km\/h\./);
   assert.match(line, /covers only frame timing, gate placement and the tape tolerance \(about ±1\.\d% to 1\.\d%\), so GPS falls inside it on 1 of 3\.$/);
 });
 
@@ -91,4 +93,11 @@ test("H5 verdict follows the protocol's thresholds", () => {
   assert.match(h5Line(mk([0.6, 0.8, 0.9, 6.7, 9.8, 11.2], 1), "scooter"), /3\.8 km\/h and 1 of 6, not met \(not disproved/);
   assert.match(h5Line(mk([1, 2, 2, 3], 4), "scooter"), /, met\.$/);
   assert.match(h5Line(mk([7, 8, 9], 0), "scooter"), /, disproved\.$/);
+});
+
+test("audit line: every measured clip approved, both vetoes false alarms", () => {
+  const f = [...Array.from({ length: 15 }, () => ({ path: "measure", status: "measured", audit_approve: true })),
+    { path: "measure", status: "abstained", audit_approve: null }, { path: "study", status: "measured", audit_approve: null }];
+  assert.equal(auditLine(f, 2, 2), "So far the audit approved every measured clip of ours (15 of 15), and both its QuantiPhy vetoes were false alarms.");
+  assert.match(auditLine(f, 1, 2), /1 of its 2 QuantiPhy vetoes were false alarms/);
 });

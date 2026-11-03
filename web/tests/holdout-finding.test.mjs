@@ -6,14 +6,18 @@ import { h1Finding, heroClaim, intervalCover, posthocFinding, vetoFinding } from
 const a = (variant, split, row_id, status, rel_error, covered, audit_approve = null) =>
   ({ variant, split, row_id, status, rel_error, covered, audit_approve });
 
-test("hero claim reads its numbers from the rows", () => {
+test("hero claim reads its numbers from the rows (and the full set when given)", () => {
   const s = heroClaim({ n: 69, coverage: 15 / 69, mra_average: 0.2 },
     { n_answered: 15, within10_variant: 0.6, within10_muse: 0.2667, off2x_variant: 0.0667, off2x_muse: 0.2 },
     { covered: 13, answered: 15 });
-  assert.match(s, /about 1 question in 5\./);
+  assert.match(s, /^On holdout \(videos never used for tuning\), Caliper answers about 1 question in 5 \(15 of 69\)\. When it answers on holdout, /);
   assert.match(s, /60% \(9 of 15\) of its answers are within 10%, against 27% \(4 of 15\)/);
   assert.match(s, /7% \(1 of 15\) are off by more than 2x, against 20% \(3 of 15\)/);
   assert.match(s, /held on 13 of 15\./);
+  const withFull = heroClaim({ n: 69, coverage: 15 / 69, mra_average: 0.2 },
+    { n_answered: 15, within10_variant: 0.6, within10_muse: 0.2667, off2x_variant: 0.0667, off2x_muse: 0.2 },
+    { covered: 13, answered: 15 }, { n: 158, coverage: 25 / 158, mra_average: 0.15 });
+  assert.match(withFull, /about 1 question in 5 \(15 of 69\); on the full set, 25 of 158\./);
 });
 
 test("H1 fails when Caliper is not 10 points above", () => {

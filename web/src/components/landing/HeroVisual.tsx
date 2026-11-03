@@ -137,9 +137,14 @@ export function HeroVisual({ run }: { run: CachedRun }) {
               <span className="font-mono text-sm text-muted-foreground">{r.unit}</span>
             </p>
             {r.interval_90 && (
-              <p className="font-mono text-xs tabular-nums text-muted-foreground">
-                90% range {fmt(r.interval_90[0], decimals)} to {fmt(r.interval_90[1], decimals)}
-              </p>
+              <>
+                <p className="font-mono text-xs tabular-nums text-muted-foreground">
+                  90% range {fmt(r.interval_90[0], decimals)} to {fmt(r.interval_90[1], decimals)}
+                </p>
+                <p className="max-w-56 text-[11px] leading-snug text-muted-foreground">
+                  The range includes an error term calibrated on QuantiPhy dev, which is why it is wide.
+                </p>
+              </>
             )}
           </div>
         )}

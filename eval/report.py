@@ -36,6 +36,7 @@ SOURCES = {
     "answers": "quantiphy_answers.csv",
 }
 TEXT = {"variant", "split", "run_date", "source", "category", "clip_id", "set", "path", "status",
+        "quantity",
         "reason", "unit", "guess_text"}  # fmt: skip
 FIELD_BOOL = {"covered", "audit_approve"}  # booleans in field_results.csv and quantiphy_answers.csv
 COUNTS = {"n", "n_answered", "answered", "covered", "newly_refused_interval_width", "row_id"}

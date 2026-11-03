@@ -85,8 +85,8 @@ def proven(data: dict) -> str | None:
     size = fs.get("size")
     if not size or not size["measured"] or size["median_rel_error"] is None:
         return None
-    out = (f"Proven on our own clips: size, {size['measured']} of {size['n']} measured against a "
-           f"tape, median error {_pct(size['median_rel_error'])}")  # fmt: skip
+    out = (f"On our own clips so far (n={size['n']}): size, {size['measured']} of {size['n']} "
+           f"measured against a tape, median error {_pct(size['median_rel_error'])}")  # fmt: skip
     if size["coverage"] is not None:
         out += f", truth inside the 90% range on {round(size['coverage'] * size['measured'])} of {size['measured']}"  # noqa: E501
     out += "."
@@ -97,16 +97,11 @@ def proven(data: dict) -> str | None:
                 measured.append(_measured_part(label, f))
             else:
                 refused.append(_refused_part(label, f, rows, key))
-    if g := fs.get("gravity"):
-        if g["measured"]:
-            measured.append(f"drops, {g['measured']} of {g['n']} measured")
-        else:
-            refused.append(_refused_part("drop clips", g, rows, "gravity"))
+    # acceleration (drops) has its own line: accel_line
     if not measured:
         if not refused:
             return out
-        return (f"{out} Speed and acceleration work on the QuantiPhy benchmark but are not yet "
-                f"measured on our own footage: {', and '.join(refused)}.")  # fmt: skip
+        return f"{out} Speed is not yet measured on our own footage: {', and '.join(refused)}."
     speed = f"Speed on our own footage: {'; '.join(measured)}."
     return (
         f"{out} {speed} Refused on our own footage: {', and '.join(refused)}."
@@ -147,7 +142,8 @@ def gate_line(data: dict, set_: str) -> str | None:
     dists = {v for c, v in data.get("study_gates", {}).items() if c in ids}
     dist = f" (two gate lines {dists.pop()} m apart on the riding line)" if len(dists) == 1 else ""
     covered = sum(1 for r in m if r["covered"])
-    return (f"The gate method{dist} timed {len(m)} of {len(rows)} passes, median error "
+    return (f"A companion gate-timing method (study.py), so far on single scooter passes{dist}, "
+            f"timed {len(m)} of {len(rows)} passes, median error "
             f"{med:.1f} km/h. Its 90% range covers only frame timing, gate placement and the tape "
             f"tolerance (about \u00b1{min(half) * 100:.1f}% to {max(half) * 100:.1f}%), so GPS "
             f"falls inside it on {covered} of {len(m)}.")  # fmt: skip
@@ -255,16 +251,45 @@ def _vetoes(data: dict) -> list[dict]:
     return out
 
 
+def accel_line(data: dict) -> str | None:
+    """Same sentence as accelLine in web/src/lib/proven.ts."""
+    q = [a for a in data.get("answers", [])
+         if a["variant"] == "caliper" and a.get("quantity") == "acceleration"]  # fmt: skip
+    drops = data.get("field_summary", {}).get("gravity")
+    if not q and not drops:
+        return None
+    q_measured = sum(1 for a in q if a["status"] == "measured")
+    parts = []
+    if q and not q_measured:
+        parts.append(f"all {len(q)} QuantiPhy acceleration questions were refused")
+    elif q:
+        parts.append(f"{q_measured} of {len(q)} QuantiPhy acceleration questions were answered")
+    if drops and not drops["measured"]:
+        parts.append(_refused_part("drop clips", drops, data.get("field", []), "gravity"))
+    elif drops:
+        parts.append(f"{drops['measured']} of {drops['n']} of our drop clips were measured")
+    none = not q_measured and not (drops or {}).get("measured")
+    return (
+        f"{'Acceleration is not measured yet' if none else 'Acceleration'}: {', and '.join(parts)}."
+    )
+
+
 def claims(data: dict) -> list[str]:
     out = [p] if (p := proven(data)) else []
+    if a := accel_line(data):
+        out.append(a)
     cal, p = _row(data, "caliper", "holdout"), _paired(data, "caliper", "holdout")
     muse = _row(data, "muse_spark_alone", "holdout")
     if cal and p and cal["coverage"]:
         inside, answered = _cover(data, "caliper", "holdout")
         n = p["n_answered"]
+        full = _row(data, "caliper", "full")
+        full_part = (f"; on the full set, {round(full['coverage'] * full['n'])} of {full['n']}"
+                     if full and full["coverage"] is not None else "")  # fmt: skip
         out.append(
-            f"**Caliper answers about 1 question in {round(1 / cal['coverage'])}. When it answers, "
-            f"on unseen videos (QuantiPhy holdout) {_share(p['within10_variant'], n)} of its "
+            f"**On holdout (videos never used for tuning), Caliper answers about 1 question in "
+            f"{round(1 / cal['coverage'])} ({round(cal['coverage'] * cal['n'])} of {cal['n']})"
+            f"{full_part}. When it answers on holdout, {_share(p['within10_variant'], n)} of its "
             f"answers are within 10%, against {_share(p['within10_muse'], n)} for Muse Spark alone "
             f"on the same questions; {_share(p['off2x_variant'], n)} are off by more than 2x, "
             f"against {_share(p['off2x_muse'], n)}; and its 90% range held on {inside} of "

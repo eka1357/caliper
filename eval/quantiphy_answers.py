@@ -19,8 +19,8 @@ from baseline import DATASET, EVAL
 from quantiphy import MUSE_SPEC_VARIANTS, runs_dir
 
 OUT = EVAL / "quantiphy_answers.csv"
-COLUMNS = ["variant", "split", "row_id", "category", "status", "value", "lo", "hi", "truth",
-           "rel_error", "covered", "audit_approve"]  # fmt: skip
+COLUMNS = ["variant", "split", "row_id", "category", "quantity", "status", "value", "lo", "hi",
+           "truth", "rel_error", "covered", "audit_approve"]  # fmt: skip
 
 
 def rows() -> list[dict]:
@@ -37,7 +37,8 @@ def rows() -> list[dict]:
             measured = r["status"] == "measured" and v is not None
             out.append({
                 "variant": variant, "split": split[q.video_id], "row_id": rid,
-                "category": q.inference_type[0] + q.video_type[1], "status": r["status"],
+                "category": q.inference_type[0] + q.video_type[1], "quantity": r["quantity"],
+                "status": r["status"],
                 "value": v, "lo": lo, "hi": hi, "truth": truth,
                 "rel_error": round(abs(abs(v) - truth) / truth, 4) if measured else None,
                 "covered": (lo <= truth <= hi) if measured and lo is not None else None,

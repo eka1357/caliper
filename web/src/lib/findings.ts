@@ -19,7 +19,8 @@ const SRC_P = "eval/paired_results.csv";
 const SRC_A = "eval/quantiphy_answers.csv";
 const pctOf = (v: number | null, n: number) => (v == null ? "n/a" : shareOf(v, n));
 
-export function findings(b: Benchmark): Finding[] {
+/** posthoc: include the post-hoc analysis row (/results only, never the landing). */
+export function findings(b: Benchmark, { posthoc = true }: { posthoc?: boolean } = {}): Finding[] {
   const out: Finding[] = [];
 
   const museFull = findRow(b, "muse_spark_alone", "full");
@@ -55,7 +56,7 @@ export function findings(b: Benchmark): Finding[] {
   if (h1) out.push({ id: "h1", ...h1, kind: "limit", source: SRC_R });
 
   const hybrid = (b.posthoc ?? []).find((r) => r.variant === "hybrid_posthoc" && r.split === "holdout");
-  const post = hybrid && calHold && museHold ? posthocFinding(hybrid, museHold, calHold) : null;
+  const post = posthoc && hybrid && calHold && museHold ? posthocFinding(hybrid, museHold, calHold) : null;
   if (post) out.push({ id: "posthoc", ...post, kind: "limit", source: "eval/results.csv (post-hoc row)" });
 
   const veto = vetoFinding(b.answers ?? []);
@@ -74,5 +75,5 @@ export function heroLine(b: Benchmark): string | null {
   const row = findRow(b, "caliper", "holdout");
   const p = findPaired(b, "caliper", "holdout");
   if (!row || !p) return null;
-  return heroClaim(row, p, intervalCover(b.answers ?? [], "caliper", "holdout"));
+  return heroClaim(row, p, intervalCover(b.answers ?? [], "caliper", "holdout"), findRow(b, "caliper", "full"));
 }
