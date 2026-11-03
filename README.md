@@ -168,7 +168,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-Gates for `study` are two lines in pixels on frame 0 of the normalized video: `{"gate_a": {"a": [x, y], "b": [x, y]}, "gate_b": {...}}`. For Claude Code, add it to `.mcp.json` as `{"caliper": {"command": "python", "args": ["-m", "caliper.mcp_server"]}}`.
+Gates for `study` are two lines in pixels on frame 0 of the normalized video: `{"gate_a": {"a": [x, y], "b": [x, y]}, "gate_b": {...}}`. Demo script with a Claude Desktop config: [docs/demo_agent.md](docs/demo_agent.md). For Claude Code, add it to `.mcp.json` as `{"caliper": {"command": "python", "args": ["-m", "caliper.mcp_server"]}}`.
 
 ## Limitations
 
