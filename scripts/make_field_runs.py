@@ -13,7 +13,12 @@ plates are blurred before encoding:
   B03  the top-right corner where the back of a head appears at the edge (no face visible).
 C07's phone case carries a drawing of a recognizable character: the inside of the phone's SAM
 mask, shrunk so the outline stays sharp, is blurred on its drawing side (the camera end stays).
-A08's poster is a frame with the (blurred) car. C01 and D03 need no blur.
+  A13, A14 (Set A, scooter, side on): the shop-front band (people at the shops, the parked
+       bikes' plates) in every frame, and on the scooter's cached SAM boxes the same rule as A08
+       (rider band, both ends at plate height, whole box while the frame edge cuts it off).
+A08's poster is a frame with the (blurred) car; a scooter run's poster is the middle frame where
+its box is fully inside the picture. C01 and D03 need no blur.
+`--only A13 A14` rebuilds just those runs (the others stay byte for byte).
 The placeholder runs are removed.
 """
 
@@ -47,6 +52,8 @@ CASE_INSET_PX = 14  # C07: blur stays this far inside the phone outline
 CASE_SPLIT = 0.74  # C07: the drawing covers the case left of this share of the phone's width
 CASE_SIGMA = 32  # C07: strong enough that the drawing is not recognizable
 POSTER_FRAME = {"A08": 216}  # a frame with the whole (blurred) car in view
+SHOP_BAND = (0, 330, 1280, 520)  # A13, A14: shop fronts and parked bikes, frame 0 (camera fixed)
+SCOOTER_PHRASE = {"A13": "black scooter", "A14": "scooter"}  # the run's phrases_used target
 Box = tuple[float, float, float, float]
 
 # run_id, clip, title, notes (no numbers: every number is read from the run JSON)
@@ -63,13 +70,19 @@ CHOSEN = [
     ("field-a08", "A08", "Car passing, the car as its own ruler",
      "Field clip A08 from Set A, truth from a GPS app. The car's length is the prior. The "
      "driver's window band and both ends of the car (plates) are blurred."),
+    ("field-a14", "A14", "Our scooter past a shop row, its own length as the ruler",
+     "Field clip A14 from Set A (scooter), truth from a GPS app. The scooter's taped length is "
+     "the prior. Faces at the shops, the rider and the number plates are blurred."),
+    ("field-a13", "A13", "Our scooter, a pass Caliper refused",
+     "Field clip A13 from Set A (scooter), truth from a GPS app. Shown because Caliper refused "
+     "it, with its reason. Faces at the shops, the rider and the number plates are blurred."),
 ]  # fmt: skip
 
 
-def car_boxes(video: Path, n: int) -> list[list[Box]]:
-    """Every cached SAM 'gray car' box per frame (cache hit, no API call)."""
+def car_boxes(video: Path, n: int, phrase: str = "gray car") -> list[list[Box]]:
+    """Every cached SAM box for the phrase, per frame (cache hit, no API call)."""
     info = probe(video)
-    seg = segment.segment(video, "gray car")
+    seg = segment.segment(video, phrase)
     tracks = segment.tracks_from_segmentation(seg, float(info["fps"]), int(info["width"]),
                                               int(info["height"]))  # fmt: skip
     out: list[list[Box]] = [[] for _ in range(n)]
@@ -144,6 +157,23 @@ def case_blur(video: Path, phrase: str, n: int) -> Callable[[np.ndarray, int], N
     return apply
 
 
+def scooter_blur(boxes: list[list[Box]]) -> Callable[[np.ndarray, int], None]:
+    """The shop-front band in every frame, then the vehicle rule of car_blur on the scooter."""
+    vehicle = car_blur(boxes)
+
+    def apply(frame: np.ndarray, k: int) -> None:
+        blur(frame, *SHOP_BAND)
+        vehicle(frame, k)
+
+    return apply
+
+
+def inside_mid_frame(boxes: list[list[Box]], width: int) -> int:
+    """Middle frame whose box keeps 2 px from both side edges (the poster), else frame 0."""
+    ok = [k for k, bs in enumerate(boxes) if bs and all(b[0] > 2 and b[2] < width - 2 for b in bs)]
+    return ok[len(ok) // 2] if ok else 0
+
+
 def corner_blur(x0: float, y0: float, x1: float, y1: float) -> Callable[[np.ndarray, int], None]:
     return lambda frame, k: blur(frame, x0, y0, x1, y1)
 
@@ -187,6 +217,20 @@ def longest_track(video: Path, phrase: str | None):
     return max(tracks, key=lambda t: len(t.frames)) if tracks else None
 
 
+def selected_track(video: Path, phrase: str | None, selector: str | None):
+    """The track the run itself used: the same select_instance rule on the same cached response
+    (the longest track can be another object, e.g. a parked scooter in every frame)."""
+    if not phrase:
+        return None
+    info = probe(video)
+    seg = segment.segment(video, phrase)
+    tracks = segment.tracks_from_segmentation(seg, float(info["fps"]), int(info["width"]),
+                                              int(info["height"]))  # fmt: skip
+    if not tracks:
+        return None
+    return segment.select_instance(tracks, selector or "auto", int(info["frames"]))[0]
+
+
 def write_keyframes(run_id: str, result: dict, video: Path,
                     apply: Callable[[np.ndarray, int], None] | None) -> list[str]:  # fmt: skip
     """The audit's keyframes, re-rendered with the same audit.render (same outlines, trajectory
@@ -195,10 +239,11 @@ def write_keyframes(run_id: str, result: dict, video: Path,
     if not frames or not result.get("audit"):
         return []
     used = result["artifacts"].get("phrases_used") or {}
-    target = longest_track(video, used.get("target"))
+    spec = result.get("spec") or {}
+    target = selected_track(video, used.get("target"), spec.get("target_instance"))
     if target is None:
         return []
-    reference = longest_track(video, used.get("reference"))
+    reference = selected_track(video, used.get("reference"), spec.get("reference_instance"))
     pngs = audit.render(video, target, reference, frames, before_draw=apply)
     names = []
     for f, png in zip(frames, pngs, strict=False):
@@ -248,6 +293,7 @@ def main() -> None:
         return
     with open(TRUTH, encoding="utf-8", newline="") as fh:
         truth = {r["clip_id"]: r for r in csv.DictReader(fh)}
+    only = sys.argv[sys.argv.index("--only") + 1 :] if "--only" in sys.argv else []
     for old in config.RUNS_DIR.glob("placeholder-*"):
         shutil.rmtree(old)
     index = config.RUNS_DIR / "index.json"
@@ -255,6 +301,8 @@ def main() -> None:
         keep = [e for e in json.loads(index.read_text(encoding="utf-8")) if not e["placeholder"]]
         index.write_text(json.dumps(keep, indent=1), encoding="utf-8")
     for run_id, cid, title, notes in CHOSEN:
+        if only and cid not in only:
+            continue
         rec = json.loads((FIELD_RUNS / f"{cid}.json").read_text(encoding="utf-8"))
         result = rec["result"]
         video = config.NORMALIZED_DIR / rec["video"]
@@ -265,10 +313,15 @@ def main() -> None:
         if sizes := size_series(result, video):
             overlay["size"] = sizes
         blurs = {
-            "A08": lambda: car_blur(car_boxes(video, n)),
+            "A08": lambda v=video, k=n: car_blur(car_boxes(v, k)),
             "B03": lambda: corner_blur(300, 0, 380, 220),
-            "C07": lambda: case_blur(video, "white phone", n),
+            "C07": lambda v=video, k=n: case_blur(v, "white phone", k),
         }
+        poster = POSTER_FRAME.get(cid, 0)
+        if cid in SCOOTER_PHRASE:
+            boxes = car_boxes(video, n, SCOOTER_PHRASE[cid])
+            blurs[cid] = lambda b=boxes: scooter_blur(b)
+            poster = inside_mid_frame(boxes, int(info["width"]))
         apply = blurs[cid]() if cid in blurs else None
         with tempfile.TemporaryDirectory() as tmp:
             clip = Path(tmp) / "clip.mp4"
@@ -278,7 +331,7 @@ def main() -> None:
                                 instrument=instrument(truth[cid]))  # fmt: skip
             guess = {k: rec["guess"].get(k) for k in ("text", "parsed_value")}
             runs.save_cached_run(run_id, "measure", result, overlay, meta, clip, guess=guess,
-                                 poster_frame=POSTER_FRAME.get(cid, 0))  # fmt: skip
+                                 poster_frame=poster)  # fmt: skip
             log.info("%s: %s, clip %d bytes", run_id, result["status"], clip.stat().st_size)
         keyframes = write_keyframes(run_id, result, video, apply)
         if keyframes:

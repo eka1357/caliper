@@ -43,5 +43,23 @@
   "source": "field",
   "placeholder": false,
   "created_utc": "2026-11-02T12:51:58+00:00"
+ },
+ {
+  "run_id": "field-a14",
+  "kind": "measure",
+  "title": "Our scooter past a shop row, its own length as the ruler",
+  "status": "measured",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T13:39:11+00:00"
+ },
+ {
+  "run_id": "field-a13",
+  "kind": "measure",
+  "title": "Our scooter, a pass Caliper refused",
+  "status": "abstained",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T13:39:21+00:00"
  }
 ]
