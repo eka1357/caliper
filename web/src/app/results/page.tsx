@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { PairedChart, SplitCharts } from "@/components/results/BenchmarkCharts";
 import { FieldResults } from "@/components/results/FieldResults";
 import { FindingList } from "@/components/results/FindingList";
-import { Placeholder } from "@/components/site/Placeholder";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import {
   Table,
@@ -180,17 +179,10 @@ export default async function ResultsPage() {
             </p>
           </div>
           <FieldResults bench={bench} />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Placeholder title="Street study: speed error against GPS">
-              Not validated yet (claim H5). The first Set A put its markers on the far kerb, so the
-              gate method could not be tested; it needs a refilmed set with the markers in the
-              car&apos;s lane.
-            </Placeholder>
-            <Placeholder title="Audit catches and false vetoes">
-              On the field set the audit approved {auditApproved} clips and vetoed {auditVetoed}{" "}
-              (claim A2 needs wrong-object tracks to catch, which the field set did not produce).
-            </Placeholder>
-          </div>
+          <p className="max-w-3xl text-sm text-muted-foreground">
+            On the field set the audit approved {auditApproved} clips and vetoed {auditVetoed}{" "}
+            (claim A2 needs wrong-object tracks to catch, which the field set did not produce).
+          </p>
         </section>
 
         <section aria-labelledby="method-h" className="flex max-w-3xl flex-col gap-3 text-sm">
