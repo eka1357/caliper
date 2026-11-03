@@ -86,13 +86,15 @@ export function vetoFinding(answers: AnswerRow[]): { title: string; body: string
   const caught = vetoes.filter((r) => r.covered === false).length;
   const sentence = parts.join("; ");
   return {
-    title: caught ? `The audit caught ${caught} wrong answer${caught === 1 ? "" : "s"}` : "The audit has not yet caught a wrong answer",
+    title: caught
+      ? `The audit caught ${caught} wrong answer${caught === 1 ? "" : "s"}`
+      : `The audit is a cautious check: ${vetoes.length === 1 ? "its one veto was a false alarm" : vetoes.length === 2 ? "both its vetoes were false alarms" : `all ${vetoes.length} of its vetoes were false alarms`}`,
     body:
       `${sentence[0].toUpperCase()}${sentence.slice(1)}. ` +
       (caught
         ? `${caught} of the ${vetoes.length} answers it vetoed had the truth outside their range.`
-        : "None of the answers it vetoed was wrong: so far it has cost coverage without catching an error.") +
-      " The shipped variant keeps the audit; nothing was changed after the freeze.",
+        : `${vetoes.length === 1 ? "The answer it vetoed was not wrong" : vetoes.length === 2 ? "Neither answer it vetoed was wrong" : "None of the answers it vetoed was wrong"}, so these were false alarms: each cost an answer, and a veto can never change a number.`) +
+      " It ships as is, as frozen before the holdout run.",
   };
 }
 

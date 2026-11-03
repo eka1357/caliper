@@ -33,7 +33,8 @@ test("vetoes of a correct and an in-range answer have not caught a wrong one", (
     a("caliper_no_audit", "dev", 3, "abstained", null, null),
   ];
   const f = vetoFinding(rows);
-  assert.equal(f.title, "The audit has not yet caught a wrong answer");
+  assert.equal(f.title, "The audit is a cautious check: both its vetoes were false alarms");
+  assert.match(f.body, /false alarms: each cost an answer, and a veto can never change a number\. It ships as is/);
   assert.match(f.body, /^On holdout it vetoed one that was correct \(1\.5% error\); on dev it vetoed one whose truth was inside its 90% range \(22\.2% error\)\./);
 });
 

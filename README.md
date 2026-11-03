@@ -47,7 +47,7 @@ The language model never produces the final number: every number comes from `bac
 
 **Claim H1 failed.** We pre-registered that Caliper would beat Muse Spark alone by at least 10 points of official MRA on the holdout split. It did not: 20.1 against 58.1. The official score counts every refusal as a miss, and Caliper answers 15 of 69 holdout questions.
 
-**The audit has not yet caught a wrong answer.** On holdout it vetoed one that was correct (1.5% error); on dev it vetoed one whose truth was inside its 90% range (22.2% error). The shipped variant keeps the audit; nothing was changed after the freeze.
+**The audit is a cautious check: both its vetoes were false alarms.** On holdout it vetoed one that was correct (1.5% error); on dev it vetoed one whose truth was inside its 90% range (22.2% error). Neither answer it vetoed was wrong, so these were false alarms: each cost an answer, and a veto can never change a number. It ships as is, as frozen before the holdout run.
 
 ### QuantiPhy validation, official evaluator
 
@@ -85,7 +85,7 @@ MRA on QuantiPhy's 0 to 100 scale. Official MRA counts a refusal as a miss; answ
 | Set C | size vs tape | 10 | 10 | 11% | 90% | 14% |
 | Set D | no reference: should refuse | 4 | 0 | n/a | n/a | n/a |
 
-Sources: eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv, eval/interval_calibration.csv, eval/quantiphy_answers.csv. Generated 2026-11-03T07:38:21+00:00.
+Sources: eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv, eval/interval_calibration.csv, eval/quantiphy_answers.csv. Generated 2026-11-03T07:42:40+00:00.
 
 <!-- results:end -->
 
@@ -176,7 +176,7 @@ Every figure behind these points is in the generated results block above.
 
 - **It refuses most questions.** The official QuantiPhy score counts a refusal as a miss, so Caliper scores far below the model alone and claim H1 failed. Its value is in the answers it does give and in saying why it will not answer the rest.
 - **Depth is the weak spot.** Moving objects in 3D scenes (QuantiPhy category D3) are refused on every holdout question, and static 3D (S3) is the least accurate category Caliper does answer (per-category rows in `eval/paired_results.csv`).
-- **The audit has not yet caught a wrong answer.** The answers it vetoed were correct or had the truth inside their range. It stays on because it is the product as built and was frozen before the holdout run; we report its cost instead of tuning it after the fact.
+- **The audit is cautious.** The answers it vetoed so far were false alarms (counts and errors in the results block above). A veto only turns an answer into a refusal, never into a wrong number. It ships as is, frozen before the holdout run, and we report its cost instead of tuning it after the fact.
 - **Drops (Set B) are refused.** The whole-track fit over rest, fall and bounce gives ranges too wide to report, so no acceleration is measured on our own drop clips.
 - **The gate method (H5) is not yet validated.** See the street speed study section.
 - **Small, local field set.** Our clips come from a few phones in one city (clip counts in the table above); QuantiPhy clips are 2 to 3 seconds from a static camera. Neither covers handheld panning, night video or long range.

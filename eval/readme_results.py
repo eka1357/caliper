@@ -99,10 +99,25 @@ def claims(data: dict) -> list[str]:
                  for s in ("holdout", "dev") if any(r["split"] == s for r in vetoes)]  # fmt: skip
         caught = sum(1 for r in vetoes if r["covered"] is False)
         text = "; ".join(parts)
+        n = len(vetoes)
+        if caught:
+            title = f"The audit caught {caught} wrong answer(s)."
+            tail = f"{caught} of the {n} answers it vetoed had the truth outside their range."
+        else:
+            which = {1: "its one veto was a false alarm", 2: "both its vetoes were false alarms"}
+            what = which.get(n, f"all {n} of its vetoes were false alarms")
+            title = f"The audit is a cautious check: {what}."
+            none = {
+                1: "The answer it vetoed was not wrong",
+                2: "Neither answer it vetoed was wrong",
+            }.get(n, "None of the answers it vetoed was wrong")
+            tail = (
+                f"{none}, so these were false alarms: each cost an answer, and a veto can never "
+                "change a number."
+            )
         out.append(
-            f"**The audit {'caught ' + str(caught) + ' wrong answer(s)' if caught else 'has not yet caught a wrong answer'}.** "  # noqa: E501
-            f"{text[0].upper()}{text[1:]}. The shipped variant keeps the audit; nothing was "
-            "changed after the freeze."
+            f"**{title}** {text[0].upper()}{text[1:]}. {tail} It ships as is, as frozen before "
+            "the holdout run."
         )
     return out
 
