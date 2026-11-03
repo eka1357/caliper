@@ -8,8 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtPct, variantLabel } from "@/lib/labels";
-import { gateLine, gpsLagNote, h5Line } from "@/lib/proven";
-import { type Benchmark, type FieldRow, calibration, FIELD_SETS, fieldRows, GPS_LAG_PASS, setGateDistance, SPEED_SETS } from "@/lib/results";
+import { gateLine, gpsDisagreeNote, h5Line } from "@/lib/proven";
+import { type Benchmark, type FieldRow, calibration, FIELD_SETS, fieldRows, GPS_DISAGREE_PASSES, setGateDistance, SPEED_SETS } from "@/lib/results";
 
 // Field set on /results. Every value is read from web/public/results.json (eval/report.py over
 // eval/field_results.csv, field_guesses.csv and interval_calibration.csv). Server component.
@@ -60,7 +60,7 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
   const scooterRows = fieldRows(bench, "scooter");
   const gateRows = new Map(fieldRows(bench, "scooter", "study").map((r) => [r.clip_id, r]));
   const gate = gateLine(bench.field, "scooter", setGateDistance(bench, "scooter"));
-  const lag = gpsLagNote(bench.field, GPS_LAG_PASS);
+  const lag = gpsDisagreeNote(bench.field, GPS_DISAGREE_PASSES);
   const h5 = h5Line(bench.field, "scooter");
   const unit = sizeRows[0]?.unit ?? "";
   const variants = ["caliper_no_audit", "caliper"];

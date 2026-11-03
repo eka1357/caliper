@@ -162,14 +162,20 @@ export function gateLine(rows: SpeedRow[], set: string, distanceM: number | null
 }
 
 /**
- * A pass where both methods agree with each other but not with GPS, stated as the human's reading
- * (DECISIONS 2026-11-03: A11 looks like a GPS lag). Numbers come from the rows.
+ * Passes where Caliper and the gate method agree with each other but not with GPS, stated as the
+ * human's observation (DECISIONS 2026-11-03), possibly GPS error. Truth stays as recorded; the
+ * numbers come from the rows.
  */
-export function gpsLagNote(rows: SpeedRow[], clip: string): string | null {
-  const m = rows.find((r) => r.clip_id === clip && r.path === "measure" && r.status === "measured");
-  const g = rows.find((r) => r.clip_id === clip && r.path === "study" && r.status === "measured");
-  if (!m?.pred || !g?.pred || m.truth == null) return null;
-  return `${clip} looks like a GPS lag: Caliper read ${kmh1(m.pred)} km/h and the gate method ${kmh1(g.pred)} km/h, both against GPS ${kmh1(m.truth)} km/h.`;
+export function gpsDisagreeNote(rows: SpeedRow[], clips: readonly string[]): string | null {
+  const parts = clips.flatMap((clip) => {
+    const m = rows.find((r) => r.clip_id === clip && r.path === "measure" && r.status === "measured");
+    const g = rows.find((r) => r.clip_id === clip && r.path === "study" && r.status === "measured");
+    if (!m?.pred || !g?.pred || m.truth == null) return [];
+    return [`${clip}: ${kmh1(m.pred)} and ${kmh1(g.pred)} km/h against GPS ${kmh1(m.truth)}`];
+  });
+  if (parts.length === 0) return null;
+  const who = parts.length === 1 ? "one pass" : `${parts.length} passes`;
+  return `On ${who} Caliper and the gate method agree with each other but not with GPS (${parts.join("; ")}), possibly GPS error. Observation only: the GPS readings stay as recorded.`;
 }
 
 // EVAL_PROTOCOL section 1, claim H5 (pre-registered): median absolute error at most 3 km/h and the

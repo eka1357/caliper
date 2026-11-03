@@ -60,7 +60,7 @@ test("scooter line reads its counts from the summary", () => {
   assert.equal(f.body, "Caliper measured 5 of the 6 passes: median error 7%, GPS inside its 90% range on 5 of 5; it refused 1, with its reason. Muse Spark alone, given the same length, was off by a median 30%, with no range.");
 });
 
-import { gateLine, gateSummary, gpsLagNote } from "../src/lib/proven.ts";
+import { gateLine, gateSummary, gpsDisagreeNote } from "../src/lib/proven.ts";
 
 const kmh = (v) => v / 3.6;
 const study = (clip_id, pred, lo, hi, truth, covered) =>
@@ -77,12 +77,11 @@ test("gate summary reads error, coverage and range width from the rows", () => {
   assert.match(line, /covers only frame timing, gate placement and the tape tolerance \(about ±1\.\d% to 1\.\d%\), so GPS falls inside it on 1 of 3\.$/);
 });
 
-test("GPS lag note states both readings against GPS", () => {
-  const rows = [
-    { clip_id: "A11", set: "scooter", path: "measure", status: "measured", pred: kmh(29.4), lo: null, hi: null, truth: kmh(20), covered: true },
-    study("A11", 31.2, 30.8, 31.8, 20, false),
-  ];
-  assert.equal(gpsLagNote(rows, "A11"), "A11 looks like a GPS lag: Caliper read 29.4 km/h and the gate method 31.2 km/h, both against GPS 20.0 km/h.");
+test("GPS disagreement note lists each pass with both readings against GPS", () => {
+  const meas = (clip_id, pred, truth) => ({ clip_id, set: "scooter", path: "measure", status: "measured", pred: kmh(pred), lo: null, hi: null, truth: kmh(truth), covered: true });
+  const rows = [meas("A11", 29.4, 20), study("A11", 31.2, 30.8, 31.8, 20, false), meas("A15", 34.1, 45), study("A15", 35.2, 34.6, 35.7, 45, false)];
+  assert.equal(gpsDisagreeNote(rows, ["A11", "A15"]),
+    "On 2 passes Caliper and the gate method agree with each other but not with GPS (A11: 29.4 and 31.2 km/h against GPS 20.0; A15: 34.1 and 35.2 km/h against GPS 45.0), possibly GPS error. Observation only: the GPS readings stay as recorded.");
 });
 
 import { h5Line } from "../src/lib/proven.ts";

@@ -122,7 +122,7 @@ def _covered(f: dict) -> str:
 
 
 # Human's reading of the Set A (scooter) results (DECISIONS 2026-11-03); numbers come from the rows.
-GPS_LAG_PASS = "A11"
+GPS_DISAGREE_PASSES = ("A11", "A15")
 
 
 def _kmh(v: float | None) -> str:
@@ -178,16 +178,26 @@ def h5_line(data: dict, set_: str) -> str | None:
     )
 
 
-def gps_lag_note(data: dict, clip: str) -> str | None:
+def gps_disagree_note(data: dict, clips: tuple[str, ...]) -> str | None:
+    """Same sentence as gpsDisagreeNote in web/src/lib/proven.ts (human's observation)."""
     rows = data.get("field", [])
-    m = next((r for r in rows if r["clip_id"] == clip and r["path"] == "measure"
-              and r["status"] == "measured"), None)  # fmt: skip
-    g = next((r for r in rows if r["clip_id"] == clip and r["path"] == "study"
-              and r["status"] == "measured"), None)  # fmt: skip
-    if not m or not g:
+    parts = []
+    for clip in clips:
+        m = next((r for r in rows if r["clip_id"] == clip and r["path"] == "measure"
+                  and r["status"] == "measured"), None)  # fmt: skip
+        g = next((r for r in rows if r["clip_id"] == clip and r["path"] == "study"
+                  and r["status"] == "measured"), None)  # fmt: skip
+        if m and g:
+            parts.append(f"{clip}: {_kmh(m['pred'])} and {_kmh(g['pred'])} km/h against GPS "
+                         f"{_kmh(m['truth'])}")  # fmt: skip
+    if not parts:
         return None
-    return (f"{clip} looks like a GPS lag: Caliper read {_kmh(m['pred'])} km/h and the gate method "
-            f"{_kmh(g['pred'])} km/h, both against GPS {_kmh(m['truth'])} km/h.")  # fmt: skip
+    who = "one pass" if len(parts) == 1 else f"{len(parts)} passes"
+    return (
+        f"On {who} Caliper and the gate method agree with each other but not with GPS "
+        f"({'; '.join(parts)}), possibly GPS error. Observation only: the GPS readings stay "
+        "as recorded."
+    )
 
 
 def scooter_table(data: dict) -> list[str]:
@@ -220,7 +230,7 @@ def scooter_table(data: dict) -> list[str]:
             f"{_kmh(r.get('guess_pred'))} | {_pct(r.get('guess_rel_error'))} |"
         )
     notes = [x for x in (gate_line(data, "scooter"), h5_line(data, "scooter"),
-                         gps_lag_note(data, GPS_LAG_PASS)) if x]  # fmt: skip
+                         gps_disagree_note(data, GPS_DISAGREE_PASSES)) if x]  # fmt: skip
     if notes:
         out += ["", " ".join(notes)]
     return out

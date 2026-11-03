@@ -11,10 +11,10 @@ import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings, heroLine } from "@/lib/findings";
-import { gateLine, gpsLagNote, provenLine, scooterLine } from "@/lib/proven";
+import { gateLine, gpsDisagreeNote, provenLine, scooterLine } from "@/lib/proven";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
-import { fieldRows, GPS_LAG_PASS, loadBenchmark, setGateDistance } from "@/lib/results";
+import { fieldRows, GPS_DISAGREE_PASSES, loadBenchmark, setGateDistance } from "@/lib/results";
 import { SetCRanges } from "@/components/results/SetCRanges";
 import { checkLabel } from "@/lib/labels";
 import { runAssetUrl } from "@/lib/run-assets";
@@ -32,7 +32,7 @@ export default async function Home() {
   const { measured, missed, vetoed, abstained, speedRun } = runs;
   const scooter = scooterLine(bench.field_summary.scooter);
   const gate = gateLine(bench.field, "scooter", setGateDistance(bench, "scooter"));
-  const lag = gpsLagNote(bench.field, GPS_LAG_PASS);
+  const lag = gpsDisagreeNote(bench.field, GPS_DISAGREE_PASSES);
   // A veto shows best what the audit is for; until one is recorded, the hero run's real verdict.
   const audited = vetoed ?? (measured?.result.audit ? measured : null);
   const sizeRows = fieldRows(bench, "size");

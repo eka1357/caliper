@@ -162,8 +162,9 @@ export function setGateDistance(b: Benchmark, set: string): number | null {
   return d.length === 1 ? d[0] : null;
 }
 
-/** Human's reading of the Set A (scooter) results (DECISIONS 2026-11-03): A11 looks like a GPS lag. */
-export const GPS_LAG_PASS = "A11";
+/** Human's observation on Set A (scooter) (DECISIONS 2026-11-03): on these passes Caliper and the
+ * gate method agree with each other but not with GPS, possibly GPS error. Truth stays as recorded. */
+export const GPS_DISAGREE_PASSES = ["A11", "A15"] as const;
 
 /** Field sets whose truth is a GPS speed (m/s in the CSVs). */
 export const SPEED_SETS = new Set(["speed", "scooter"]);
