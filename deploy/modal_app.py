@@ -51,6 +51,8 @@ app = modal.App("caliper-api", image=image)
     volumes={CACHE: volume},
     max_containers=1,
     timeout=600,  # a live study on a 60 s clip can take minutes
+    memory=4096,  # MiB: ffmpeg, OpenCV and the SAM parser workers; the default was killed
+    cpu=2.0,
     scaledown_window=300,
 )
 @modal.concurrent(max_inputs=8)

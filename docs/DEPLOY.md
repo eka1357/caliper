@@ -41,3 +41,9 @@ memory, so a second container would double the caps.
 
 To pause live runs for good after judging: `backend\.venv\Scripts\modal.exe app stop caliper-api`
 (the Vercel site keeps working on cached runs).
+
+## Status (2026-11-04)
+
+- Web: https://caliper-sigma.vercel.app (Vercel project `caliper`, root directory `web`, `.vercelignore` uploads only `web/` and the three eval CSVs; the repo is connected, so a push to main redeploys).
+- API: https://ekavardhan1234--caliper-api-api.us-east.modal.run (health, recorded runs and CORS for the site checked).
+- **Open:** live measure requests are cancelled by Modal at about 145 s (`Received a cancellation signal`), and a cold live measure (spec, SAM, audit) takes longer on the host. Fix: run the measurement as a background job (POST returns a job id, the UI polls), or cut the work per request. Until then the site works on recorded runs only.

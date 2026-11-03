@@ -42,3 +42,9 @@ Thumbs.db
 
 # Private notes and reviews (never committed)
 .private/
+
+# Vercel project link (local only)
+.vercel/
+
+.vercel
+.env*

@@ -1,0 +1,12 @@
+# Upload only what the web build needs (Vercel root directory: web). Everything else stays local:
+# field clips and the API cache (data/), the Python backend, eval scripts and the QuantiPhy clone.
+/*
+!/web
+!/eval
+/web/node_modules
+/web/.next
+/web/.env*
+/eval/*
+!/eval/results.csv
+!/eval/paired_results.csv
+!/eval/field_results.csv

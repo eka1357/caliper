@@ -8,7 +8,7 @@ New against Tracker, MotionLab, VeloCV and Speedcam Anywhere (see Prior art): a 
 
 Built during the Meta Global AI Developer Hackathon (building period Oct 27 to Nov 4 2026), Indie track.
 
-**Live demo:** _URL added after deploy (docs/DEPLOY.md)._ The recorded example runs work without the backend; live runs are on for judging, inside hard spend caps.
+**Live demo:** https://caliper-sigma.vercel.app. The recorded runs (every measurement and street study shown on the site) work there. Live runs on your own clip are not working yet on the hosted backend: a cold live measurement takes longer than the host's request time limit, so it is cut off (docs/DEPLOY.md).
 
 ## Why
 
