@@ -3,7 +3,8 @@
 Every live request passes `Caps.admit` before any API call: live runs enabled, clip length,
 per-IP runs per hour, the cost estimate against the per-run (or per-study) cap, and the day's
 remaining budget (spend so far plus estimates of runs still in flight). After the run,
-`Caps.settle` records the actual cost in the daily ledger. Cached runs never come here.
+`Caps.settle` records the actual cost in the daily ledger: only the API calls the run made
+(`spend_since`), so calls answered from the disk cache count $0. Cached runs never come here.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from pathlib import Path
 from typing import Literal
 
 from caliper import config
+from caliper.meta_client import muse_cost_usd
 
 Kind = Literal["measure", "study", "guess"]
 
@@ -61,6 +63,24 @@ def estimate_cost(kind: Kind, frames: int, vehicle_classes: int = 3) -> float:
     if kind == "study":
         return sam * vehicle_classes + muse  # audit spot check on a vehicle sample
     return sam * config.LIVE_SAM_CONCEPTS + muse * config.MUSE_CALLS_PER_MEASURE
+
+
+def api_cache_files() -> set[Path]:
+    """Every API response record in the disk cache; snapshot it before a live run."""
+    return set((config.CACHE_DIR / "api").glob("*/*.json"))
+
+
+def spend_since(before: set[Path], frames: int) -> float:
+    """Real spend of one run: the API records it added to the cache. A cache hit adds none, so it
+    costs $0. Muse Spark calls at their token usage; each SAM request bills every frame."""
+    cost = 0.0
+    for p in api_cache_files() - before:
+        rec = json.loads(p.read_text(encoding="utf-8"))
+        if rec["kind"] == "responses":
+            cost += muse_cost_usd(rec["usage"])
+        elif rec["kind"] == "sam":
+            cost += config.SAM_USD_PER_FRAME * frames
+    return cost
 
 
 class SpendLedger:

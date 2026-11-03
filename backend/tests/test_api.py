@@ -3,20 +3,26 @@
 The pipeline, guess and ffprobe are replaced with fakes: no network, no video decoding.
 """
 
+import json
 import time
+import uuid
 
 import pytest
 from fastapi.testclient import TestClient
 
 from caliper import api, config, runs
 from caliper.caps import Caps, CapSettings, SpendLedger
+from caliper.meta_client import muse_cost_usd
 from tests.test_runs import meta, result
+
+USAGE = {"input_tokens": 10_000, "output_tokens": 2_000}
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "API_RUNS_DIR", tmp_path / "api_runs")
     monkeypatch.setattr(config, "RUNS_DIR", tmp_path / "runs")
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path / "cache")
     monkeypatch.setattr(api, "probe", lambda path: {"fps": 30.0, "frames": 90})
     settings = CapSettings(enabled=True, max_clip_s=15, max_study_s=60, per_ip_per_hour=1,
                            per_run_usd=0.5, per_study_usd=1.5, daily_usd=5.0)  # fmt: skip
@@ -24,9 +30,14 @@ def client(tmp_path, monkeypatch):
     runs.save_cached_run("placeholder-measured", "measure", result("placeholder-measured"), {},
                          meta(), root=tmp_path / "runs")  # fmt: skip
     calls = []
+    new_records: list[dict] = [{"kind": "responses", "usage": USAGE}]  # API calls the run makes
 
     def fake_measure(path, question, prior, **kw):
         calls.append(kw)
+        for rec in new_records:  # what meta_client would write on a cache miss
+            d = config.CACHE_DIR / "api" / "ab"
+            d.mkdir(parents=True, exist_ok=True)
+            (d / f"{uuid.uuid4().hex}.json").write_text(json.dumps(rec), encoding="utf-8")
         r = result(kw["run_id"])
         r.cost_usd = 0.07
         r.artifacts["overlay"] = {"frames": [], "fit": [], "speed": []}
@@ -35,6 +46,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(api.pipeline, "measure", fake_measure)
     with TestClient(api.app) as c:
         c.calls = calls
+        c.new_records = new_records
+        c.ledger = SpendLedger(tmp_path / "spend")
         yield c
 
 
@@ -62,6 +75,23 @@ def test_live_measure_uses_live_bootstrap_and_run_shape(client):
     assert client.calls[0]["bootstrap_b"] == config.LIVE_BOOTSTRAP_B
     assert client.calls[0]["with_overlay"] is True
     assert SpendLedger(config.API_RUNS_DIR.parent / "spend").total(time.time()) > 0
+
+
+def test_ledger_counts_only_api_calls_made(client):
+    """A Muse call and a SAM request made by the run are settled at their real cost; a run whose
+    calls all came from the disk cache settles $0 even though result.cost_usd (from-scratch
+    cost, 0.07 here) is not zero."""
+    client.new_records[:] = [{"kind": "responses", "usage": USAGE}, {"kind": "sam"}]
+    assert post(client).status_code == 200
+    made = muse_cost_usd(USAGE) + 90 * config.SAM_USD_PER_FRAME  # fake probe: 90 frames
+    assert client.ledger.total(time.time()) == pytest.approx(made)
+
+
+def test_disk_cache_hits_settle_zero(client):
+    client.new_records.clear()  # every API call answered from data/cache: nothing new written
+    assert post(client).status_code == 200
+    assert len(client.calls) == 1
+    assert client.ledger.total(time.time()) == 0.0
 
 
 def test_cache_hit_is_free_and_not_rate_limited(client):

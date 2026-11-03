@@ -15,7 +15,6 @@ Tools return the pydantic models from caliper.models (Result, StudySummary) as s
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
 from pathlib import Path
@@ -25,8 +24,7 @@ from pydantic import BaseModel, Field
 
 from caliper import config, pipeline, segment
 from caliper import study as study_math
-from caliper.caps import CapError, Caps, estimate_cost
-from caliper.meta_client import muse_cost_usd
+from caliper.caps import CapError, Caps, api_cache_files, estimate_cost, spend_since
 from caliper.models import Result, StudySummary, VehicleReading
 from caliper.normalize import normalize, probe
 
@@ -85,22 +83,6 @@ def _clip(video_path: str) -> tuple[Path, float, int]:
     return path, (frames / fps if fps else 0.0), frames
 
 
-def _cache_files() -> set[Path]:
-    return set((config.CACHE_DIR / "api").glob("*/*.json"))
-
-
-def _new_spend(before: set[Path], frames: int) -> float:
-    """Real spend of one call: the API records it added to the cache (cache hits cost nothing)."""
-    cost = 0.0
-    for p in _cache_files() - before:
-        rec = json.loads(p.read_text(encoding="utf-8"))
-        if rec["kind"] == "responses":
-            cost += muse_cost_usd(rec["usage"])
-        elif rec["kind"] == "sam":
-            cost += segment.sam_cost_usd(frames)  # every SAM request bills all frames
-    return cost
-
-
 def _refusal(exc: CapError) -> ValueError:
     return ValueError(f"{exc.code}: {exc.message}")
 
@@ -115,14 +97,14 @@ def measure(video_path: str, question: str, prior: str | None = None) -> Result:
         ticket = caps().admit("measure", CALLER, duration, frames)
     except CapError as exc:
         raise _refusal(exc) from exc
-    before = _cache_files()
+    before = api_cache_files()
     try:
         result = pipeline.measure(
             path, question, prior, run_id=f"mcp-{uuid.uuid4().hex[:12]}",
             bootstrap_b=config.LIVE_BOOTSTRAP_B,
         )  # fmt: skip
     finally:
-        cost = _new_spend(before, int(probe(normalize(path))["frames"]))
+        cost = spend_since(before, int(probe(normalize(path))["frames"]))
         caps().settle(ticket, cost)
     log.info("mcp measure %s: %s, $%.4f", result.run_id, result.status, cost)
     return result
@@ -152,7 +134,7 @@ def study(
         ticket = caps().admit("study", CALLER, duration, frames)
     except CapError as exc:
         raise _refusal(exc) from exc
-    before, cost, n = _cache_files(), 0.0, frames
+    before, cost, n = api_cache_files(), 0.0, frames
     try:
         video = normalize(path)
         info = probe(video)
@@ -169,7 +151,7 @@ def study(
         run_id = f"mcp-study-{uuid.uuid4().hex[:12]}"
         summary = study_math.summarize(readings, run_id, distance_m, n / fps, speed_limit_kmh)
     finally:
-        cost = _new_spend(before, n)
+        cost = spend_since(before, n)
         caps().settle(ticket, cost)
     log.info("mcp study %s: %d of %d measured, $%.4f", summary.run_id,
              summary.vehicles_measured, summary.vehicles_seen, cost)  # fmt: skip

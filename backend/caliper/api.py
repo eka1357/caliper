@@ -1,8 +1,10 @@
 """FastAPI app (ARCHITECTURE section 10): cached runs for replay, capped live runs.
 
 Live endpoints (measure, guess) check caps.Caps before any API call. Cached demo runs and
-API-run cache hits never count against the caps. Measure responses use the cached-run shape
-(runs.CachedRun) so the UI renders live and recorded runs the same way.
+API-run cache hits never count against the caps, and only the API calls a live run actually
+makes are settled into the daily ledger (caps.spend_since): disk-cache hits cost $0. Measure
+responses use the cached-run shape (runs.CachedRun) so the UI renders live and recorded runs
+the same way.
 
   uvicorn caliper.api:app --port 8000
 """
@@ -27,7 +29,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from caliper import config, guess, pipeline, runs
-from caliper.caps import CapError, Caps
+from caliper.caps import CapError, Caps, api_cache_files, spend_since
 from caliper.models import Result
 from caliper.normalize import normalize, probe
 
@@ -139,17 +141,18 @@ def _measure_live(
 ) -> Result:
     caps: Caps = app.state.caps
     ticket = caps.admit("measure", *ticket_args)
-    run_id, t0, cost = f"live-{uuid.uuid4().hex[:12]}", time.perf_counter(), 0.0
+    run_id, t0, before = f"live-{uuid.uuid4().hex[:12]}", time.perf_counter(), api_cache_files()
     try:
         result = pipeline.measure(
             path, question, prior, run_id=run_id, bootstrap_b=config.LIVE_BOOTSTRAP_B,
             with_overlay=True,
         )  # fmt: skip
-        cost = result.cost_usd
     except Exception as exc:
         log.exception("live measure %s failed", run_id)
         raise ApiError(500, "error", "Something broke on our side.") from exc
     finally:
+        # only the API calls this run made; disk-cache hits cost $0 (same rule as mcp_server)
+        cost = spend_since(before, ticket_args[2])
         caps.settle(ticket, cost)
     result.timings_ms["total"] = round((time.perf_counter() - t0) * 1000)
     log.info("live measure %s: %s, $%.4f", run_id, result.status, cost)
@@ -196,16 +199,15 @@ def guess_endpoint(
         duration, frames = _probe(path)
         caps: Caps = app.state.caps
         ticket = caps.admit("guess", _ip(request), duration, frames)
-        cost = 0.0
+        before = api_cache_files()
         try:
             out, info = guess.guess(normalize(path), question, prior=prior or None)
-            cost = info["cost_usd"]
         except Exception as exc:
             log.exception("live guess failed")
             raise ApiError(500, "error", "Something broke on our side.") from exc
         finally:
-            caps.settle(ticket, cost)
-    body = {**out, "cost_usd": cost}
+            caps.settle(ticket, spend_since(before, frames))
+    body = {**out, "cost_usd": info["cost_usd"]}
     _cache_put(key, body)
     return body
 
