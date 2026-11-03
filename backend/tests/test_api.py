@@ -220,3 +220,32 @@ def test_study_cost_cap_counts_every_vehicle_class(study_client, monkeypatch):
     r = post_study(study_client)
     assert r.status_code == 429 and r.json()["code"] == "run_cost_cap"
     assert study_client.study_calls == []
+
+
+def test_slow_live_run_returns_a_job_and_the_page_polls_for_it(client, monkeypatch):
+    """A run longer than the request window answers 202 {job_id}; GET /api/jobs/{id} gives the
+    result once done, and the finished run is cached so a repeat is a free hit."""
+    import threading
+
+    gate = threading.Event()
+    real = api.pipeline.measure
+
+    def slow_measure(*a, **kw):
+        gate.wait(5)
+        return real(*a, **kw)
+
+    monkeypatch.setattr(api.pipeline, "measure", slow_measure)
+    monkeypatch.setattr(api, "SYNC_WAIT_S", 0.05)
+    r = post(client)
+    assert r.status_code == 202
+    job = r.json()["job_id"]
+    assert client.get(f"/api/jobs/{job}").json()["status"] == "running"
+    gate.set()
+    for _ in range(100):
+        j = client.get(f"/api/jobs/{job}").json()
+        if j["status"] != "running":
+            break
+        time.sleep(0.05)
+    assert j["status"] == "done" and j["result"]["kind"] == "measure"
+    assert post(client).status_code == 200  # cached: answered directly, no new job
+    assert client.get("/api/jobs/unknown").status_code == 404

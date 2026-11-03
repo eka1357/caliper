@@ -65,6 +65,9 @@ def api():
 
     from caliper.api import app as fastapi_app
 
+    # live runs finish in a background job after their request returned: commit then too
+    fastapi_app.state.on_job_done = volume.commit
+
     @fastapi_app.middleware("http")
     async def commit_volume(request, call_next):
         response = await call_next(request)

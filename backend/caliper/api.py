@@ -14,10 +14,12 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import shutil
 import tempfile
+import threading
 import time
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any
@@ -159,6 +161,74 @@ def _measure_live(
     return result
 
 
+# ---- Live runs as jobs. A cold live run (spec, SAM, audit) can outlast the host's request window
+# (Modal cancels an ASGI request after about 150 s), so every live run executes in a background
+# thread. The request waits up to SYNC_WAIT_S for it: cache hits, cap refusals and quick runs answer
+# as before; a longer run returns 202 {job_id} and the page polls GET /api/jobs/{job_id}.
+SYNC_WAIT_S = 100.0
+JOBS: dict[str, dict[str, Any]] = {}
+_JOBS_LOCK = threading.Lock()
+
+
+def _keep_upload(path: Path) -> Path:
+    """Copy the upload out of the request's temp folder so the job can still read it."""
+    d = config.CACHE_DIR / "jobs"
+    d.mkdir(parents=True, exist_ok=True)
+    kept = d / f"{uuid.uuid4().hex}{path.suffix}"
+    shutil.copyfile(path, kept)
+    return kept
+
+
+def _run_job(kind: str, key: str, work: Callable[[], dict[str, Any]], kept: Path) -> Any:
+    job_id = uuid.uuid4().hex[:16]
+    job: dict[str, Any] = {"job_id": job_id, "kind": kind, "status": "running",
+                           "started": time.time()}  # fmt: skip
+    with _JOBS_LOCK:
+        JOBS[job_id] = job
+
+    def target() -> None:
+        try:
+            body = work()
+            _cache_put(key, body)
+            job.update(status="done", result=body)
+        except (ApiError, CapError) as exc:
+            job.update(status="error", error=exc)
+        except Exception:  # never a fake number: the page shows the generic error
+            log.exception("live %s job %s failed", kind, job_id)
+            job.update(status="error", error=ApiError(500, "error", "Something broke on our side."))
+        finally:
+            kept.unlink(missing_ok=True)
+            if (hook := getattr(app.state, "on_job_done", None)) is not None:
+                hook()  # the host commits its cache volume here
+
+    t = threading.Thread(target=target, name=f"job-{job_id}", daemon=True)
+    t.start()
+    t.join(SYNC_WAIT_S)
+    if job["status"] == "done":
+        return job["result"]
+    if job["status"] == "error":
+        raise job["error"]
+    return JSONResponse(status_code=202, content={"job_id": job_id, "kind": kind,
+                                                  "status": "running"})  # fmt: skip
+
+
+@app.get("/api/jobs/{job_id}")
+def get_job(job_id: str) -> dict[str, Any]:
+    job = JOBS.get(job_id)
+    if job is None:
+        raise ApiError(
+            404, "job_not_found", "That live run is not known here (it may have expired)."
+        )
+    out: dict[str, Any] = {"job_id": job_id, "kind": job["kind"], "status": job["status"],
+                           "elapsed_s": round(time.time() - job["started"], 1)}  # fmt: skip
+    if job["status"] == "done":
+        out["result"] = job["result"]
+    elif job["status"] == "error":
+        e = job["error"]
+        out["error"] = {"code": e.code, "message": e.message, "status": e.status}
+    return out
+
+
 @app.post("/api/measure")
 def measure(
     request: Request,
@@ -173,14 +243,17 @@ def measure(
         if (hit := _cache_get(key)) is not None:
             return hit  # cache hit: free, never counted
         duration, frames = _probe(path)
-        result = _measure_live(path, question, prior, (_ip(request), duration, frames))
-    ov = result.artifacts.pop("overlay", {})
-    meta = runs.RunMeta(title="Your clip", question=question, source="live", placeholder=False,
-                        clip=None, poster=None)  # fmt: skip
-    body = runs.CachedRun(kind="measure", meta=meta, result=result.model_dump(mode="json"),
-                          overlay=ov).model_dump(mode="json")  # fmt: skip
-    _cache_put(key, body)
-    return body
+        kept, ticket_args = _keep_upload(path), (_ip(request), duration, frames)
+
+    def work() -> dict[str, Any]:
+        result = _measure_live(kept, question, prior, ticket_args)
+        ov = result.artifacts.pop("overlay", {})
+        meta = runs.RunMeta(title="Your clip", question=question, source="live",
+                            placeholder=False, clip=None, poster=None)  # fmt: skip
+        return runs.CachedRun(kind="measure", meta=meta, result=result.model_dump(mode="json"),
+                              overlay=ov).model_dump(mode="json")  # fmt: skip
+
+    return _run_job("measure", key, work, kept)
 
 
 @app.post("/api/guess")
@@ -284,14 +357,17 @@ def study(
         if (hit := _cache_get(key)) is not None:
             return hit
         duration, frames = _probe(path)
-        result, overlay = _study_live(path, gates, gate_distance_m, speed_limit_kmh, size,
-                                      (_ip(request), duration, frames))  # fmt: skip
-    meta = runs.RunMeta(title="Your street clip", question="Speed between the two gate lines",
-                        source="live", placeholder=False, clip=None, poster=None)  # fmt: skip
-    body = runs.CachedRun(kind="study", meta=meta, result=result,
-                          overlay=overlay).model_dump(mode="json")  # fmt: skip
-    _cache_put(key, body)
-    return body
+        kept, ticket_args = _keep_upload(path), (_ip(request), duration, frames)
+
+    def work() -> dict[str, Any]:
+        result, overlay = _study_live(kept, gates, gate_distance_m, speed_limit_kmh, size,
+                                      ticket_args)  # fmt: skip
+        meta = runs.RunMeta(title="Your street clip", question="Speed between the two gate lines",
+                            source="live", placeholder=False, clip=None, poster=None)  # fmt: skip
+        return runs.CachedRun(kind="study", meta=meta, result=result,
+                              overlay=overlay).model_dump(mode="json")  # fmt: skip
+
+    return _run_job("study", key, work, kept)
 
 
 @app.get("/api/results")

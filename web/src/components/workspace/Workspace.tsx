@@ -1,5 +1,6 @@
 "use client";
 
+import { LiveWait } from "@/components/site/LiveWait";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -170,15 +171,7 @@ function Status({ phase, onRetry }: { phase: Phase; onRetry: () => void }) {
         </div>
       )}
       {phase.kind === "working" && (
-        <div className="flex flex-col gap-1 rounded-lg border bg-card px-4 py-3 text-sm">
-          <p>{COPY.preparing}</p>
-          <ol className="list-inside list-decimal text-muted-foreground">
-            {LIVE_STEPS.slice(1).map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
-          <p className="text-xs text-muted-foreground">A live run takes about a minute.</p>
-        </div>
+        <LiveWait steps={LIVE_STEPS} />
       )}
       {phase.kind === "cap" && (
         <div className="rounded-lg border bg-card px-4 py-3 text-sm">

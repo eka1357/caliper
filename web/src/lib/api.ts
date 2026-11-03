@@ -132,6 +132,35 @@ export function study(
   return upload<CachedStudyRun>("/api/study", body, onUpload, signal);
 }
 
+interface JobStatus<T> {
+  status: "running" | "done" | "error";
+  result?: T;
+  error?: ApiErrorBody & { status: number };
+}
+
+/** Poll GET /api/jobs/{id} every 3 s until the live run is done (or fails, or is cancelled). */
+async function pollJob<T>(jobId: string, signal?: AbortSignal): Promise<T> {
+  let misses = 0;
+  for (;;) {
+    await new Promise((r) => setTimeout(r, 3000));
+    if (signal?.aborted) throw new ApiError(0, { code: "aborted", message: "Cancelled." });
+    let job: JobStatus<T>;
+    try {
+      job = await getJson<JobStatus<T>>(`${API_URL}/api/jobs/${encodeURIComponent(jobId)}`);
+      misses = 0;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 404) throw e;
+      if (++misses > 10) throw new ApiError(0, { code: "network", message: "Something broke on our side." });
+      continue; // a dropped poll is retried
+    }
+    if (job.status === "done" && job.result) return job.result;
+    if (job.status === "error") {
+      const err = job.error ?? { code: "error", message: "Something broke on our side.", status: 500 };
+      throw new ApiError(err.status, { code: err.code, message: err.message });
+    }
+  }
+}
+
 function upload<T>(
   path: string,
   body: FormData,
@@ -147,7 +176,10 @@ function upload<T>(
     };
     xhr.onload = () => {
       const body = xhr.response as unknown;
-      if (xhr.status >= 200 && xhr.status < 300) resolve(body as T);
+      // 202: the run outlasts the host's request window; it continues as a job, poll for it.
+      const job = xhr.status === 202 ? (body as { job_id?: string } | null)?.job_id : undefined;
+      if (job) pollJob<T>(job, signal).then(resolve, reject);
+      else if (xhr.status >= 200 && xhr.status < 300) resolve(body as T);
       else
         reject(
           new ApiError(

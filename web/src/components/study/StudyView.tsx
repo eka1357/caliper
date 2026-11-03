@@ -1,5 +1,6 @@
 "use client";
 
+import { LiveWait } from "@/components/site/LiveWait";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
@@ -14,6 +15,14 @@ import { STUDY_COPY } from "./copy";
 import { defaultGates, type Gates, GateStage } from "./GateStage";
 import { SpeedHistogram } from "./SpeedHistogram";
 import { StudySummaryCard } from "./StudySummaryCard";
+
+/** The order a live study works in on the server (listed while waiting; not live-tracked). */
+const STUDY_STEPS = [
+  "Preparing the video",
+  "SAM 3.1 tracks each vehicle class (car, motorcycle, auto rickshaw, bus)",
+  "Python times each vehicle between the gate lines, with its 90% range",
+  "Median, 85th percentile and its range",
+] as const;
 
 type Phase =
   | { kind: "idle" }
@@ -198,7 +207,7 @@ export function StudyView() {
                 <Progress value={phase.n} aria-label="Upload progress" />
               </div>
             )}
-            {phase.kind === "working" && <p className="text-sm">{COPY.preparing}</p>}
+            {phase.kind === "working" && <LiveWait steps={STUDY_STEPS} />}
             {phase.kind === "cap" && (
               <div className="rounded-lg border bg-card px-4 py-3 text-sm">
                 <p>Live studies are paused for now.</p>
