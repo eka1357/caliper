@@ -1,5 +1,5 @@
 {
-  "note": "Gate lines for the street speed study, drawn on frame 0 of the normalized video only, and committed before any study run is scored. Set A as first filmed (A01-A10, car) has no gates: it breaks the same-plane rule (markers on the far kerb). S01 has no gates: no pair of marks 10 m apart is visible in a lane where vehicles can be tracked (DECISIONS 2026-11-02). Set A (scooter, A11-A16, 2026-11-03): one pair of gates for all six clips (the camera did not move: phase correlation of frame 0 against A11 under 1 px), vertical lines through the start (left wall, x=200) and end (right post, x=1010) of the shop row. PROVISIONAL: distance_m 7.92 (26 ft) was taped along the shop fronts, not along the riding line, which is about 7% closer to the camera, so speeds from these gates are expected to read high. The riding-line distance is re-measured on 2026-11-04 and the study is rerun from cache (DECISIONS 2026-11-03).",
+  "note": "Gate lines for the street speed study, drawn on frame 0 of the normalized video only, and committed before any study run is scored. Set A as first filmed (A01-A10, car) has no gates: it breaks the same-plane rule (markers on the far kerb). S01 has no gates: no pair of marks 10 m apart is visible in a lane where vehicles can be tracked (DECISIONS 2026-11-02). Set A (scooter, A11-A16, 2026-11-03): one pair of gates for all six clips (the camera did not move: phase correlation of frame 0 against A11 under 1 px), vertical lines through the start (left wall, x=200) and end (right post, x=1010) of the shop row. distance_m 7.92 (26 ft) taped on the riding line, the same as along the shop fronts (human, 2026-11-03); the earlier provisional label and its expected high bias are withdrawn (DECISIONS 2026-11-03).",
   "frame": 0,
   "video_size": [
     1280,
@@ -29,8 +29,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     },
     "A12": {
       "gate_a": [
@@ -55,8 +54,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     },
     "A13": {
       "gate_a": [
@@ -81,8 +79,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     },
     "A14": {
       "gate_a": [
@@ -107,8 +104,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     },
     "A15": {
       "gate_a": [
@@ -133,8 +129,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     },
     "A16": {
       "gate_a": [
@@ -159,8 +154,7 @@
       ],
       "distance_m": 7.92,
       "vehicle_phrase": "scooter",
-      "provisional": true,
-      "distance_source": "tape along the shop fronts, 26 ft; riding line about 7% closer to the camera (expected high bias)"
+      "distance_source": "tape on the riding line, 26 ft (same as along the shop fronts)"
     }
   }
 }
