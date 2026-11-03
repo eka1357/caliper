@@ -61,5 +61,59 @@
   "source": "field",
   "placeholder": false,
   "created_utc": "2026-11-03T13:39:21+00:00"
+ },
+ {
+  "run_id": "study-a11",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A11)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:58:08+00:00"
+ },
+ {
+  "run_id": "study-a12",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A12)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:58:19+00:00"
+ },
+ {
+  "run_id": "study-a13",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A13)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:58:30+00:00"
+ },
+ {
+  "run_id": "study-a14",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A14)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:58:40+00:00"
+ },
+ {
+  "run_id": "study-a15",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A15)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:58:51+00:00"
+ },
+ {
+  "run_id": "study-a16",
+  "kind": "study",
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A16)",
+  "status": "",
+  "source": "field",
+  "placeholder": false,
+  "created_utc": "2026-11-03T14:59:06+00:00"
  }
 ]

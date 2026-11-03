@@ -1,0 +1,113 @@
+{
+ "schema_version": 1,
+ "kind": "study",
+ "meta": {
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A11)",
+  "question": "Speed between the two gate lines",
+  "source": "field",
+  "placeholder": false,
+  "notes": "Field clip from Set A (scooter), truth from a GPS app. Faces at the shops, the rider and the number plates are blurred.",
+  "created_utc": "2026-11-03T14:58:08+00:00",
+  "clip": "clip.mp4",
+  "poster": "poster.jpg",
+  "instrument": {
+   "value": 20.0,
+   "unit": "km/h",
+   "instrument": "GPS app reading 20 km/h"
+  },
+  "keyframes": null
+ },
+ "result": {
+  "run_id": "study-a11",
+  "gate_distance_m": 7.92,
+  "duration_s": 3.3,
+  "vehicles_seen": 2,
+  "vehicles_measured": 1,
+  "median_kmh": 31.184323256873764,
+  "p85_kmh": 31.184323256873764,
+  "p85_interval_90_kmh": [
+   31.184323256873764,
+   31.184323256873764
+  ],
+  "speed_limit_kmh": null,
+  "share_over_limit": null,
+  "readings": [
+   {
+    "vehicle_id": "A11-v0",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A11-v1",
+    "vehicle_class": "scooter",
+    "status": "measured",
+    "speed_kmh": 31.184323256873764,
+    "interval_90_kmh": [
+     30.833628770651494,
+     31.75744267987279
+    ],
+    "t_gate_a_s": 1.8622222222222222,
+    "t_gate_b_s": 0.9479166666666666,
+    "reason": null
+   }
+  ]
+ },
+ "overlay": {
+  "fps": 60.0,
+  "width": 1280,
+  "height": 720,
+  "gate_a": [
+   [
+    200,
+    0
+   ],
+   [
+    200,
+    720
+   ]
+  ],
+  "gate_b": [
+   [
+    1010,
+    0
+   ],
+   [
+    1010,
+    720
+   ]
+  ],
+  "vehicles": [
+   {
+    "vehicle_id": "A11-v0",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A11-v1",
+    "crossings": [
+     {
+      "frame": 112,
+      "path": "M196.0 451.0L394.0 451.0L394.0 558.0L196.0 558.0Z",
+      "anchor": [
+       196.0,
+       443.0
+      ]
+     },
+     {
+      "frame": 57,
+      "path": "M1008.0 438.0L1224.0 438.0L1224.0 568.0L1008.0 568.0Z",
+      "anchor": [
+       1008.0,
+       430.0
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "guess": null
+}

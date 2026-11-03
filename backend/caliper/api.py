@@ -28,8 +28,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from caliper import config, guess, pipeline, runs
-from caliper.caps import CapError, Caps, api_cache_files, spend_since
+from caliper import config, guess, pipeline, runs, study_live
+from caliper.caps import CapError, Caps, api_cache_files, estimate_cost, spend_since
 from caliper.models import Result
 from caliper.normalize import normalize, probe
 
@@ -212,9 +212,86 @@ def guess_endpoint(
     return body
 
 
+def _gate(raw: str, name: str) -> study_live.Gate:
+    """A gate line from the form: JSON [[x, y], [x, y]] in the pixels of the drawn frame."""
+    try:
+        (x0, y0), (x1, y1) = json.loads(raw)
+        gate = ((float(x0), float(y0)), (float(x1), float(y1)))
+    except (ValueError, TypeError) as exc:
+        raise ApiError(400, "bad_gate", f"{name} must be two points, [[x, y], [x, y]].") from exc
+    if gate[0] == gate[1]:
+        raise ApiError(400, "bad_gate", f"{name} needs two different points.")
+    return gate
+
+
+def _study_live(
+    path: Path,
+    gates: tuple[study_live.Gate, study_live.Gate],
+    distance_m: float,
+    limit: float | None,
+    frame_size: tuple[float, float] | None,
+    ticket_args: tuple[str, float, int],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Same caps as a live measure, checked before any API call (AGENTS rule 14). The per-study
+    estimate counts every vehicle class (Caps.admit assumes three)."""
+    caps: Caps = app.state.caps
+    classes = study_live.VEHICLE_CLASSES
+    est = estimate_cost("study", ticket_args[2], len(classes))
+    if est > caps.settings.per_study_usd:
+        cap = caps.settings.per_study_usd
+        raise CapError(
+            "run_cost_cap", f"This study would cost about ${est:.2f}, above the ${cap:.2f} cap."
+        )
+    ticket = caps.admit("study", *ticket_args)
+    run_id, t0, before = (
+        f"live-study-{uuid.uuid4().hex[:12]}",
+        time.perf_counter(),
+        api_cache_files(),
+    )
+    try:
+        summary, overlay = study_live.run_study(path, gates[0], gates[1], distance_m, run_id,
+                                                classes, limit, frame_size)  # fmt: skip
+    except Exception as exc:
+        log.exception("live study %s failed", run_id)
+        raise ApiError(500, "error", "Something broke on our side.") from exc
+    finally:
+        cost = spend_since(before, ticket_args[2])  # only the API calls this study made
+        caps.settle(ticket, cost)
+    log.info("live study %s: %d of %d measured, $%.4f, %.0f ms", run_id,
+             summary.vehicles_measured, summary.vehicles_seen, cost,
+             (time.perf_counter() - t0) * 1000)  # fmt: skip
+    return summary.model_dump(mode="json"), overlay
+
+
 @app.post("/api/study")
-def study() -> dict[str, Any]:
-    raise ApiError(503, "study_unavailable", "The street speed study isn't built yet.")
+def study(
+    request: Request,
+    video: Annotated[UploadFile, File()],
+    gate_a: Annotated[str, Form(max_length=200)],
+    gate_b: Annotated[str, Form(max_length=200)],
+    gate_distance_m: Annotated[float, Form(gt=0, le=500)],
+    speed_limit_kmh: Annotated[float | None, Form(gt=0, le=200)] = None,
+    frame_width: Annotated[float | None, Form(gt=0)] = None,
+    frame_height: Annotated[float | None, Form(gt=0)] = None,
+) -> dict[str, Any]:
+    """Live street study: SAM per vehicle class, the gate method in study.py. Cached by clip,
+    gates, distance and limit; a cache hit is free and never counted."""
+    gates = (_gate(gate_a, "gate_a"), _gate(gate_b, "gate_b"))
+    size = (frame_width, frame_height) if frame_width and frame_height else None
+    with _saved_upload(video) as (path, sha):
+        key = _run_key("study", sha, json.dumps(gates), str(gate_distance_m),
+                       str(speed_limit_kmh), json.dumps(size))  # fmt: skip
+        if (hit := _cache_get(key)) is not None:
+            return hit
+        duration, frames = _probe(path)
+        result, overlay = _study_live(path, gates, gate_distance_m, speed_limit_kmh, size,
+                                      (_ip(request), duration, frames))  # fmt: skip
+    meta = runs.RunMeta(title="Your street clip", question="Speed between the two gate lines",
+                        source="live", placeholder=False, clip=None, poster=None)  # fmt: skip
+    body = runs.CachedRun(kind="study", meta=meta, result=result,
+                          overlay=overlay).model_dump(mode="json")  # fmt: skip
+    _cache_put(key, body)
+    return body
 
 
 @app.get("/api/results")

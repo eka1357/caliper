@@ -134,4 +134,89 @@ def test_other_backend_and_study(client):
     r = client.post("/api/measure", data={"question": "How fast?", "backend": "x"},
                     files={"video": ("c.mp4", b"v", "video/mp4")})  # fmt: skip
     assert r.status_code == 400
-    assert client.post("/api/study").status_code == 503
+    assert client.post("/api/study").status_code == 422  # built now: missing fields are refused
+
+
+# ---- POST /api/study (study_live.run_study replaced: no SAM, no video decoding) ----
+
+GATES = {"gate_a": "[[200, 0], [200, 720]]", "gate_b": "[[1010, 0], [1010, 720]]"}
+
+
+@pytest.fixture
+def study_client(client, monkeypatch):
+    from caliper.models import StudySummary, VehicleReading
+
+    calls = []
+
+    def fake_run_study(path, gate_a, gate_b, distance_m, run_id, classes, limit, frame_size):
+        calls.append({"gates": (gate_a, gate_b), "distance": distance_m, "classes": classes,
+                      "limit": limit, "frame_size": frame_size})  # fmt: skip
+        d = config.CACHE_DIR / "api" / "cd"  # one SAM request made by this study
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{uuid.uuid4().hex}.json").write_text(json.dumps({"kind": "sam"}), encoding="utf-8")
+        r = VehicleReading(vehicle_id="car-0", vehicle_class="car", status="measured",
+                           speed_kmh=30.0, interval_90_kmh=(29.5, 30.5), t_gate_a_s=0.5,
+                           t_gate_b_s=1.45, reason=None)  # fmt: skip
+        s = StudySummary(run_id=run_id, gate_distance_m=distance_m, duration_s=3.0,
+                         vehicles_seen=1, vehicles_measured=1, median_kmh=30.0, p85_kmh=30.0,
+                         p85_interval_90_kmh=(29.5, 30.5), speed_limit_kmh=limit,
+                         share_over_limit=None, readings=[r])  # fmt: skip
+        return s, {"fps": 30.0, "width": 1280, "height": 720, "gate_a": [[200, 0], [200, 720]],
+                   "gate_b": [[1010, 0], [1010, 720]], "vehicles": []}  # fmt: skip
+
+    monkeypatch.setattr(api.study_live, "run_study", fake_run_study)
+    client.study_calls = calls
+    return client
+
+
+def post_study(c, data=b"street-bytes", **extra):
+    form = {**GATES, "gate_distance_m": "7.92", **extra}
+    return c.post("/api/study", data=form, files={"video": ("street.mp4", data, "video/mp4")})
+
+
+def test_live_study_returns_a_study_run_and_settles_only_calls_made(study_client):
+    r = post_study(study_client, speed_limit_kmh="30", frame_width="3840", frame_height="2160")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["kind"] == "study" and body["meta"]["source"] == "live"
+    assert body["result"]["vehicles_measured"] == 1 and body["result"]["speed_limit_kmh"] == 30
+    call = study_client.study_calls[0]
+    assert call["distance"] == 7.92 and call["frame_size"] == (3840.0, 2160.0)
+    assert call["gates"] == (((200.0, 0.0), (200.0, 720.0)), ((1010.0, 0.0), (1010.0, 720.0)))
+    assert call["classes"] == api.study_live.VEHICLE_CLASSES
+    # one SAM request over the fake probe's 90 frames, nothing for cache hits
+    assert study_client.ledger.total(time.time()) == pytest.approx(90 * config.SAM_USD_PER_FRAME)
+
+
+def test_repeat_study_is_a_free_cache_hit(study_client):
+    assert post_study(study_client).status_code == 200
+    again = post_study(study_client)  # same clip, gates and distance: no cap counted (limit 1/h)
+    assert again.status_code == 200 and len(study_client.study_calls) == 1
+    other = post_study(study_client, data=b"other-street")
+    assert other.status_code == 429 and other.json()["code"] == "ip_rate"
+
+
+def test_recorded_study_run_is_served(study_client, tmp_path):
+    from caliper.models import StudySummary
+
+    s = StudySummary(run_id="study-a14", gate_distance_m=7.92, duration_s=2.3, vehicles_seen=0,
+                     vehicles_measured=0, median_kmh=None, p85_kmh=None, p85_interval_90_kmh=None,
+                     speed_limit_kmh=None, share_over_limit=None, readings=[])  # fmt: skip
+    runs.save_cached_run("study-a14", "study", s.model_dump(mode="json"), {}, meta(),
+                         root=tmp_path / "runs")  # fmt: skip
+    listed = {r["run_id"]: r["kind"] for r in study_client.get("/api/runs").json()}
+    assert listed["study-a14"] == "study"
+    assert study_client.get("/api/runs/study-a14").json()["result"]["gate_distance_m"] == 7.92
+
+
+def test_study_rejects_a_bad_gate_before_any_call(study_client):
+    r = post_study(study_client, gate_a="[[1, 2]]")
+    assert r.status_code == 400 and r.json()["code"] == "bad_gate"
+    assert study_client.study_calls == []
+
+
+def test_study_cost_cap_counts_every_vehicle_class(study_client, monkeypatch):
+    monkeypatch.setattr(api, "probe", lambda path: {"fps": 120.0, "frames": 120 * 50})  # 50 s
+    r = post_study(study_client)
+    assert r.status_code == 429 and r.json()["code"] == "run_cost_cap"
+    assert study_client.study_calls == []

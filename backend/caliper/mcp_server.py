@@ -22,16 +22,14 @@ from pathlib import Path
 from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel, Field
 
-from caliper import config, pipeline, segment
-from caliper import study as study_math
+from caliper import config, pipeline, study_live
 from caliper.caps import CapError, Caps, api_cache_files, estimate_cost, spend_since
-from caliper.models import Result, StudySummary, VehicleReading
+from caliper.models import Result, StudySummary
 from caliper.normalize import normalize, probe
 
 log = logging.getLogger(__name__)
 
-# ARCHITECTURE section 4: one SAM concept request per vehicle class.
-VEHICLE_CLASSES = ["car", "motorcycle", "auto rickshaw", "bus"]
+VEHICLE_CLASSES = study_live.VEHICLE_CLASSES
 CALLER = "mcp"  # the per-IP rate limit counts all MCP calls as one caller
 
 server = MCPServer(
@@ -134,24 +132,14 @@ def study(
         ticket = caps().admit("study", CALLER, duration, frames)
     except CapError as exc:
         raise _refusal(exc) from exc
-    before, cost, n = api_cache_files(), 0.0, frames
+    before = api_cache_files()
     try:
-        video = normalize(path)
-        info = probe(video)
-        fps, n = float(info["fps"]), int(info["frames"])
-        width, height = int(info["width"]), int(info["height"])
-        gate_a = (gates.gate_a.a, gates.gate_a.b)
-        gate_b = (gates.gate_b.a, gates.gate_b.b)
-        readings: list[VehicleReading] = []
-        for cls in classes:
-            seg = segment.segment(video, cls)
-            for t in segment.tracks_from_segmentation(seg, fps, width, height):
-                vid = f"{cls.replace(' ', '-')}-{t.object_ordinal}"
-                readings.append(study_math.vehicle_reading(t, gate_a, gate_b, distance_m, vid, cls))
-        run_id = f"mcp-study-{uuid.uuid4().hex[:12]}"
-        summary = study_math.summarize(readings, run_id, distance_m, n / fps, speed_limit_kmh)
+        summary, _ = study_live.run_study(
+            path, (gates.gate_a.a, gates.gate_a.b), (gates.gate_b.a, gates.gate_b.b), distance_m,
+            f"mcp-study-{uuid.uuid4().hex[:12]}", classes, speed_limit_kmh,
+        )  # fmt: skip
     finally:
-        cost = spend_since(before, n)
+        cost = spend_since(before, int(probe(normalize(path))["frames"]))
         caps().settle(ticket, cost)
     log.info("mcp study %s: %d of %d measured, $%.4f", summary.run_id,
              summary.vehicles_measured, summary.vehicles_seen, cost)  # fmt: skip

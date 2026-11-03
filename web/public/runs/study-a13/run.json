@@ -1,0 +1,127 @@
+{
+ "schema_version": 1,
+ "kind": "study",
+ "meta": {
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A13)",
+  "question": "Speed between the two gate lines",
+  "source": "field",
+  "placeholder": false,
+  "notes": "Field clip from Set A (scooter), truth from a GPS app. Faces at the shops, the rider and the number plates are blurred.",
+  "created_utc": "2026-11-03T14:58:30+00:00",
+  "clip": "clip.mp4",
+  "poster": "poster.jpg",
+  "instrument": {
+   "value": 40.0,
+   "unit": "km/h",
+   "instrument": "GPS app reading 40 km/h"
+  },
+  "keyframes": null
+ },
+ "result": {
+  "run_id": "study-a13",
+  "gate_distance_m": 7.92,
+  "duration_s": 2.7333333333333334,
+  "vehicles_seen": 3,
+  "vehicles_measured": 1,
+  "median_kmh": 46.724836446075784,
+  "p85_kmh": 46.724836446075784,
+  "p85_interval_90_kmh": [
+   46.724836446075784,
+   46.724836446075784
+  ],
+  "speed_limit_kmh": null,
+  "share_over_limit": null,
+  "readings": [
+   {
+    "vehicle_id": "A13-v0",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A13-v1",
+    "vehicle_class": "scooter",
+    "status": "measured",
+    "speed_kmh": 46.724836446075784,
+    "interval_90_kmh": [
+     45.818639059751405,
+     47.64349332086445
+    ],
+    "t_gate_a_s": 0.9753623188405797,
+    "t_gate_b_s": 0.3651515151515151,
+    "reason": null
+   },
+   {
+    "vehicle_id": "A13-v2",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   }
+  ]
+ },
+ "overlay": {
+  "fps": 60.0,
+  "width": 1280,
+  "height": 720,
+  "gate_a": [
+   [
+    200,
+    0
+   ],
+   [
+    200,
+    720
+   ]
+  ],
+  "gate_b": [
+   [
+    1010,
+    0
+   ],
+   [
+    1010,
+    720
+   ]
+  ],
+  "vehicles": [
+   {
+    "vehicle_id": "A13-v0",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A13-v1",
+    "crossings": [
+     {
+      "frame": 59,
+      "path": "M189.0 438.0L388.0 438.0L388.0 571.0L189.0 571.0Z",
+      "anchor": [
+       189.0,
+       430.0
+      ]
+     },
+     {
+      "frame": 22,
+      "path": "M1008.0 427.0L1218.0 427.0L1218.0 553.0L1008.0 553.0Z",
+      "anchor": [
+       1008.0,
+       419.0
+      ]
+     }
+    ]
+   },
+   {
+    "vehicle_id": "A13-v2",
+    "crossings": []
+   }
+  ]
+ },
+ "guess": null
+}

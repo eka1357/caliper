@@ -33,6 +33,7 @@ export function StudyView() {
   const [run, setRun] = useState<CachedStudyRun | null>(null);
   const [clip, setClip] = useState<File | null>(null);
   const [gates, setGates] = useState<Gates>(defaultGates(1280, 720));
+  const [frame, setFrame] = useState<[number, number] | null>(null); // the clip's own pixels
   const [distance, setDistance] = useState("");
   const [limit, setLimit] = useState("");
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -40,7 +41,12 @@ export function StudyView() {
   const localUrl = useObjectUrl(clip);
 
   useEffect(() => {
-    void api.listRuns().then((list) => setStudies(list.filter((r) => r.kind === "study")));
+    void api.listRuns().then((list) => {
+      const recorded = list.filter((r) => r.kind === "study");
+      setStudies(recorded);
+      // No ?run= in the URL: open on the first recorded study (manifest order).
+      if (recorded.length > 0) setRunId((id) => id ?? recorded[0].run_id);
+    });
     void api.health().then(setHealth);
   }, []);
 
@@ -84,7 +90,8 @@ export function StudyView() {
     setPhase({ kind: "uploading", n: 0 });
     try {
       const result = await api.study(
-        { video: clip, gateA: gates[0], gateB: gates[1], gateDistanceM: d, speedLimitKmh: lim },
+        { video: clip, gateA: gates[0], gateB: gates[1], gateDistanceM: d, speedLimitKmh: lim,
+          frameWidth: frame?.[0], frameHeight: frame?.[1] },
         (n) => setPhase(n >= 100 ? { kind: "working" } : { kind: "uploading", n }),
         ctrl.signal,
       );
@@ -112,7 +119,11 @@ export function StudyView() {
           poster={poster}
           gates={gates}
           onGates={run ? undefined : setGates}
-          onSize={(w, h) => !run && setGates(defaultGates(w, h))}
+          onSize={(w, h) => {
+            if (run) return;
+            setGates(defaultGates(w, h));
+            setFrame([w, h]);
+          }}
           overlay={run?.overlay ?? null}
           readings={summary?.readings ?? []}
         />
@@ -211,7 +222,7 @@ export function StudyView() {
           <h2 className="text-sm font-medium">Recorded studies</h2>
           {studies.length === 0 ? (
             <Placeholder title="No recorded study yet">
-              The first recorded study will be our own Hyderabad street clip (Phase 4).
+              No recorded study yet.
             </Placeholder>
           ) : (
             <ul className="flex flex-col gap-1">

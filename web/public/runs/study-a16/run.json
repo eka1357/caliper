@@ -1,0 +1,169 @@
+{
+ "schema_version": 1,
+ "kind": "study",
+ "meta": {
+  "title": "Set A: one pass of our scooter between gate lines 7.92 m apart (A16)",
+  "question": "Speed between the two gate lines",
+  "source": "field",
+  "placeholder": false,
+  "notes": "Field clip from Set A (scooter), truth from a GPS app. Faces at the shops, the rider and the number plates are blurred.",
+  "created_utc": "2026-11-03T14:59:06+00:00",
+  "clip": "clip.mp4",
+  "poster": "poster.jpg",
+  "instrument": {
+   "value": 40.0,
+   "unit": "km/h",
+   "instrument": "GPS app reading 40 km/h"
+  },
+  "keyframes": null
+ },
+ "result": {
+  "run_id": "study-a16",
+  "gate_distance_m": 7.92,
+  "duration_s": 2.816666666666667,
+  "vehicles_seen": 6,
+  "vehicles_measured": 1,
+  "median_kmh": 39.11707317073171,
+  "p85_kmh": 39.11707317073171,
+  "p85_interval_90_kmh": [
+   39.11707317073171,
+   39.11707317073171
+  ],
+  "speed_limit_kmh": null,
+  "share_over_limit": null,
+  "readings": [
+   {
+    "vehicle_id": "A16-v0",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A16-v1",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A16-v2",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A16-v3",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   },
+   {
+    "vehicle_id": "A16-v4",
+    "vehicle_class": "scooter",
+    "status": "measured",
+    "speed_kmh": 39.11707317073171,
+    "interval_90_kmh": [
+     38.40282771186245,
+     39.73509670523004
+    ],
+    "t_gate_a_s": 1.2233333333333334,
+    "t_gate_b_s": 0.49444444444444446,
+    "reason": null
+   },
+   {
+    "vehicle_id": "A16-v5",
+    "vehicle_class": "scooter",
+    "status": "no_reading",
+    "speed_kmh": null,
+    "interval_90_kmh": null,
+    "t_gate_a_s": null,
+    "t_gate_b_s": null,
+    "reason": "does not cross both gates"
+   }
+  ]
+ },
+ "overlay": {
+  "fps": 60.0,
+  "width": 1280,
+  "height": 720,
+  "gate_a": [
+   [
+    200,
+    0
+   ],
+   [
+    200,
+    720
+   ]
+  ],
+  "gate_b": [
+   [
+    1010,
+    0
+   ],
+   [
+    1010,
+    720
+   ]
+  ],
+  "vehicles": [
+   {
+    "vehicle_id": "A16-v0",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A16-v1",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A16-v2",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A16-v3",
+    "crossings": []
+   },
+   {
+    "vehicle_id": "A16-v4",
+    "crossings": [
+     {
+      "frame": 73,
+      "path": "M208.0 483.0L402.0 483.0L402.0 598.0L208.0 598.0Z",
+      "anchor": [
+       208.0,
+       475.0
+      ]
+     },
+     {
+      "frame": 30,
+      "path": "M1004.0 480.0L1204.0 480.0L1204.0 605.0L1004.0 605.0Z",
+      "anchor": [
+       1004.0,
+       472.0
+      ]
+     }
+    ]
+   },
+   {
+    "vehicle_id": "A16-v5",
+    "crossings": []
+   }
+  ]
+ },
+ "guess": null
+}

@@ -34,10 +34,13 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 sys.path.insert(0, str(ROOT / "eval"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
+import make_field_runs as field_runs  # noqa: E402
 from caliper import config, runs, segment, study  # noqa: E402
 from caliper.models import Track  # noqa: E402
 from caliper.normalize import normalize, probe  # noqa: E402
+from caliper.study_live import overlay_for  # noqa: E402
 from field import COLUMNS, FIELD, OUT, SpendMeter, merge_write  # noqa: E402
 
 log = logging.getLogger("study")
@@ -73,31 +76,6 @@ def pick_test_vehicle(tracks: list[Track], readings: list) -> tuple[int | None, 
         return None, 0
     i = max(pool, key=lambda k: len(tracks[k].frames))
     return i, len(tracks[i].frames)
-
-
-def box_path(box: tuple[float, float, float, float]) -> str:
-    left, top, right, bottom = box
-    return (f"M{left:.1f} {top:.1f}L{right:.1f} {top:.1f}L{right:.1f} {bottom:.1f}"
-            f"L{left:.1f} {bottom:.1f}Z")  # fmt: skip
-
-
-def overlay_for(
-    tracks: list[Track], readings: list, gates: dict, fps: float, w: int, h: int
-) -> dict:
-    vehicles = []
-    for t, r in zip(tracks, readings, strict=True):
-        by_frame = {f.frame: f for f in t.frames}
-        crossings = []
-        for ts in (r.t_gate_a_s, r.t_gate_b_s):
-            if ts is None:
-                continue
-            target = round(ts * fps)
-            f = by_frame.get(target) or min(t.frames, key=lambda x: abs(x.frame - target))
-            crossings.append({"frame": f.frame, "path": box_path(f.box),
-                              "anchor": [f.box[0], max(12.0, f.box[1] - 8)]})  # fmt: skip
-        vehicles.append({"vehicle_id": r.vehicle_id, "crossings": crossings})
-    return {"fps": fps, "width": w, "height": h, "gate_a": gates["gate_a"],
-            "gate_b": gates["gate_b"], "vehicles": vehicles}  # fmt: skip
 
 
 def boxes_per_frame(tracks: list[Track], n: int) -> list[list[tuple[float, float, float, float]]]:
@@ -217,19 +195,33 @@ def main() -> None:
         if not args.no_save:
             with tempfile.TemporaryDirectory() as tmp:
                 clip = Path(tmp) / "clip.mp4"
-                export_blurred_clip(video, tracks, clip)
-                ov = overlay_for(tracks, readings, g, fps, width, height)
+                poster = 0
+                if row["set"] == "scooter":
+                    # same blur as the scooter measure runs: shop-front band (faces, parked
+                    # bikes' plates), rider band and both ends of every scooter box
+                    boxes = boxes_per_frame(tracks, frames)
+                    field_runs.export(video, clip, field_runs.scooter_blur(boxes))
+                    poster = field_runs.inside_mid_frame(boxes, width)
+                    what = f"one pass of our scooter between gate lines {g['distance_m']} m apart"
+                    notes = ("Field clip from Set A (scooter), truth from a GPS app. Faces at the "
+                             "shops, the rider and the number plates are blurred.")  # fmt: skip
+                else:
+                    export_blurred_clip(video, tracks, clip)
+                    what = f"one car between gate lines {g['distance_m']} m apart"
+                    notes = ("Field clip from Set A (one car, GPS speed known). The window band "
+                             "of every car box is blurred.")  # fmt: skip
+                ov = overlay_for(tracks, readings, gate_a, gate_b, fps, width, height)
                 meta = runs.RunMeta(
-                    title=f"Set A: one car past two markers 10 m apart ({cid})",
-                    question="Speed between the two gates", source="field", placeholder=False,
-                    notes="Field clip from Set A (one car, GPS speed known). The window band of "
-                          "every car box is blurred; the side view shows no number plates.",
+                    title=f"Set A: {what} ({cid})",
+                    question="Speed between the two gate lines", source="field",
+                    placeholder=False, notes=notes,
                     created_utc=datetime.now(UTC).isoformat(timespec="seconds"),
                     clip="clip.mp4", poster="poster.jpg",
+                    instrument={"value": gps, "unit": "km/h", "instrument": row["instrument"]},
                 )  # fmt: skip
                 runs.save_cached_run(f"study-{cid.lower()}", "study",
                                      summary.model_dump(mode="json"), ov, meta,
-                                     clip=clip)  # fmt: skip
+                                     clip=clip, poster_frame=poster)  # fmt: skip
 
     with open(H5, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=H5_COLUMNS, lineterminator="\n")

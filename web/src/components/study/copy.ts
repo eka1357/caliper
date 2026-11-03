@@ -16,7 +16,7 @@ export const STUDY_COPY = {
     "This is evidence for road-safety requests, not a tool for enforcement.",
   ],
   noStudy:
-    "No street study has been recorded yet. Studies come from our own street clips, which arrive with Phase 4. Until then nothing here shows a number.",
+    "No street study has been recorded yet. Nothing here shows a number until one has.",
 } as const;
 
 export const fmtKmh = (v: number | null) => (v == null ? "n/a" : Math.round(v).toString());

@@ -108,9 +108,12 @@ export interface StudyInput {
   gateB: GateLine;
   gateDistanceM: number;
   speedLimitKmh?: number;
+  /** The size of the frame the gates were drawn on (the clip's own pixels); the API scales them. */
+  frameWidth?: number;
+  frameHeight?: number;
 }
 
-/** Live street study (POST /api/study). Returns 503 until Phase 4 builds study.py. */
+/** Live street study (POST /api/study), behind the same live-run caps as a measure. */
 export function study(
   input: StudyInput,
   onUpload: (percent: number) => void,
@@ -122,6 +125,10 @@ export function study(
   body.append("gate_b", JSON.stringify(input.gateB));
   body.append("gate_distance_m", String(input.gateDistanceM));
   if (input.speedLimitKmh != null) body.append("speed_limit_kmh", String(input.speedLimitKmh));
+  if (input.frameWidth && input.frameHeight) {
+    body.append("frame_width", String(input.frameWidth));
+    body.append("frame_height", String(input.frameHeight));
+  }
   return upload<CachedStudyRun>("/api/study", body, onUpload, signal);
 }
 
