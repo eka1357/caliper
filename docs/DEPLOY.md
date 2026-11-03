@@ -46,4 +46,5 @@ To pause live runs for good after judging: `backend\.venv\Scripts\modal.exe app 
 
 - Web: https://caliper-sigma.vercel.app (Vercel project `caliper`, root directory `web`, `.vercelignore` uploads only `web/` and the three eval CSVs; the repo is connected, so a push to main redeploys).
 - API: https://ekavardhan1234--caliper-api-api.us-east.modal.run (health, recorded runs and CORS for the site checked).
-- **Open:** live measure requests are cancelled by Modal at about 145 s (`Received a cancellation signal`), and a cold live measure (spec, SAM, audit) takes longer on the host. Fix: run the measurement as a background job (POST returns a job id, the UI polls), or cut the work per request. Until then the site works on recorded runs only.
+- Live runs: a cold live measure outlasts Modal's ASGI request window (about 150 s, then the request is cancelled), so /api/measure and /api/study run as background jobs: the request waits up to 100 s, then answers 202 {job_id} and the page polls GET /api/jobs/{id}. Caps are checked before the job starts. Checked 2026-11-04 from https://caliper-sigma.vercel.app in a real browser: C07 uploaded live, 202 then polling, result "Measured 14 cm, 90% range 9 to 22" (same as the recorded run) after about 4 minutes.
+- Do not redeploy Modal while a live run is in progress: the new deployment cancels the old container's work.
