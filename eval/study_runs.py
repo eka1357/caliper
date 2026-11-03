@@ -172,7 +172,8 @@ def main() -> None:
             stopped = f"stopped before {cid}: spent ${meter.total:.4f}"
             log.warning(stopped)
             break
-        seg = segment.segment(video, "car")
+        phrase = gates[cid].get("vehicle_phrase", "car")  # SAM concept, set with the gates
+        seg = segment.segment(video, phrase)
         meter.settle(frames)
         width, height = int(info["width"]), int(info["height"])
         tracks = segment.tracks_from_segmentation(seg, fps, width, height)
@@ -181,7 +182,7 @@ def main() -> None:
         gate_b = tuple(map(tuple, g["gate_b"]))
         readings = [
             study.vehicle_reading(t, gate_a, gate_b, g["distance_m"],
-                                  f"{cid}-v{t.object_ordinal}", "car")
+                                  f"{cid}-v{t.object_ordinal}", phrase)
             for t in tracks
         ]  # fmt: skip
         summary = study.summarize(readings, f"study-{cid.lower()}", g["distance_m"], frames / fps)

@@ -81,7 +81,9 @@ def main() -> None:
         "posthoc": [typed(r) for r in raw["results"] if r["variant"].endswith("_posthoc")],
         "paired": [typed(r) for r in raw["paired"]],
         "field": field,
-        "field_summary": summary(raw["field"], raw["field_guesses"]),
+        "field_summary": summary(  # measure path only; study-path rows are scored as H5
+            [x for x in raw["field"] if x["path"] == "measure"], raw["field_guesses"]
+        ),
         "interval_calibration": [typed(r) for r in raw["interval_calibration"]],
         "answers": [typed(r, FIELD_BOOL) for r in raw["answers"]],
     }

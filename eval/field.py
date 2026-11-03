@@ -42,7 +42,10 @@ OUT = ROOT / "eval" / "field_results.csv"
 GUESSES = ROOT / "eval" / "field_guesses.csv"
 RUNS = config.CACHE_DIR / "field_runs"  # full Result + guess per clip (gitignored)
 MEASURE_SETS = ("gravity", "size", "none")
-GUESS_SETS = ("speed", "gravity", "size", "none")
+GUESS_SETS = ("speed", "scooter", "gravity", "size", "none")
+# Speed sets: the vehicle is its own reference on the measure path (--measure-speed). Set A as first
+# filmed (car, A01-A10) and Set A (scooter, A11-A16, filmed 2026-11-03), DECISIONS 2026-11-03.
+SPEED_SETS = ("speed", "scooter")
 COLUMNS = [
     "clip_id",
     "set",
@@ -72,7 +75,7 @@ def prior_text(row: dict[str, str], car_reference: bool = False) -> str | None:
     """The prior sentence for one clip. With car_reference (--measure-speed), a Set A clip gets its
     truth.csv `measure_prior`: the vehicle as its own reference, e.g. "The car is 3.995 m long."
     (DECISIONS 2026-11-02) or "The motorcycle is X m long." for a bike clip."""
-    if car_reference and row["set"] == "speed":
+    if car_reference and row["set"] in SPEED_SETS:
         prior = (row.get("measure_prior") or "").strip()
         if not prior:
             raise ValueError(f"no measure_prior in truth.csv for {row['clip_id']}")
@@ -131,7 +134,7 @@ def worst_case(frames: int, measure: bool) -> float:
 def run_clip(row: dict[str, str], measure_sets: tuple[str, ...] = MEASURE_SETS) -> dict:
     src = FIELD / row["file"]
     video = normalize(src)  # the pipeline normalizes src itself; guess() takes the normalized copy
-    car = "speed" in measure_sets
+    car = any(s in measure_sets for s in SPEED_SETS)
     prior = prior_text(row, car_reference=car)
     rec: dict = {
         "clip_id": row["clip_id"],
@@ -142,7 +145,7 @@ def run_clip(row: dict[str, str], measure_sets: tuple[str, ...] = MEASURE_SETS) 
     if row["set"] in measure_sets:
         res = pipeline.measure(
             src, row["question"], prior, run_id=f"field-{row['clip_id']}", audit=True,
-            with_overlay=True, whole_object_only=car and row["set"] == "speed",
+            with_overlay=True, whole_object_only=car and row["set"] in SPEED_SETS,
         )  # fmt: skip
         rec["result"] = json.loads(res.model_dump_json())
     out, info = guess.guess(video, row["question"], prior=prior)
@@ -283,10 +286,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-spend", type=float, default=9.0)
     ap.add_argument("--clips", nargs="*", default=[])
-    ap.add_argument("--measure-speed", action="store_true", help="Set A, car as reference")
+    ap.add_argument("--measure-speed", action="store_true", help="Set A, vehicle as reference")
     ap.add_argument("--widen-cached", action="store_true", help="interval term on cached runs")
     args = ap.parse_args()
-    measure_sets = MEASURE_SETS + (("speed",) if args.measure_speed else ())
+    measure_sets = MEASURE_SETS + (SPEED_SETS if args.measure_speed else ())
 
     with open(TRUTH, encoding="utf-8", newline="") as fh:
         truth = [r for r in csv.DictReader(fh) if r["set"] in GUESS_SETS]
