@@ -100,6 +100,8 @@ export interface Benchmark {
   answers: AnswerRow[];
   /** Post-hoc analysis rows (eval/hybrid_posthoc.py), kept apart from the variants. */
   posthoc?: ResultRow[];
+  /** Taped gate distance per clip (eval/study_gates.json). */
+  study_gates?: Record<string, number>;
 }
 
 /** Read once at build time and never revalidate: the deployed server need not have eval/. */
@@ -152,6 +154,16 @@ export const FIELD_SETS = [
   { set: "size", label: "Set C", what: "object size against a tape measure" },
   { set: "none", label: "Set D", what: "no reference in view: should refuse" },
 ] as const;
+
+/** The one taped gate distance of a field set's clips, or null if they differ or are missing. */
+export function setGateDistance(b: Benchmark, set: string): number | null {
+  const ids = new Set(b.field.filter((r) => r.set === set).map((r) => r.clip_id));
+  const d = [...new Set(Object.entries(b.study_gates ?? {}).filter(([c]) => ids.has(c)).map(([, v]) => v))];
+  return d.length === 1 ? d[0] : null;
+}
+
+/** Human's reading of the Set A (scooter) results (DECISIONS 2026-11-03): A11 looks like a GPS lag. */
+export const GPS_LAG_PASS = "A11";
 
 /** Field sets whose truth is a GPS speed (m/s in the CSVs). */
 export const SPEED_SETS = new Set(["speed", "scooter"]);

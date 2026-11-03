@@ -121,30 +121,108 @@ def _covered(f: dict) -> str:
     return f"{round(f['coverage'] * f['measured'])} of {f['measured']}"
 
 
+# Human's reading of the Set A (scooter) results (DECISIONS 2026-11-03); numbers come from the rows.
+GPS_LAG_PASS = "A11"
+
+
+def _kmh(v: float | None) -> str:
+    return "n/a" if v is None else f"{v * 3.6:.1f}"
+
+
+def _yes_no(v: bool | None) -> str:
+    return "n/a" if v is None else ("yes" if v else "no")
+
+
+def gate_line(data: dict, set_: str) -> str | None:
+    """The gate method on one speed set: same sentence as gateLine in web/src/lib/proven.ts."""
+    rows = [r for r in data.get("field", []) if r["set"] == set_ and r["path"] == "study"]
+    m = [r for r in rows if r["status"] == "measured" and r["pred"] is not None]
+    if not m:
+        return None
+    errs = sorted(abs(r["pred"] - r["truth"]) * 3.6 for r in m)
+    k = len(errs) // 2
+    med = errs[k] if len(errs) % 2 else (errs[k - 1] + errs[k]) / 2
+    half = [(r["hi"] - r["lo"]) / 2 / r["pred"] for r in m if r["lo"] is not None]
+    ids = {r["clip_id"] for r in data.get("field", []) if r["set"] == set_}
+    dists = {v for c, v in data.get("study_gates", {}).items() if c in ids}
+    dist = f" (two gate lines {dists.pop()} m apart on the riding line)" if len(dists) == 1 else ""
+    covered = sum(1 for r in m if r["covered"])
+    return (f"The gate method{dist} timed {len(m)} of {len(rows)} passes, median error "
+            f"{med:.1f} km/h. Its 90% range covers only frame timing, gate placement and the tape "
+            f"tolerance (about \u00b1{min(half) * 100:.1f}% to {max(half) * 100:.1f}%), so GPS "
+            f"falls inside it on {covered} of {len(m)}.")  # fmt: skip
+
+
+# EVAL_PROTOCOL section 1, claim H5 (pre-registered); same thresholds as web/src/lib/proven.ts.
+H5_TARGET_KMH, H5_DISPROVED_KMH, H5_COVER_SHARE = 3, 6, 0.8
+
+
+def h5_line(data: dict, set_: str) -> str | None:
+    m = [r for r in data.get("field", []) if r["set"] == set_ and r["path"] == "study"
+         and r["status"] == "measured" and r["pred"] is not None]  # fmt: skip
+    if not m:
+        return None
+    errs = sorted(abs(r["pred"] - r["truth"]) * 3.6 for r in m)
+    k = len(errs) // 2
+    med = errs[k] if len(errs) % 2 else (errs[k - 1] + errs[k]) / 2
+    covered = sum(1 for r in m if r["covered"])
+    if med <= H5_TARGET_KMH and covered >= H5_COVER_SHARE * len(m):
+        verdict = "met"
+    elif med > H5_DISPROVED_KMH:
+        verdict = "disproved"
+    else:
+        verdict = "not met (not disproved: that needs a median above 6 km/h)"
+    return (
+        f"Claim H5 (median error at most {H5_TARGET_KMH} km/h, GPS inside the range on at "
+        f"least 8 of 10 passes): {med:.1f} km/h and {covered} of {len(m)}, {verdict}."
+    )
+
+
+def gps_lag_note(data: dict, clip: str) -> str | None:
+    rows = data.get("field", [])
+    m = next((r for r in rows if r["clip_id"] == clip and r["path"] == "measure"
+              and r["status"] == "measured"), None)  # fmt: skip
+    g = next((r for r in rows if r["clip_id"] == clip and r["path"] == "study"
+              and r["status"] == "measured"), None)  # fmt: skip
+    if not m or not g:
+        return None
+    return (f"{clip} looks like a GPS lag: Caliper read {_kmh(m['pred'])} km/h and the gate method "
+            f"{_kmh(g['pred'])} km/h, both against GPS {_kmh(m['truth'])} km/h.")  # fmt: skip
+
+
 def scooter_table(data: dict) -> list[str]:
     """Set A (scooter) per pass, km/h (stored in m/s): the same rows as /results."""
-    rows = [r for r in data.get("field", []) if r["set"] == "scooter" and r["path"] == "measure"]
+    field = data.get("field", [])
+    rows = [r for r in field if r["set"] == "scooter" and r["path"] == "measure"]
     if not rows:
         return []
-
-    def kmh(v: float | None) -> str:
-        return "n/a" if v is None else f"{v * 3.6:.1f}"
-
+    gates = {r["clip_id"]: r for r in field if r["set"] == "scooter" and r["path"] == "study"}
     out = ["", f"### Set A (scooter): {len(rows)} passes of our own scooter against GPS", "",
-           "Measure path, single passes, the scooter's taped length as the ruler (not a street "
-           "study). km/h; stored in m/s in eval/field_results.csv.", "",
-           "| Clip | Caliper | 90% range | GPS | Error | GPS inside range | Muse Spark alone | "
-           "Its error |", "| --- | --- | --- | --- | --- | --- | --- | --- |"]  # fmt: skip
+           "Single passes, km/h (stored in m/s in eval/field_results.csv). Caliper: the measure "
+           "path, the scooter's taped length as the ruler. Gate method: the street study's timing "
+           "between two gate lines drawn on frame 0 before scoring.", "",
+           "| Clip | GPS | Caliper | 90% range | Error | GPS inside | Gate method | "
+           "Its 90% range | Its error | GPS inside | Muse Spark alone | Its error |",
+           "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]  # fmt: skip
     for r in rows:
         measured = r["status"] == "measured"
-        rng = f"{kmh(r['lo'])} to {kmh(r['hi'])}" if measured and r["lo"] is not None else (
+        rng = f"{_kmh(r['lo'])} to {_kmh(r['hi'])}" if measured and r["lo"] is not None else (
             f"refused: {r['reason']}" if not measured else "n/a")  # fmt: skip
-        inside = "n/a" if r["covered"] is None else ("yes" if r["covered"] else "no")
+        g = gates.get(r["clip_id"])
+        if g and g["status"] == "measured":
+            gate = (f"{_kmh(g['pred'])} | {_kmh(g['lo'])} to {_kmh(g['hi'])} | "
+                    f"{_pct(g['rel_error'])} | {_yes_no(g['covered'])}")  # fmt: skip
+        else:
+            gate = f"no reading | {g['reason'] if g else 'n/a'} | n/a | n/a"
         out.append(
-            f"| {r['clip_id']} | {kmh(r['pred']) if measured else 'refused'} | {rng} | "
-            f"{kmh(r['truth'])} | {_pct(r['rel_error'])} | {inside} | {kmh(r.get('guess_pred'))} | "
-            f"{_pct(r.get('guess_rel_error'))} |"
+            f"| {r['clip_id']} | {_kmh(r['truth'])} | {_kmh(r['pred']) if measured else 'refused'} "
+            f"| {rng} | {_pct(r['rel_error'])} | {_yes_no(r['covered'])} | {gate} | "
+            f"{_kmh(r.get('guess_pred'))} | {_pct(r.get('guess_rel_error'))} |"
         )
+    notes = [x for x in (gate_line(data, "scooter"), h5_line(data, "scooter"),
+                         gps_lag_note(data, GPS_LAG_PASS)) if x]  # fmt: skip
+    if notes:
+        out += ["", " ".join(notes)]
     return out
 
 

@@ -8,7 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtPct, variantLabel } from "@/lib/labels";
-import { type Benchmark, calibration, FIELD_SETS, fieldRows, SPEED_SETS } from "@/lib/results";
+import { gateLine, gpsLagNote, h5Line } from "@/lib/proven";
+import { type Benchmark, type FieldRow, calibration, FIELD_SETS, fieldRows, GPS_LAG_PASS, setGateDistance, SPEED_SETS } from "@/lib/results";
 
 // Field set on /results. Every value is read from web/public/results.json (eval/report.py over
 // eval/field_results.csv, field_guesses.csv and interval_calibration.csv). Server component.
@@ -28,9 +29,39 @@ function Head({ cols }: { cols: string[] }) {
   );
 }
 
+function yesNo(v: boolean | null) {
+  return v == null ? "n/a" : v ? "yes" : <span className="text-destructive">no</span>;
+}
+
+/** The gate method's reading of one pass (study path row), in km/h. */
+function GateCells({ r }: { r: FieldRow | undefined }) {
+  if (!r || r.status !== "measured") {
+    return (
+      <>
+        <TableCell className="font-sans">{r ? "no reading" : "n/a"}</TableCell>
+        <TableCell className="whitespace-normal font-sans">{r?.reason || "n/a"}</TableCell>
+        <TableCell>n/a</TableCell>
+        <TableCell className="font-sans">n/a</TableCell>
+      </>
+    );
+  }
+  return (
+    <>
+      <TableCell>{kmh(r.pred)}</TableCell>
+      <TableCell>{`${kmh(r.lo)} to ${kmh(r.hi)}`}</TableCell>
+      <TableCell>{fmtPct(r.rel_error)}</TableCell>
+      <TableCell className="font-sans">{yesNo(r.covered)}</TableCell>
+    </>
+  );
+}
+
 export function FieldResults({ bench }: { bench: Benchmark }) {
   const sizeRows = fieldRows(bench, "size");
   const scooterRows = fieldRows(bench, "scooter");
+  const gateRows = new Map(fieldRows(bench, "scooter", "study").map((r) => [r.clip_id, r]));
+  const gate = gateLine(bench.field, "scooter", setGateDistance(bench, "scooter"));
+  const lag = gpsLagNote(bench.field, GPS_LAG_PASS);
+  const h5 = h5Line(bench.field, "scooter");
   const unit = sizeRows[0]?.unit ?? "";
   const variants = ["caliper_no_audit", "caliper"];
   const k = calibration(bench, "caliper_no_audit", false)?.interval_log_term ?? null;
@@ -112,23 +143,24 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
               <TableCaption className="px-4 pb-4 text-left font-sans">
                 Source: eval/field_results.csv and eval/field_guesses.csv (stored in m/s, shown in
                 km/h). The prior is the scooter&apos;s taped length; Muse Spark alone was given the
-                same question and length. Single passes on the measure path, not a street study.
+                same question and length. Single passes. Caliper: the measure path, the scooter&apos;s
+                length as the ruler. Gate method: the street study&apos;s timing between two gate lines
+                drawn on frame 0 before scoring.
               </TableCaption>
-              <Head cols={["Clip", "Caliper", "90% range", "GPS", "Error", "Inside range",
-                "Muse Spark alone", "Its error"]} />
+              <Head cols={["Clip", "GPS", "Caliper", "90% range", "Error", "Inside range",
+                "Gate method", "Its 90% range", "Its error", "Inside range", "Muse Spark alone", "Its error"]} />
               <TableBody>
                 {scooterRows.map((r) => (
                   <TableRow key={r.clip_id}>
                     <TableCell className="font-sans">{r.clip_id}</TableCell>
+                    <TableCell>{kmh(r.truth)}</TableCell>
                     <TableCell>{r.status === "measured" ? kmh(r.pred) : <span className="font-sans">refused</span>}</TableCell>
                     <TableCell className="whitespace-normal font-sans">
                       {r.lo == null ? r.reason || "n/a" : `${kmh(r.lo)} to ${kmh(r.hi)}`}
                     </TableCell>
-                    <TableCell>{kmh(r.truth)}</TableCell>
                     <TableCell>{fmtPct(r.rel_error)}</TableCell>
-                    <TableCell className="font-sans">
-                      {r.covered == null ? "n/a" : r.covered ? "yes" : <span className="text-destructive">no</span>}
-                    </TableCell>
+                    <TableCell className="font-sans">{yesNo(r.covered)}</TableCell>
+                    <GateCells r={gateRows.get(r.clip_id)} />
                     <TableCell>{kmh(r.guess_pred)}</TableCell>
                     <TableCell>{fmtPct(r.guess_rel_error)}</TableCell>
                   </TableRow>
@@ -136,6 +168,11 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
               </TableBody>
             </Table>
           </div>
+          {(gate || lag) && (
+            <p className="max-w-3xl text-sm text-muted-foreground">
+              {gate} {h5} {lag}
+            </p>
+          )}
         </div>
       )}
 
@@ -180,9 +217,8 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
         <p className="max-w-3xl text-sm text-muted-foreground">
           Set A speeds are in m/s. Both Set A filmings are measured with the vehicle as its own
           ruler (its taped length is the prior), using only frames where the whole vehicle is in
-          the picture. The street study&apos;s gate method is not validated by either: the first
-          filming&apos;s markers stand on the far kerb, and the scooter&apos;s gate distance was
-          taped along the shop fronts, not the riding line (a provisional run, not shown here).
+          the picture. The first filming&apos;s markers stand on the far kerb, so its gate method
+          was not run; the scooter passes are also timed by the gate method (table above).
         </p>
       </div>
 

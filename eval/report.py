@@ -86,6 +86,13 @@ def main() -> None:
         ),
         "interval_calibration": [typed(r) for r in raw["interval_calibration"]],
         "answers": [typed(r, FIELD_BOOL) for r in raw["answers"]],
+        # taped gate distance per clip (eval/study_gates.json), for the study-path sentences
+        "study_gates": {
+            c: g["distance_m"]
+            for c, g in json.loads((EVAL / "study_gates.json").read_text(encoding="utf-8"))[
+                "clips"
+            ].items()
+        },
     }
     OUT.write_text(json.dumps(data, indent=1), encoding="utf-8")
     print(f"wrote {OUT} ({len(data['results'])} results rows, {len(field)} field rows)")

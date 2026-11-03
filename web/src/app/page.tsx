@@ -11,10 +11,10 @@ import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings, heroLine } from "@/lib/findings";
-import { provenLine, scooterLine } from "@/lib/proven";
+import { gateLine, gpsLagNote, provenLine, scooterLine } from "@/lib/proven";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
-import { fieldRows, loadBenchmark } from "@/lib/results";
+import { fieldRows, GPS_LAG_PASS, loadBenchmark, setGateDistance } from "@/lib/results";
 import { SetCRanges } from "@/components/results/SetCRanges";
 import { checkLabel } from "@/lib/labels";
 import { runAssetUrl } from "@/lib/run-assets";
@@ -31,6 +31,8 @@ export default async function Home() {
   const [bench, runs] = await Promise.all([loadBenchmark(), landingRuns()]);
   const { measured, missed, vetoed, abstained, speedRun } = runs;
   const scooter = scooterLine(bench.field_summary.scooter);
+  const gate = gateLine(bench.field, "scooter", setGateDistance(bench, "scooter"));
+  const lag = gpsLagNote(bench.field, GPS_LAG_PASS);
   // A veto shows best what the audit is for; until one is recorded, the hero run's real verdict.
   const audited = vetoed ?? (measured?.result.audit ? measured : null);
   const sizeRows = fieldRows(bench, "size");
@@ -131,7 +133,7 @@ export default async function Home() {
           )}
         </Section>
 
-        {/* 5. Speed on our own footage (measure path; the street study is provisional) */}
+        {/* 5. Speed on our own footage: measure path and gate method on the same passes */}
         <Section id="street" title={scooter?.title ?? "Speed on our own footage"}>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-4">
@@ -141,10 +143,9 @@ export default async function Home() {
                 <p className="text-muted-foreground">No speed run on our own footage yet.</p>
               )}
               <p className="text-sm text-muted-foreground">
-                Single passes, side on, the scooter&apos;s taped length as the ruler: this is the
-                measure path, not a street study. The street speed study (two gate lines a measured
-                distance apart, the 85th-percentile speed engineers use to decide on calming) is
-                provisional on this footage until the distance along the riding line is re-measured.
+                Single passes, side on, the scooter&apos;s taped length as the ruler (the measure path).
+                {gate && ` ${gate}`}
+                {lag && ` ${lag}`}
               </p>
               <p className="text-sm text-muted-foreground">
                 India recorded 177,175 road deaths in 2024, and the transport ministry attributes

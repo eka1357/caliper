@@ -59,3 +59,37 @@ test("scooter line reads its counts from the summary", () => {
   assert.equal(f.title, "6 passes of our own scooter against GPS");
   assert.equal(f.body, "Caliper measured 5 of the 6 passes: median error 7%, GPS inside its 90% range on 5 of 5; it refused 1, with its reason. Muse Spark alone, given the same length, was off by a median 30%, with no range.");
 });
+
+import { gateLine, gateSummary, gpsLagNote } from "../src/lib/proven.ts";
+
+const kmh = (v) => v / 3.6;
+const study = (clip_id, pred, lo, hi, truth, covered) =>
+  ({ clip_id, set: "scooter", path: "study", status: "measured", pred: kmh(pred), lo: kmh(lo), hi: kmh(hi), truth: kmh(truth), covered });
+
+test("gate summary reads error, coverage and range width from the rows", () => {
+  const rows = [study("A11", 31.2, 30.8, 31.8, 20, false), study("A12", 31.2, 30.7, 31.6, 32, false), study("A14", 42.6, 41.9, 43.5, 42, true)];
+  const s = gateSummary(rows, "scooter");
+  assert.equal(s.measured, 3);
+  assert.equal(s.covered, 1);
+  assert.ok(Math.abs(s.medianErrKmh - 0.8) < 1e-9);
+  const line = gateLine(rows, "scooter", 7.92);
+  assert.match(line, /^The gate method \(two gate lines 7\.92 m apart on the riding line\) timed 3 of 3 passes, median error 0\.8 km\/h\./);
+  assert.match(line, /covers only frame timing, gate placement and the tape tolerance \(about ±1\.\d% to 1\.\d%\), so GPS falls inside it on 1 of 3\.$/);
+});
+
+test("GPS lag note states both readings against GPS", () => {
+  const rows = [
+    { clip_id: "A11", set: "scooter", path: "measure", status: "measured", pred: kmh(29.4), lo: null, hi: null, truth: kmh(20), covered: true },
+    study("A11", 31.2, 30.8, 31.8, 20, false),
+  ];
+  assert.equal(gpsLagNote(rows, "A11"), "A11 looks like a GPS lag: Caliper read 29.4 km/h and the gate method 31.2 km/h, both against GPS 20.0 km/h.");
+});
+
+import { h5Line } from "../src/lib/proven.ts";
+
+test("H5 verdict follows the protocol's thresholds", () => {
+  const mk = (errs, cov) => errs.map((e, i) => study(`P${i}`, 40 + e, 39 + e, 41 + e, 40, i < cov));
+  assert.match(h5Line(mk([0.6, 0.8, 0.9, 6.7, 9.8, 11.2], 1), "scooter"), /3\.8 km\/h and 1 of 6, not met \(not disproved/);
+  assert.match(h5Line(mk([1, 2, 2, 3], 4), "scooter"), /, met\.$/);
+  assert.match(h5Line(mk([7, 8, 9], 0), "scooter"), /, disproved\.$/);
+});

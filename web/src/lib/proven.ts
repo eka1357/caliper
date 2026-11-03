@@ -105,3 +105,84 @@ export function scooterLine(s: SetGuess | undefined): { title: string; body: str
   const guess = s.guess_median_rel_error == null ? "" : ` Muse Spark alone, given the same length, was off by a median ${pct(s.guess_median_rel_error)}, with no range.`;
   return { title: `${s.n} passes of our own scooter against GPS`, body: `${parts.join("; ")}.${guess}` };
 }
+
+/** A study-path or measure-path row of a speed set (results.json field rows; speeds in m/s). */
+export interface SpeedRow {
+  clip_id: string;
+  set: string;
+  path: string;
+  status: "measured" | "abstained";
+  pred: number | null;
+  lo: number | null;
+  hi: number | null;
+  truth: number | null;
+  covered: boolean | null;
+}
+
+const kmh1 = (v: number) => (v * 3.6).toFixed(1);
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+
+/**
+ * The gate method (study path) on one speed set: median absolute error in km/h, how often GPS
+ * falls inside its range, and how wide that range is (it covers frame timing, gate placement
+ * and the tape tolerance only).
+ */
+export function gateSummary(rows: SpeedRow[], set: string) {
+  const g = rows.filter((r) => r.set === set && r.path === "study");
+  const m = g.filter((r) => r.status === "measured" && r.pred != null && r.truth != null);
+  if (g.length === 0 || m.length === 0) return null;
+  const errKmh = m.map((r) => Math.abs(r.pred! - r.truth!) * 3.6);
+  const half = m.filter((r) => r.lo != null && r.hi != null).map((r) => (r.hi! - r.lo!) / 2 / r.pred!);
+  return {
+    n: g.length,
+    measured: m.length,
+    medianErrKmh: median(errKmh),
+    covered: m.filter((r) => r.covered).length,
+    halfMin: Math.min(...half),
+    halfMax: Math.max(...half),
+  };
+}
+
+const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`;
+
+/** Plain sentence about the gate method beside the measure-path results. */
+export function gateLine(rows: SpeedRow[], set: string, distanceM: number | null): string | null {
+  const s = gateSummary(rows, set);
+  if (!s) return null;
+  const dist = distanceM == null ? "" : ` (two gate lines ${distanceM} m apart on the riding line)`;
+  return (
+    `The gate method${dist} timed ${s.measured} of ${s.n} passes, median error ${s.medianErrKmh.toFixed(1)} km/h. ` +
+    `Its 90% range covers only frame timing, gate placement and the tape tolerance (about ±${pct1(s.halfMin)} to ${pct1(s.halfMax)}), ` +
+    `so GPS falls inside it on ${s.covered} of ${s.measured}.`
+  );
+}
+
+/**
+ * A pass where both methods agree with each other but not with GPS, stated as the human's reading
+ * (DECISIONS 2026-11-03: A11 looks like a GPS lag). Numbers come from the rows.
+ */
+export function gpsLagNote(rows: SpeedRow[], clip: string): string | null {
+  const m = rows.find((r) => r.clip_id === clip && r.path === "measure" && r.status === "measured");
+  const g = rows.find((r) => r.clip_id === clip && r.path === "study" && r.status === "measured");
+  if (!m?.pred || !g?.pred || m.truth == null) return null;
+  return `${clip} looks like a GPS lag: Caliper read ${kmh1(m.pred)} km/h and the gate method ${kmh1(g.pred)} km/h, both against GPS ${kmh1(m.truth)} km/h.`;
+}
+
+// EVAL_PROTOCOL section 1, claim H5 (pre-registered): median absolute error at most 3 km/h and the
+// 90% range containing GPS on at least 8 of 10 passes; disproved if the median is above 6 km/h.
+const H5_TARGET_KMH = 3;
+const H5_DISPROVED_KMH = 6;
+const H5_COVER_SHARE = 0.8;
+
+/** Claim H5 on the gate method's passes, in the protocol's own terms. */
+export function h5Line(rows: SpeedRow[], set: string): string | null {
+  const s = gateSummary(rows, set);
+  if (!s) return null;
+  const met = s.medianErrKmh <= H5_TARGET_KMH && s.covered >= H5_COVER_SHARE * s.measured;
+  const verdict = met ? "met" : s.medianErrKmh > H5_DISPROVED_KMH ? "disproved" : "not met (not disproved: that needs a median above 6 km/h)";
+  return `Claim H5 (median error at most ${H5_TARGET_KMH} km/h, GPS inside the range on at least 8 of 10 passes): ${s.medianErrKmh.toFixed(1)} km/h and ${s.covered} of ${s.measured}, ${verdict}.`;
+}
