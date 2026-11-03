@@ -1,7 +1,7 @@
 // The findings stated on / and /results, written as templates over the benchmark rows. A
 // finding whose rows are missing is left out rather than filled with a typed number.
 import { dimsFinding } from "./audit-finding";
-import { h1Finding, heroClaim, intervalCover, vetoFinding } from "./holdout-finding";
+import { h1Finding, heroClaim, intervalCover, posthocFinding, vetoFinding } from "./holdout-finding";
 import { fmtMra, fmtPct } from "./labels";
 import { type Benchmark, findPaired, findRow } from "./results";
 
@@ -52,6 +52,10 @@ export function findings(b: Benchmark): Finding[] {
 
   const h1 = calHold && museHold ? h1Finding(calHold, museHold) : null;
   if (h1) out.push({ id: "h1", ...h1, kind: "limit", source: SRC_R });
+
+  const hybrid = (b.posthoc ?? []).find((r) => r.variant === "hybrid_posthoc" && r.split === "holdout");
+  const post = hybrid && calHold && museHold ? posthocFinding(hybrid, museHold, calHold) : null;
+  if (post) out.push({ id: "posthoc", ...post, kind: "limit", source: "eval/results.csv (post-hoc row)" });
 
   const veto = vetoFinding(b.answers ?? []);
   if (veto) out.push({ id: "audit", ...veto, kind: "limit", source: SRC_A });

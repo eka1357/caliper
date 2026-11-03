@@ -67,6 +67,7 @@ Columns in `eval/results.csv`: `variant, split, mra_average, mra_S2, mra_D2, mra
 - Like-for-like comparison: `eval/paired_results.csv` reports `muse_spark_alone` on exactly the questions each Caliper variant answered, with columns `variant, split, category, n_answered, mra_variant, mra_muse, within10_variant, within10_muse, off2x_variant, off2x_muse` (`category` = S2, D2, S3, D3 or `all`).
 - All of these are computed by `eval/baseline_analysis.py` from the prediction CSVs.
 - No variant may fill Caliper's abstentions with an LLM's answers. Abstentions stay abstentions.
+- Added 2026-11-03, after the holdout run: the post-hoc analysis row `hybrid_posthoc` (Caliper where it answered, Muse Spark alone where it abstained) is not a variant and not a claim. It is reported only as a labelled post-hoc analysis (docs/DECISIONS.md 2026-11-03); the rule above is unchanged.
 
 ## 5. Field set metrics
 

@@ -67,7 +67,7 @@ def write_paired(loaded: dict[str, pd.DataFrame | None], rows: list[dict]) -> No
     for row in rows:
         v, split = row["variant"], row["split"]
         df = loaded.get(v)
-        if v == VARIANT or df is None:
+        if v == VARIANT or df is None or v.endswith("_posthoc"):  # analysis rows: no pairing
             continue
         part = split_part(df, split)
         if len(part) == 0:

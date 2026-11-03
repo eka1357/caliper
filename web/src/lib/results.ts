@@ -98,6 +98,8 @@ export interface Benchmark {
   interval_calibration: CalibrationRow[];
   /** eval/quantiphy_answers.csv: one row per (variant, question) of the frozen runs. */
   answers: AnswerRow[];
+  /** Post-hoc analysis rows (eval/hybrid_posthoc.py), kept apart from the variants. */
+  posthoc?: ResultRow[];
 }
 
 /** Read once at build time and never revalidate: the deployed server need not have eval/. */

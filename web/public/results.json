@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-11-02T18:16:20+00:00",
+ "generated_utc": "2026-11-03T07:38:21+00:00",
  "sources": {
   "results": "eval/results.csv",
   "paired": "eval/paired_results.csv",
@@ -328,6 +328,68 @@
    "cost_usd": 5.8767,
    "run_date": "2026-11-02",
    "source": "eval/quantiphy.py (dev + holdout, 158 questions, frozen at a5733dd; Muse Spark spec writer, checks, no audit)"
+  }
+ ],
+ "posthoc": [
+  {
+   "variant": "hybrid_posthoc",
+   "split": "dev",
+   "mra_average": 0.6475494941859863,
+   "mra_S2": 0.6608695652173914,
+   "mra_D2": 0.7526315789473683,
+   "mra_S3": 0.5384615384615385,
+   "mra_D3": 0.638235294117647,
+   "abstain_rate": 0.0,
+   "share_within_10pct": 0.3596,
+   "share_off_2x": 0.1573,
+   "coverage": 1.0,
+   "mra_answered": 0.6539,
+   "share_within_10pct_answered": 0.3596,
+   "share_off_2x_answered": 0.1573,
+   "n": 89,
+   "cost_usd": 0.0,
+   "run_date": "2026-11-03",
+   "source": "eval/hybrid_posthoc.py (POST-HOC analysis defined 2026-11-03 after the holdout run, no parameters, not a Caliper variant: caliper where it answered, muse_spark_alone where it abstained)"
+  },
+  {
+   "variant": "hybrid_posthoc",
+   "split": "holdout",
+   "mra_average": 0.6171271735926908,
+   "mra_S2": 0.5777777777777778,
+   "mra_D2": 0.6944444444444444,
+   "mra_S3": 0.5655172413793103,
+   "mra_D3": 0.6307692307692309,
+   "abstain_rate": 0.014492753623188406,
+   "share_within_10pct": 0.3478,
+   "share_off_2x": 0.2319,
+   "coverage": 0.9855,
+   "mra_answered": 0.6221,
+   "share_within_10pct_answered": 0.3529,
+   "share_off_2x_answered": 0.2206,
+   "n": 69,
+   "cost_usd": 0.0,
+   "run_date": "2026-11-03",
+   "source": "eval/hybrid_posthoc.py (POST-HOC analysis defined 2026-11-03 after the holdout run, no parameters, not a Caliper variant: caliper where it answered, muse_spark_alone where it abstained)"
+  },
+  {
+   "variant": "hybrid_posthoc",
+   "split": "full",
+   "mra_average": 0.6387843485582847,
+   "mra_S2": 0.6375,
+   "mra_D2": 0.7243243243243244,
+   "mra_S3": 0.5571428571428572,
+   "mra_D3": 0.6361702127659575,
+   "abstain_rate": 0.006329113924050634,
+   "share_within_10pct": 0.3544,
+   "share_off_2x": 0.1899,
+   "coverage": 0.9937,
+   "mra_answered": 0.6401,
+   "share_within_10pct_answered": 0.3567,
+   "share_off_2x_answered": 0.1847,
+   "n": 158,
+   "cost_usd": 0.0,
+   "run_date": "2026-11-03",
+   "source": "eval/hybrid_posthoc.py (POST-HOC analysis defined 2026-11-03 after the holdout run, no parameters, not a Caliper variant: caliper where it answered, muse_spark_alone where it abstained)"
   }
  ],
  "paired": [

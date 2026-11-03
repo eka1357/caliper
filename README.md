@@ -85,7 +85,7 @@ MRA on QuantiPhy's 0 to 100 scale. Official MRA counts a refusal as a miss; answ
 | Set C | size vs tape | 10 | 10 | 11% | 90% | 14% |
 | Set D | no reference: should refuse | 4 | 0 | n/a | n/a | n/a |
 
-Sources: eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv, eval/interval_calibration.csv, eval/quantiphy_answers.csv. Generated 2026-11-02T18:16:20+00:00.
+Sources: eval/results.csv, eval/paired_results.csv, eval/field_results.csv, eval/field_guesses.csv, eval/interval_calibration.csv, eval/quantiphy_answers.csv. Generated 2026-11-03T07:38:21+00:00.
 
 <!-- results:end -->
 

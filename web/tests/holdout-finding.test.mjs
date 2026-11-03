@@ -1,7 +1,7 @@
 // node --test tests/*.test.mjs (Node strips the TypeScript types; no test framework needed)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { h1Finding, heroClaim, intervalCover, vetoFinding } from "../src/lib/holdout-finding.ts";
+import { h1Finding, heroClaim, intervalCover, posthocFinding, vetoFinding } from "../src/lib/holdout-finding.ts";
 
 const a = (variant, split, row_id, status, rel_error, covered, audit_approve = null) =>
   ({ variant, split, row_id, status, rel_error, covered, audit_approve });
@@ -46,4 +46,13 @@ test("interval coverage counts answered rows only", () => {
   const rows = [a("caliper", "holdout", 1, "measured", 0.1, true), a("caliper", "holdout", 2, "measured", 0.9, false),
     a("caliper", "holdout", 3, "abstained", null, null), a("caliper", "dev", 4, "measured", 0.1, true)];
   assert.deepEqual(intervalCover(rows, "caliper", "holdout"), { covered: 1, answered: 2 });
+});
+
+test("post-hoc finding is labelled and compares with both rows", () => {
+  const f = posthocFinding({ n: 69, coverage: 0.99, mra_average: 0.6171 }, { n: 69, coverage: 0.97, mra_average: 0.5809 },
+    { n: 69, coverage: 0.22, mra_average: 0.2011 });
+  assert.match(f.title, /^Post-hoc:/);
+  assert.match(f.body, /defined after the holdout run, with no parameters, and not part of Caliper/);
+  assert.match(f.body, /scores 61\.7 official MRA, 3\.6 points above Muse Spark alone \(58\.1\); Caliper on its own scores 20\.1\./);
+  assert.match(f.body, /never returns a guess/);
 });

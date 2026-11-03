@@ -76,7 +76,9 @@ def main() -> None:
     data = {
         "generated_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "sources": {k: f"eval/{v}" for k, v in SOURCES.items()},
-        "results": [typed(r) for r in raw["results"]],
+        # post-hoc analysis rows (eval/hybrid_posthoc.py) are kept apart from the variants
+        "results": [typed(r) for r in raw["results"] if not r["variant"].endswith("_posthoc")],
+        "posthoc": [typed(r) for r in raw["results"] if r["variant"].endswith("_posthoc")],
         "paired": [typed(r) for r in raw["paired"]],
         "field": field,
         "field_summary": summary(raw["field"], raw["field_guesses"]),

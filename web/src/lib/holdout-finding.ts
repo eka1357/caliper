@@ -95,3 +95,21 @@ export function vetoFinding(answers: AnswerRow[]): { title: string; body: string
       " The shipped variant keeps the audit; nothing was changed after the freeze.",
   };
 }
+
+/**
+ * The post-hoc analysis row (eval/hybrid_posthoc.py): Caliper where it answered, Muse Spark
+ * alone where it refused. Defined after the holdout run and not a Caliper variant; the product
+ * never returns a guess (EVAL_PROTOCOL 4a, AGENTS rule 1).
+ */
+export function posthocFinding(hybrid: SplitRow, muse: SplitRow, cal: SplitRow): { title: string; body: string } | null {
+  if (hybrid.mra_average == null || muse.mra_average == null || cal.mra_average == null) return null;
+  const diff = hybrid.mra_average - muse.mra_average;
+  const rel = mra(Math.abs(diff)) === "0.0" ? "the same as" : diff > 0 ? `${mra(diff)} points above` : `${mra(-diff)} points below`;
+  return {
+    title: "Post-hoc: what if a refusal fell back to the model's guess?",
+    body:
+      `An analysis we defined after the holdout run, with no parameters, and not part of Caliper: take Caliper's answer where it answered and Muse Spark alone's guess where it refused. ` +
+      `On holdout that scores ${mra(hybrid.mra_average)} official MRA, ${rel} Muse Spark alone (${mra(muse.mra_average)}); Caliper on its own scores ${mra(cal.mra_average)}. ` +
+      `Caliper itself never returns a guess.`,
+  };
+}
