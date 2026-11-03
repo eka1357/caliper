@@ -9,6 +9,18 @@ A07,speed,measure,5.556,,,,,,abstained,"The gray car is never fully inside the p
 A08,speed,measure,5.556,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
 A09,speed,measure,4.167,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
 A10,speed,measure,4.167,,,,,,abstained,"The gray car is never fully inside the picture on enough frames (0 whole-object frames, 5 needed).",,m/s
+A11,scooter,measure,5.556,8.156669461256437,5.243287244997965,12.686652787207635,0.46808305638164804,True,measured,,True,m/s
+A11,scooter,study,5.556,8.662312015798268,8.564896880736526,8.82151185552022,0.5590914355288459,False,measured,,,m/s
+A12,scooter,measure,8.889,8.261332778642155,5.310798783918635,12.8493740202608,0.07061167975676057,True,measured,,True,m/s
+A12,scooter,study,8.889,8.659681093394077,8.53125043629927,8.771478791411655,0.02579805451748476,False,measured,,,m/s
+A13,scooter,measure,11.111,,,,,,abstained,Two ways of measuring disagree; the number isn't reliable.,,m/s
+A13,scooter,study,11.111,12.97912123502105,12.727399738819834,13.234303700240124,0.16813259247781928,False,measured,,,m/s
+A14,scooter,measure,11.667,10.93214336687876,7.000549119850118,17.073484332786986,0.0629859118129116,True,measured,,True,m/s
+A14,scooter,study,11.667,11.836815446040164,11.650045410856023,12.075113630279253,0.0145551937979056,True,measured,,,m/s
+A15,scooter,measure,12.5,9.47209981320395,6.086405394661845,14.73857127147536,0.24223201494368396,True,measured,,True,m/s
+A15,scooter,study,12.5,9.768319226118502,9.615115392109857,9.913179152598397,0.21853446191051987,False,measured,,,m/s
+A16,scooter,measure,11.111,10.373682637796005,6.666165235722291,16.148818188350884,0.06635922619062151,True,measured,,True,m/s
+A16,scooter,study,11.111,10.865853658536585,10.667452142184013,11.037526862563901,0.02206339136562108,False,measured,,,m/s
 B01,gravity,measure,9.81,,,,,,abstained,The yellow ball moves towards or away from the camera.,,m/s^2
 B02,gravity,measure,9.81,,,,,,abstained,The uncertainty is too large to be useful.,,m/s^2
 B03,gravity,measure,9.81,,,,,,abstained,"The scale changes across the picture (perspective), so one ruler doesn't fit.",,m/s^2

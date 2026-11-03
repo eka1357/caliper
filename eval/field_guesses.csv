@@ -9,6 +9,12 @@ A07,speed,5.556,m/s,3.0,0.46004319654427644,The car is going about 3 m/s.
 A08,speed,5.556,m/s,3.0,0.46004319654427644,The car is traveling at about 3 m/s.
 A09,speed,4.167,m/s,8.0,0.9198464122870171,The car is moving at about 8 m/s.
 A10,speed,4.167,m/s,11.0,1.6397888168946486,The car is moving at about 11 m/s.
+A11,scooter,5.556,m/s,8.0,0.43988480921526274,The scooter is moving at about 8 m/s.
+A12,scooter,8.889,m/s,7.0,0.2125098436269546,The scooter is moving at about 7 m/s.
+A13,scooter,11.111,m/s,7.0,0.36999369993699943,The scooter is going about 7 m/s.
+A14,scooter,11.667,m/s,8.0,0.3143053055626982,The scooter is moving at about 8 m/s.
+A15,scooter,12.5,m/s,10.0,0.2,The scooter is moving at about 10 m/s.
+A16,scooter,11.111,m/s,8.0,0.2799927999279993,The scooter is going about 8 m/s.
 B01,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball falls with acceleration near g.
 B02,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The ball accelerates at about 9.8 m/s^2.
 B03,gravity,9.81,m/s^2,9.8,0.0010193679918450342,The falling ball accelerates at about 9.8 m/s^2.
