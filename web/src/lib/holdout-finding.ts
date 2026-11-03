@@ -27,6 +27,8 @@ export interface SplitRow {
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+/** A share with its count beside it, e.g. "60% (9 of 15)". */
+export const shareOf = (v: number, n: number) => `${pct(v)} (${Math.round(v * n)} of ${n})`;
 const mra = (v: number) => (v * 100).toFixed(1);
 const err = (v: number) => `${(v * 100).toFixed(1)}% error`;
 
@@ -41,10 +43,11 @@ export function heroClaim(row: SplitRow, p: PairedShares, cover: { covered: numb
   if (!row.coverage || p.within10_variant == null || p.within10_muse == null) return null;
   if (p.off2x_variant == null || p.off2x_muse == null || cover.answered === 0) return null;
   const oneIn = Math.round(1 / row.coverage);
+  const n = p.n_answered;
   return (
     `Caliper answers about 1 question in ${oneIn}. When it answers, on unseen videos (QuantiPhy holdout) ` +
-    `${pct(p.within10_variant)} of its answers are within 10%, against ${pct(p.within10_muse)} for Muse Spark alone ` +
-    `on the same questions; ${pct(p.off2x_variant)} are off by more than 2x, against ${pct(p.off2x_muse)}; ` +
+    `${shareOf(p.within10_variant, n)} of its answers are within 10%, against ${shareOf(p.within10_muse, n)} for Muse Spark alone ` +
+    `on the same questions; ${shareOf(p.off2x_variant, n)} are off by more than 2x, against ${shareOf(p.off2x_muse, n)}; ` +
     `and its 90% range held on ${cover.covered} of ${cover.answered}.`
   );
 }

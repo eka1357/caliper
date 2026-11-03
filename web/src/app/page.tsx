@@ -11,6 +11,7 @@ import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings, heroLine } from "@/lib/findings";
+import { provenLine } from "@/lib/proven";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
 import { fieldRows, loadBenchmark } from "@/lib/results";
@@ -34,6 +35,7 @@ export default async function Home() {
   const sizeRows = fieldRows(bench, "size");
   const sizeSet = bench.field_summary.size;
   const claim = heroLine(bench);
+  const proven = provenLine(bench.field_summary, bench.field);
 
   return (
     <>
@@ -65,14 +67,6 @@ export default async function Home() {
                 Ask how big, how fast, or how hard something accelerates in a video. Get a measured
                 number with an error range, or an honest no.
               </p>
-              {claim && (
-                <p className="max-w-xl text-sm text-muted-foreground">
-                  {claim}{" "}
-                  <Link href="/results" className="underline underline-offset-4">
-                    How this was scored
-                  </Link>
-                </p>
-              )}
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
                   <Link href="/workspace">Measure a clip</Link>
@@ -81,6 +75,21 @@ export default async function Home() {
                   <Link href="/results">See the evidence</Link>
                 </Button>
               </div>
+              {proven && <p className="max-w-xl text-sm text-muted-foreground">{proven}</p>}
+              <p className="max-w-xl text-sm text-muted-foreground">
+                New against Tracker, MotionLab, VeloCV and Speedcam Anywhere: a plain question
+                becomes a measurement plan (Muse Spark), SAM 3.1 tracks, plain Python computes, and
+                the answer comes with a 90% range or an explicit refusal, scored against the same
+                model guessing.
+              </p>
+              {claim && (
+                <p className="max-w-xl text-sm text-muted-foreground">
+                  {claim}{" "}
+                  <Link href="/results" className="underline underline-offset-4">
+                    How this was scored
+                  </Link>
+                </p>
+              )}
             </div>
             <div className="min-w-0 lg:col-span-6">
               {measured ? (
@@ -126,10 +135,12 @@ export default async function Home() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-4">
               <p className="text-muted-foreground">
-                Film a street for a few minutes with two marks a measured distance apart. Caliper
-                measures every vehicle it can, gives each an error range, refuses the ones it
-                cannot measure, and reports the 85th-percentile speed: the number traffic engineers
-                use to decide on calming.
+                <span className="font-medium text-foreground">Pending.</span> The street speed
+                study uses the same engine: two marks a measured distance apart, a gate line
+                through each, a speed with a 90% range for each vehicle it can time (or the reason
+                it cannot), and the 85th-percentile speed traffic engineers use to decide on
+                calming. It has not yet been measured on our own footage: our first street clip had
+                no lane with both marks in view, and a new clip is being filmed.
               </p>
               <p className="text-sm text-muted-foreground">
                 India recorded 177,175 road deaths in 2024, and the transport ministry attributes
@@ -144,8 +155,8 @@ export default async function Home() {
               </Button>
             </div>
             <Placeholder title="Street study still and 85th-percentile card">
-              Our own street clip with every vehicle tagged by speed and range arrives with Phase 4.
-              No study number is shown until it has been measured.
+              Pending: no street study has been measured on our own footage yet. No study number is
+              shown until one has.
             </Placeholder>
           </div>
         </Section>

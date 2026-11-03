@@ -1,8 +1,8 @@
 // The findings stated on / and /results, written as templates over the benchmark rows. A
 // finding whose rows are missing is left out rather than filled with a typed number.
 import { dimsFinding } from "./audit-finding";
-import { h1Finding, heroClaim, intervalCover, posthocFinding, vetoFinding } from "./holdout-finding";
-import { fmtMra, fmtPct } from "./labels";
+import { h1Finding, heroClaim, intervalCover, posthocFinding, shareOf, vetoFinding } from "./holdout-finding";
+import { fmtMra } from "./labels";
 import { type Benchmark, findPaired, findRow } from "./results";
 
 export interface Finding {
@@ -17,6 +17,7 @@ export interface Finding {
 const SRC_R = "eval/results.csv";
 const SRC_P = "eval/paired_results.csv";
 const SRC_A = "eval/quantiphy_answers.csv";
+const pctOf = (v: number | null, n: number) => (v == null ? "n/a" : shareOf(v, n));
 
 export function findings(b: Benchmark): Finding[] {
   const out: Finding[] = [];
@@ -44,7 +45,7 @@ export function findings(b: Benchmark): Finding[] {
     out.push({
       id: "answered",
       title: "When it answers, it is closer",
-      body: `On the ${pHold.n_answered} holdout questions Caliper answered, its MRA is ${fmtMra(pHold.mra_variant)} against ${fmtMra(pHold.mra_muse)} for Muse Spark alone on the same questions; ${fmtPct(pHold.within10_variant)} of its answers are within 10% against ${fmtPct(pHold.within10_muse)}, and ${fmtPct(pHold.off2x_variant)} are off by more than 2x against ${fmtPct(pHold.off2x_muse)}.${dev}`,
+      body: `On the ${pHold.n_answered} holdout questions Caliper answered, its MRA is ${fmtMra(pHold.mra_variant)} against ${fmtMra(pHold.mra_muse)} for Muse Spark alone on the same questions; ${pctOf(pHold.within10_variant, pHold.n_answered)} of its answers are within 10% against ${pctOf(pHold.within10_muse, pHold.n_answered)}, and ${pctOf(pHold.off2x_variant, pHold.n_answered)} are off by more than 2x against ${pctOf(pHold.off2x_muse, pHold.n_answered)}.${dev}`,
       kind: "finding",
       source: SRC_P,
     });

@@ -11,8 +11,8 @@ test("hero claim reads its numbers from the rows", () => {
     { n_answered: 15, within10_variant: 0.6, within10_muse: 0.2667, off2x_variant: 0.0667, off2x_muse: 0.2 },
     { covered: 13, answered: 15 });
   assert.match(s, /about 1 question in 5\./);
-  assert.match(s, /60% of its answers are within 10%, against 27%/);
-  assert.match(s, /7% are off by more than 2x, against 20%/);
+  assert.match(s, /60% \(9 of 15\) of its answers are within 10%, against 27% \(4 of 15\)/);
+  assert.match(s, /7% \(1 of 15\) are off by more than 2x, against 20% \(3 of 15\)/);
   assert.match(s, /held on 13 of 15\./);
 });
 
