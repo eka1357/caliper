@@ -220,4 +220,4 @@ During the building period (Oct 27 to Nov 4 2026): all application code in `back
 
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE). Third-party models, data and components keep their own licenses (Credits above).
