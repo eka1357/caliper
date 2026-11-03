@@ -146,11 +146,15 @@ export function caliperOn(b: Benchmark, split: string): boolean {
 
 /** Field sets in display order with what each one tests. */
 export const FIELD_SETS = [
-  { set: "speed", label: "Set A", what: "car speed against a GPS app" },
+  { set: "scooter", label: "Set A (scooter)", what: "our scooter's speed against a GPS app, its taped length as the ruler" },
+  { set: "speed", label: "Set A (car, first filming)", what: "car speed against a GPS app" },
   { set: "gravity", label: "Set B", what: "a dropped ball, acceleration against 9.81 m/s²" },
   { set: "size", label: "Set C", what: "object size against a tape measure" },
   { set: "none", label: "Set D", what: "no reference in view: should refuse" },
 ] as const;
+
+/** Field sets whose truth is a GPS speed (m/s in the CSVs). */
+export const SPEED_SETS = new Set(["speed", "scooter"]);
 
 export function fieldRows(b: Benchmark, set: string, path = "measure"): FieldRow[] {
   return b.field.filter((r) => r.set === set && r.path === path);

@@ -44,5 +44,8 @@ export async function landingRuns() {
   const missed = done.find((r) => r !== measured && r.meta.instrument?.value != null && !inside(r)) ?? null;
   const vetoed = runs.find((r) => r.result.status === "abstained" && r.result.audit && !r.result.audit.approve) ?? null;
   const abstained = runs.filter((r) => r.result.status === "abstained");
-  return { measured, missed, vetoed, abstained };
+  // Speed: the measured speed run whose GPS reading lies inside its range, smallest error first.
+  const err = (r: CachedRun) => Math.abs((r.result.value ?? 0) - (r.meta.instrument?.value ?? 0)) / (r.meta.instrument?.value || 1);
+  const speedRun = done.filter((r) => r.result.quantity === "speed" && inside(r)).sort((a, b) => err(a) - err(b))[0] ?? null;
+  return { measured, missed, vetoed, abstained, speedRun };
 }

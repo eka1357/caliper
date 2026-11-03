@@ -18,7 +18,8 @@ SPLIT_NOTE = {"holdout": "holdout (never used for tuning)", "dev": "dev (used fo
 VARIANTS = {"muse_spark_alone": "Muse Spark alone", "caliper": "Caliper (with audit, as shipped)",
             "caliper_no_audit": "Caliper, audit off"}  # fmt: skip
 FIELD_SETS = (
-    ("speed", "Set A", "car speed vs GPS"),
+    ("scooter", "Set A (scooter)", "our scooter's speed vs GPS"),
+    ("speed", "Set A (car, first filming)", "car speed vs GPS"),
     ("gravity", "Set B", "drop, g vs 9.81"),
     ("size", "Set C", "size vs tape"),
     ("none", "Set D", "no reference: should refuse"),
@@ -56,6 +57,28 @@ def _reason_key(reason: str) -> str:
     return re.sub(r"\.\s*$", "", key).strip()
 
 
+SPEED_SETS = (("scooter", "scooter passes"), ("speed", "first car-speed clips"))
+
+
+def _refused_part(label: str, f: dict, rows: list[dict], key: str) -> str:
+    refused = [r for r in rows if r["set"] == key and r["path"] == "measure"
+               and r["status"] == "abstained" and r["reason"]]  # fmt: skip
+    why = ""
+    if refused:
+        reason, count = Counter(_reason_key(r["reason"]) for r in refused).most_common(1)[0]
+        why = f' (most often "{reason}", {count} of {len(refused)})'
+    return f"all {f['n']} of our {label} were refused{why}"
+
+
+def _measured_part(label: str, f: dict) -> str:
+    out = f"our {label}, {f['measured']} of {f['n']} measured against GPS"
+    if f["median_rel_error"] is not None:
+        out += f", median error {_pct(f['median_rel_error'])}"
+    if f["coverage"] is not None:
+        out += f", GPS inside the 90% range on {round(f['coverage'] * f['measured'])} of {f['measured']}"  # noqa: E501
+    return out
+
+
 def proven(data: dict) -> str | None:
     """What is proven on our own clips; the same sentence as the landing hero (proven.ts)."""
     fs, rows = data.get("field_summary", {}), data.get("field", [])
@@ -66,28 +89,63 @@ def proven(data: dict) -> str | None:
            f"tape, median error {_pct(size['median_rel_error'])}")  # fmt: skip
     if size["coverage"] is not None:
         out += f", truth inside the 90% range on {round(size['coverage'] * size['measured'])} of {size['measured']}"  # noqa: E501
-    parts = []
-    for key, label in (("speed", "car-speed clips"), ("gravity", "drop clips")):
-        f = fs.get(key)
-        if not f:
-            continue
-        if f["measured"]:
-            parts.append(f"{label}: {f['measured']} of {f['n']} measured")
-            continue
-        refused = [r for r in rows if r["set"] == key and r["path"] == "measure"
-                   and r["status"] == "abstained" and r["reason"]]  # fmt: skip
-        why = ""
-        if refused:
-            reason, count = Counter(_reason_key(r["reason"]) for r in refused).most_common(1)[0]
-            why = f' (most often "{reason}", {count} of {len(refused)})'
-        parts.append(f"all {f['n']} of our {label} were refused{why}")
-    if not parts:
-        return out + "."
-    lead = ("Speed and acceleration on our own footage"
-            if any(fs.get(k, {}).get("measured") for k in ("speed", "gravity"))
-            else "Speed and acceleration work on the QuantiPhy benchmark but are not yet measured "
-            "on our own footage")  # fmt: skip
-    return f"{out}. {lead}: {', and '.join(parts)}."
+    out += "."
+    measured, refused = [], []
+    for key, label in SPEED_SETS:
+        if f := fs.get(key):
+            if f["measured"]:
+                measured.append(_measured_part(label, f))
+            else:
+                refused.append(_refused_part(label, f, rows, key))
+    if g := fs.get("gravity"):
+        if g["measured"]:
+            measured.append(f"drops, {g['measured']} of {g['n']} measured")
+        else:
+            refused.append(_refused_part("drop clips", g, rows, "gravity"))
+    if not measured:
+        if not refused:
+            return out
+        return (f"{out} Speed and acceleration work on the QuantiPhy benchmark but are not yet "
+                f"measured on our own footage: {', and '.join(refused)}.")  # fmt: skip
+    speed = f"Speed on our own footage: {'; '.join(measured)}."
+    return (
+        f"{out} {speed} Refused on our own footage: {', and '.join(refused)}."
+        if refused
+        else f"{out} {speed}"
+    )  # noqa: E501
+
+
+def _covered(f: dict) -> str:
+    if f["coverage"] is None:
+        return "n/a"
+    return f"{round(f['coverage'] * f['measured'])} of {f['measured']}"
+
+
+def scooter_table(data: dict) -> list[str]:
+    """Set A (scooter) per pass, km/h (stored in m/s): the same rows as /results."""
+    rows = [r for r in data.get("field", []) if r["set"] == "scooter" and r["path"] == "measure"]
+    if not rows:
+        return []
+
+    def kmh(v: float | None) -> str:
+        return "n/a" if v is None else f"{v * 3.6:.1f}"
+
+    out = ["", f"### Set A (scooter): {len(rows)} passes of our own scooter against GPS", "",
+           "Measure path, single passes, the scooter's taped length as the ruler (not a street "
+           "study). km/h; stored in m/s in eval/field_results.csv.", "",
+           "| Clip | Caliper | 90% range | GPS | Error | GPS inside range | Muse Spark alone | "
+           "Its error |", "| --- | --- | --- | --- | --- | --- | --- | --- |"]  # fmt: skip
+    for r in rows:
+        measured = r["status"] == "measured"
+        rng = f"{kmh(r['lo'])} to {kmh(r['hi'])}" if measured and r["lo"] is not None else (
+            f"refused: {r['reason']}" if not measured else "n/a")  # fmt: skip
+        inside = "n/a" if r["covered"] is None else ("yes" if r["covered"] else "no")
+        out.append(
+            f"| {r['clip_id']} | {kmh(r['pred']) if measured else 'refused'} | {rng} | "
+            f"{kmh(r['truth'])} | {_pct(r['rel_error'])} | {inside} | {kmh(r.get('guess_pred'))} | "
+            f"{_pct(r.get('guess_rel_error'))} |"
+        )
+    return out
 
 
 def _cover(data: dict, variant: str, split: str) -> tuple[int, int]:
@@ -219,8 +277,9 @@ def block(data: dict) -> str:
         if f:
             lines.append(
                 f"| {label} | {what} | {f['n']} | {f['measured']} | {_pct(f['median_rel_error'])} "
-                f"| {_pct(f['coverage'])} | {_pct(f['guess_median_rel_error'])} |"
+                f"| {_covered(f)} | {_pct(f['guess_median_rel_error'])} |"
             )
+    lines += scooter_table(data)
     lines += ["", f"Sources: {', '.join(data['sources'].values())}. "
               f"Generated {data['generated_utc']}.", "", README_END]  # fmt: skip
     return "\n".join(lines)

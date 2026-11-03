@@ -8,12 +8,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtPct, variantLabel } from "@/lib/labels";
-import { type Benchmark, calibration, FIELD_SETS, fieldRows } from "@/lib/results";
+import { type Benchmark, calibration, FIELD_SETS, fieldRows, SPEED_SETS } from "@/lib/results";
 
 // Field set on /results. Every value is read from web/public/results.json (eval/report.py over
 // eval/field_results.csv, field_guesses.csv and interval_calibration.csv). Server component.
 
 const n2 = (v: number | null, d = 2) => (v == null ? "n/a" : v.toFixed(d));
+const kmh = (v: number | null) => (v == null ? "n/a" : (v * 3.6).toFixed(1)); // m/s in the CSV
 
 function Head({ cols }: { cols: string[] }) {
   return (
@@ -29,6 +30,7 @@ function Head({ cols }: { cols: string[] }) {
 
 export function FieldResults({ bench }: { bench: Benchmark }) {
   const sizeRows = fieldRows(bench, "size");
+  const scooterRows = fieldRows(bench, "scooter");
   const unit = sizeRows[0]?.unit ?? "";
   const variants = ["caliper_no_audit", "caliper"];
   const k = calibration(bench, "caliper_no_audit", false)?.interval_log_term ?? null;
@@ -101,6 +103,42 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
         </div>
       </div>
 
+      {/* Set A (scooter) against GPS */}
+      {scooterRows.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h3 className="font-medium">Set A (scooter): {scooterRows.length} passes of our own scooter against GPS</h3>
+          <div className="min-w-0 rounded-lg border bg-card">
+            <Table className="font-mono text-xs tabular-nums">
+              <TableCaption className="px-4 pb-4 text-left font-sans">
+                Source: eval/field_results.csv and eval/field_guesses.csv (stored in m/s, shown in
+                km/h). The prior is the scooter&apos;s taped length; Muse Spark alone was given the
+                same question and length. Single passes on the measure path, not a street study.
+              </TableCaption>
+              <Head cols={["Clip", "Caliper", "90% range", "GPS", "Error", "Inside range",
+                "Muse Spark alone", "Its error"]} />
+              <TableBody>
+                {scooterRows.map((r) => (
+                  <TableRow key={r.clip_id}>
+                    <TableCell className="font-sans">{r.clip_id}</TableCell>
+                    <TableCell>{r.status === "measured" ? kmh(r.pred) : <span className="font-sans">refused</span>}</TableCell>
+                    <TableCell className="whitespace-normal font-sans">
+                      {r.lo == null ? r.reason || "n/a" : `${kmh(r.lo)} to ${kmh(r.hi)}`}
+                    </TableCell>
+                    <TableCell>{kmh(r.truth)}</TableCell>
+                    <TableCell>{fmtPct(r.rel_error)}</TableCell>
+                    <TableCell className="font-sans">
+                      {r.covered == null ? "n/a" : r.covered ? "yes" : <span className="text-destructive">no</span>}
+                    </TableCell>
+                    <TableCell>{kmh(r.guess_pred)}</TableCell>
+                    <TableCell>{fmtPct(r.guess_rel_error)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {/* Refusals per set, verbatim */}
       <div className="flex flex-col gap-2">
         <h3 className="font-medium">Every refusal, in Caliper&apos;s words</h3>
@@ -117,13 +155,13 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
                     {measured.length > 0 && ` Measured: ${measured.map((r) => `${r.clip_id} ${n2(r.pred)} ${r.unit} (truth ${r.truth == null ? "none" : n2(r.truth, set === "size" ? 1 : 2)})`).join(", ")}.`}
                   </TableCaption>
                   {refused.length > 0 && (
-                    <Head cols={set === "speed" ? ["Clip", "GPS", "Muse alone", "Its error", "Caliper"] : ["Clip", "Caliper"]} />
+                    <Head cols={SPEED_SETS.has(set) ? ["Clip", "GPS", "Muse alone", "Its error", "Caliper"] : ["Clip", "Caliper"]} />
                   )}
                   <TableBody>
                     {refused.map((r) => (
                       <TableRow key={r.clip_id}>
                         <TableCell className="font-mono">{r.clip_id}</TableCell>
-                        {set === "speed" && (
+                        {SPEED_SETS.has(set) && (
                           <>
                             <TableCell className="font-mono tabular-nums">{n2(r.truth)}</TableCell>
                             <TableCell className="font-mono tabular-nums">{n2(r.guess_pred, 1)}</TableCell>
@@ -140,10 +178,11 @@ export function FieldResults({ bench }: { bench: Benchmark }) {
           })}
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Set A speeds are in m/s. The street study&apos;s gate method is not validated by this Set A:
-          its markers stand on the far kerb while the car drives in the near lane, so the distance
-          between them is not the car&apos;s path. Set A was therefore measured with the car as its
-          own ruler, using only frames where the whole car is in the picture.
+          Set A speeds are in m/s. Both Set A filmings are measured with the vehicle as its own
+          ruler (its taped length is the prior), using only frames where the whole vehicle is in
+          the picture. The street study&apos;s gate method is not validated by either: the first
+          filming&apos;s markers stand on the far kerb, and the scooter&apos;s gate distance was
+          taped along the shop fronts, not the riding line (a provisional run, not shown here).
         </p>
       </div>
 

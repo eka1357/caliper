@@ -11,7 +11,7 @@ import { Placeholder, PlaceholderTag } from "@/components/site/Placeholder";
 import { fixFor } from "@/components/workspace/copy";
 import { Button } from "@/components/ui/button";
 import { findings, heroLine } from "@/lib/findings";
-import { provenLine } from "@/lib/proven";
+import { provenLine, scooterLine } from "@/lib/proven";
 import { decimalsFor, fmt } from "@/lib/format";
 import { fmtPct } from "@/lib/labels";
 import { fieldRows, loadBenchmark } from "@/lib/results";
@@ -29,7 +29,8 @@ const MORTH =
 // read at build time from eval/results.csv, eval/paired_results.csv or a recorded run JSON.
 export default async function Home() {
   const [bench, runs] = await Promise.all([loadBenchmark(), landingRuns()]);
-  const { measured, missed, vetoed, abstained } = runs;
+  const { measured, missed, vetoed, abstained, speedRun } = runs;
+  const scooter = scooterLine(bench.field_summary.scooter);
   // A veto shows best what the audit is for; until one is recorded, the hero run's real verdict.
   const audited = vetoed ?? (measured?.result.audit ? measured : null);
   const sizeRows = fieldRows(bench, "size");
@@ -130,17 +131,20 @@ export default async function Home() {
           )}
         </Section>
 
-        {/* 5. On a real street */}
-        <Section id="street" title="On a real street">
+        {/* 5. Speed on our own footage (measure path; the street study is provisional) */}
+        <Section id="street" title={scooter?.title ?? "Speed on our own footage"}>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-4">
-              <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Pending.</span> The street speed
-                study uses the same engine: two marks a measured distance apart, a gate line
-                through each, a speed with a 90% range for each vehicle it can time (or the reason
-                it cannot), and the 85th-percentile speed traffic engineers use to decide on
-                calming. It has not yet been measured on our own footage: our first street clip had
-                no lane with both marks in view, and a new clip is being filmed.
+              {scooter ? (
+                <p className="text-muted-foreground">{scooter.body}</p>
+              ) : (
+                <p className="text-muted-foreground">No speed run on our own footage yet.</p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Single passes, side on, the scooter&apos;s taped length as the ruler: this is the
+                measure path, not a street study. The street speed study (two gate lines a measured
+                distance apart, the 85th-percentile speed engineers use to decide on calming) is
+                provisional on this footage until the distance along the riding line is re-measured.
               </p>
               <p className="text-sm text-muted-foreground">
                 India recorded 177,175 road deaths in 2024, and the transport ministry attributes
@@ -151,13 +155,14 @@ export default async function Home() {
                 ).
               </p>
               <Button asChild variant="outline" className="w-fit">
-                <Link href="/study">Run a speed study</Link>
+                <Link href="/results#field-h">See every pass</Link>
               </Button>
             </div>
-            <Placeholder title="Street study still and 85th-percentile card">
-              Pending: no street study has been measured on our own footage yet. No study number is
-              shown until one has.
-            </Placeholder>
+            {speedRun ? (
+              <SpeedCard run={speedRun} />
+            ) : (
+              <Placeholder title="Scooter pass">No measured speed run is recorded yet.</Placeholder>
+            )}
           </div>
         </Section>
 
@@ -330,6 +335,31 @@ function InstrumentCard({ run }: { run: CachedRun | null }) {
         <span className="font-mono text-muted-foreground">{ins.unit}</span>
       </p>
       <p className="text-xs text-muted-foreground">Measured by hand when the clip was filmed.</p>
+    </div>
+  );
+}
+
+/** One recorded speed pass: the audit keyframe, Caliper's value and range, and the GPS reading. */
+function SpeedCard({ run }: { run: CachedRun }) {
+  const r = run.result;
+  const ins = run.meta.instrument;
+  if (r.value == null || !ins || ins.value == null || r.unit !== "m/s") return null;
+  const kmh = (v: number) => fmt(v * 3.6, 1); // the run is in m/s; the GPS app reads km/h
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border bg-card p-5">
+      <KeyframeStill run={run} />
+      <p className="text-sm text-muted-foreground">{run.meta.title}</p>
+      <p className="flex flex-wrap items-baseline gap-2">
+        <span className="text-sm text-primary">Caliper</span>
+        <span className="font-mono text-3xl tabular-nums">{kmh(r.value)}</span>
+        <span className="font-mono text-muted-foreground">km/h</span>
+      </p>
+      {r.interval_90 && (
+        <p className="font-mono text-xs tabular-nums text-muted-foreground">
+          90% range {kmh(r.interval_90[0])} to {kmh(r.interval_90[1])} km/h
+        </p>
+      )}
+      <p className="text-sm">{ins.instrument}</p>
     </div>
   );
 }
