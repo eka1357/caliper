@@ -35,34 +35,35 @@ Check before filming: Claude Desktop's tools menu lists `caliper` with `measure`
 
 > Use the caliper tools. First measure how long the phone is in cm in
 > C:\Projects\Caliper\data\field\C_07.MOV — the coin next to it is an INR 10 coin, 0.027 m in
-> diameter. Then run a street speed study on C:\Projects\Caliper\data\field\S_02.MOV with the
-> gate lines below, 10 m apart, speed limit 30 km/h. Report each number with its 90% range, and
-> say plainly if a vehicle has no reading and why.
->
-> gate_a: from (x1, y1) to (x2, y2); gate_b: from (x3, y3) to (x4, y4)
+> diameter. Then run a street speed study on
+> C:\Projects\Caliper\data\field\PXL_20261103_120028917.mp4 (vehicle class "scooter") with
+> gate_a from (200, 0) to (200, 720) and gate_b from (1010, 0) to (1010, 720), 7.92 m apart.
+> Report each number with its 90% range, and say plainly if a vehicle has no reading and why.
 
-What should appear:
+That clip is A14 from Set A (scooter); the gates are the ones committed in eval/study_gates.json
+before scoring. `vehicle_classes: ["scooter"]` matters: it is the SAM concept already in the cache.
+With the default four classes the study would make three new SAM requests (they cost money).
 
-- `measure` returns status `measured`, the value and unit, and `interval_90` for C07: the same
-  numbers as the recorded run on `/workspace` (the call replays the cache). If the agent restates
-  the number, check it against the tool output on screen; the number comes from the tool, not the
-  agent.
-- `study` returns a `StudySummary`: each vehicle's speed with its range or its no-reading reason,
-  the median, the 85th percentile with its range, and the share over the limit.
+What should appear (both calls replay the disk cache, $0):
 
-## 3. Gates and the study clip
+- `measure` returns status `measured` for C07 with its value and `interval_90`: the recorded run's
+  value (the live bootstrap, B=200, can move the range in the second decimal). If the agent
+  restates the number, check it against the tool output on screen; the number comes from the
+  tool, not the agent.
+- `study` returns a `StudySummary`: the moving scooter measured with its speed and range, and the
+  other tracked scooters (parked at the shops) with "no reading" and the reason. The speed is the
+  same as eval/h5_results.csv for A14.
 
-- **S02 is not filmed yet** (DECISIONS 2026-11-02: S01 had no lane with both marks in view). When it
-  arrives, draw the two gate lines through the marks on frame 0 of the normalized video
-  (`data/cache/normalized/`, width at most 1280 px), commit them to `eval/study_gates.json` before
-  any scoring, and paste the same coordinates into the prompt.
-- **Stand-in until then:** `data/field/A_04.MOV` with `vehicle_classes: ["gray car"]` reuses a cached
-  SAM response ($0) and shows the tool working end to end. Its markers stand on the far kerb, so
-  its speeds are not a validated measurement (DECISIONS 2026-11-02, H5 open). Do not present them
-  as one in the video.
-- A first study call on a new clip spends money: one SAM request per vehicle class over every
-  frame. The cost estimate is checked against `PER_STUDY_CAP_USD` before any call. Run it once
-  before filming so the filmed call replays the cache.
+## 3. Checked on 2026-11-03
+
+- Pre-run with an MCP stdio client using exactly the config above (same `command`, `args` and
+  `env`, started from a folder outside the repo) and the API URL pointed at a dead port, so a cache
+  miss would have failed: both calls were cache hits, $0 settled, the tool list shows `measure`
+  and `study`. This checks the server and the config; Claude Desktop itself was not run here.
+- S02 (a multi-vehicle street clip) is not filmed. When it is, draw its gates on frame 0, commit
+  them to eval/study_gates.json before scoring, run it once, and use it here instead of A14.
+- The live caps apply (`.env`): a study clip over `LIVE_MAX_STUDY_SECONDS` or an estimate over
+  `PER_STUDY_CAP_USD` is refused before any call.
 
 ## 4. Fallback if Claude Desktop is not available
 
