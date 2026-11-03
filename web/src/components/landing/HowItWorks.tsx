@@ -46,7 +46,8 @@ export function HowItWorks({ run }: { run: CachedRun }) {
       name: "Read",
       line: "Muse Spark reads the question and writes a measurement spec. It never writes the number.",
       art: (
-        <pre className="max-h-72 overflow-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed" data-lenis-prevent>
+        // Shown whole, no inner scroll box: it is filmed for the demo (wraps instead of scrolling).
+        <pre className="whitespace-pre-wrap break-words rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
           {JSON.stringify(spec, null, 2)}
         </pre>
       ),
@@ -86,7 +87,8 @@ export function HowItWorks({ run }: { run: CachedRun }) {
       name: "Check",
       line: "Deterministic checks, then a visual audit. If any fails, Caliper refuses instead of guessing.",
       art: (
-        <ul className="flex flex-col gap-2 text-sm">
+        <div className="flex flex-col gap-4">
+        <ul className="grid grid-cols-1 gap-2 text-sm xl:grid-cols-2">
           {r.checks.map((c) => (
             <li key={c.name} className="flex items-center gap-2">
               {c.passed ? (
@@ -100,6 +102,18 @@ export function HowItWorks({ run }: { run: CachedRun }) {
             </li>
           ))}
         </ul>
+        {r.audit && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium">
+              Muse Spark audit verdict: {r.audit.approve ? "approve" : "veto"}
+            </p>
+            {/* Shown whole, no inner scroll box (filmed for the demo). */}
+            <pre className="whitespace-pre-wrap break-words rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
+              {JSON.stringify(r.audit, null, 2)}
+            </pre>
+          </div>
+        )}
+        </div>
       ),
     },
   ];
