@@ -39,3 +39,6 @@ Thumbs.db
 
 # Browser automation output (screenshots, logs)
 .playwright-mcp/
+
+# Private notes and reviews (never committed)
+.private/
