@@ -1,0 +1,1279 @@
+{
+ "note": "Verbatim JSON-RPC messages of one stdio session with backend/caliper/mcp_server.py (video/scripts/mcp_capture.py). Cached runs only; the Meta API address pointed at a dead port, so no call could reach the API.",
+ "server": {
+  "command": "C:\\Projects\\Caliper\\backend\\.venv\\Scripts\\python.exe",
+  "args": [
+   "-m",
+   "caliper.mcp_server"
+  ],
+  "env": {
+   "PYTHONPATH": "C:\\Projects\\Caliper\\backend",
+   "LIVE_RUNS_ENABLED": "true"
+  },
+  "guard_env": {
+   "META_API_BASE_URL": "http://127.0.0.1:9/v1"
+  }
+ },
+ "messages": [
+  {
+   "direction": "client_to_server",
+   "t_ms": 8,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+     "protocolVersion": "2025-06-18",
+     "capabilities": {},
+     "clientInfo": {
+      "name": "caliper-demo-agent",
+      "version": "1.0"
+     }
+    }
+   }
+  },
+  {
+   "direction": "server_to_client",
+   "t_ms": 17069,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+     "capabilities": {
+      "prompts": {
+       "listChanged": false
+      },
+      "resources": {
+       "listChanged": false,
+       "subscribe": false
+      },
+      "tools": {
+       "listChanged": false
+      }
+     },
+     "instructions": "Caliper measures size, speed and acceleration in a video and returns a number with a 90% interval, or an abstention with the reason. Give a prior (one known real size or speed, e.g. 'The coin is 0.027 m in diameter.') whenever you have one. `study` times vehicles between two gate lines a measured distance apart and reports the 85th-percentile speed.",
+     "protocolVersion": "2025-06-18",
+     "serverInfo": {
+      "name": "caliper",
+      "version": ""
+     }
+    }
+   }
+  },
+  {
+   "direction": "client_to_server",
+   "t_ms": 17069,
+   "message": {
+    "jsonrpc": "2.0",
+    "method": "notifications/initialized"
+   }
+  },
+  {
+   "direction": "client_to_server",
+   "t_ms": 17069,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list",
+    "params": {}
+   }
+  },
+  {
+   "direction": "server_to_client",
+   "t_ms": 17082,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result": {
+     "tools": [
+      {
+       "description": "Measure a size, speed or acceleration in a video. Returns a measured value with a 90% interval, or status 'abstained' with abstain_reason. Never a guess.",
+       "inputSchema": {
+        "properties": {
+         "video_path": {
+          "title": "Video Path",
+          "type": "string"
+         },
+         "question": {
+          "title": "Question",
+          "type": "string"
+         },
+         "prior": {
+          "anyOf": [
+           {
+            "type": "string"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "default": null,
+          "title": "Prior"
+         }
+        },
+        "required": [
+         "video_path",
+         "question"
+        ],
+        "type": "object",
+        "title": "measureArguments"
+       },
+       "name": "measure",
+       "outputSchema": {
+        "properties": {
+         "run_id": {
+          "title": "Run Id",
+          "type": "string"
+         },
+         "status": {
+          "enum": [
+           "measured",
+           "abstained"
+          ],
+          "title": "Status",
+          "type": "string"
+         },
+         "value": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Value"
+         },
+         "unit": {
+          "title": "Unit",
+          "type": "string"
+         },
+         "interval_90": {
+          "anyOf": [
+           {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "number"
+             }
+            ],
+            "type": "array"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Interval 90"
+         },
+         "quantity": {
+          "enum": [
+           "size",
+           "speed",
+           "acceleration"
+          ],
+          "title": "Quantity",
+          "type": "string"
+         },
+         "spec": {
+          "$ref": "#/$defs/MeasurementSpec"
+         },
+         "scale_m_per_px": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Scale M Per Px"
+         },
+         "method": {
+          "title": "Method",
+          "type": "string"
+         },
+         "checks": {
+          "items": {
+           "$ref": "#/$defs/Check"
+          },
+          "title": "Checks",
+          "type": "array"
+         },
+         "audit": {
+          "anyOf": [
+           {
+            "$ref": "#/$defs/AuditVerdict"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         },
+         "abstain_reason": {
+          "anyOf": [
+           {
+            "type": "string"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Abstain Reason"
+         },
+         "artifacts": {
+          "additionalProperties": true,
+          "title": "Artifacts",
+          "type": "object"
+         },
+         "backend": {
+          "enum": [
+           "meta_api",
+           "muse_spark_open"
+          ],
+          "title": "Backend",
+          "type": "string"
+         },
+         "cost_usd": {
+          "title": "Cost Usd",
+          "type": "number"
+         },
+         "timings_ms": {
+          "additionalProperties": true,
+          "title": "Timings Ms",
+          "type": "object"
+         }
+        },
+        "required": [
+         "run_id",
+         "status",
+         "value",
+         "unit",
+         "interval_90",
+         "quantity",
+         "spec",
+         "scale_m_per_px",
+         "method",
+         "checks",
+         "audit",
+         "abstain_reason",
+         "artifacts",
+         "backend",
+         "cost_usd",
+         "timings_ms"
+        ],
+        "type": "object",
+        "$defs": {
+         "AuditVerdict": {
+          "properties": {
+           "target_is_right_object": {
+            "title": "Target Is Right Object",
+            "type": "boolean"
+           },
+           "reference_is_right_object": {
+            "title": "Reference Is Right Object",
+            "type": "boolean"
+           },
+           "reference_same_plane": {
+            "enum": [
+             "yes",
+             "no",
+             "unclear"
+            ],
+            "title": "Reference Same Plane",
+            "type": "string"
+           },
+           "occlusion_or_identity_switch": {
+            "title": "Occlusion Or Identity Switch",
+            "type": "boolean"
+           },
+           "approve": {
+            "title": "Approve",
+            "type": "boolean"
+           },
+           "reason": {
+            "title": "Reason",
+            "type": "string"
+           }
+          },
+          "required": [
+           "target_is_right_object",
+           "reference_is_right_object",
+           "reference_same_plane",
+           "occlusion_or_identity_switch",
+           "approve",
+           "reason"
+          ],
+          "title": "AuditVerdict",
+          "type": "object"
+         },
+         "Check": {
+          "properties": {
+           "name": {
+            "title": "Name",
+            "type": "string"
+           },
+           "passed": {
+            "title": "Passed",
+            "type": "boolean"
+           },
+           "value": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Value"
+           },
+           "threshold": {
+            "title": "Threshold",
+            "type": "string"
+           },
+           "detail": {
+            "title": "Detail",
+            "type": "string"
+           }
+          },
+          "required": [
+           "name",
+           "passed",
+           "value",
+           "threshold",
+           "detail"
+          ],
+          "title": "Check",
+          "type": "object"
+         },
+         "MeasurementSpec": {
+          "properties": {
+           "target_phrase": {
+            "title": "Target Phrase",
+            "type": "string"
+           },
+           "target_alt_phrases": {
+            "default": [],
+            "items": {
+             "type": "string"
+            },
+            "title": "Target Alt Phrases",
+            "type": "array"
+           },
+           "target_instance": {
+            "default": "auto",
+            "title": "Target Instance",
+            "type": "string"
+           },
+           "second_phrase": {
+            "anyOf": [
+             {
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "default": null,
+            "title": "Second Phrase"
+           },
+           "second_instance": {
+            "default": "auto",
+            "title": "Second Instance",
+            "type": "string"
+           },
+           "reference_phrase": {
+            "anyOf": [
+             {
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Reference Phrase"
+           },
+           "reference_alt_phrases": {
+            "default": [],
+            "items": {
+             "type": "string"
+            },
+            "title": "Reference Alt Phrases",
+            "type": "array"
+           },
+           "reference_instance": {
+            "default": "auto",
+            "title": "Reference Instance",
+            "type": "string"
+           },
+           "reference_kind": {
+            "enum": [
+             "size",
+             "speed",
+             "acceleration",
+             "given_prior",
+             "known_object"
+            ],
+            "title": "Reference Kind",
+            "type": "string"
+           },
+           "reference_statistic": {
+            "default": "extent",
+            "enum": [
+             "extent",
+             "average_speed",
+             "acceleration"
+            ],
+            "title": "Reference Statistic",
+            "type": "string"
+           },
+           "reference_axis": {
+            "default": "longest",
+            "enum": [
+             "path",
+             "horizontal",
+             "vertical",
+             "longest",
+             "shortest",
+             "disc"
+            ],
+            "title": "Reference Axis",
+            "type": "string"
+           },
+           "reference_value_si": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Reference Value Si"
+           },
+           "reference_source": {
+            "title": "Reference Source",
+            "type": "string"
+           },
+           "quantity": {
+            "enum": [
+             "size",
+             "speed",
+             "acceleration"
+            ],
+            "title": "Quantity",
+            "type": "string"
+           },
+           "statistic": {
+            "enum": [
+             "instantaneous",
+             "average",
+             "extent",
+             "separation",
+             "orbit_diameter"
+            ],
+            "title": "Statistic",
+            "type": "string"
+           },
+           "axis": {
+            "default": "path",
+            "enum": [
+             "path",
+             "horizontal",
+             "vertical",
+             "longest",
+             "shortest",
+             "disc"
+            ],
+            "title": "Axis",
+            "type": "string"
+           },
+           "timestamp_s": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Timestamp S"
+           },
+           "time_anchor": {
+            "default": "timestamp",
+            "enum": [
+             "timestamp",
+             "first",
+             "last"
+            ],
+            "title": "Time Anchor",
+            "type": "string"
+           },
+           "time_range_s": {
+            "anyOf": [
+             {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+               {
+                "type": "number"
+               },
+               {
+                "type": "number"
+               }
+              ],
+              "type": "array"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "default": null,
+            "title": "Time Range S"
+           },
+           "output_unit": {
+            "title": "Output Unit",
+            "type": "string"
+           },
+           "depth_info": {
+            "anyOf": [
+             {
+              "additionalProperties": true,
+              "type": "object"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Depth Info"
+           },
+           "target_depth_key": {
+            "anyOf": [
+             {
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "default": null,
+            "title": "Target Depth Key"
+           },
+           "reference_depth_key": {
+            "anyOf": [
+             {
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "default": null,
+            "title": "Reference Depth Key"
+           },
+           "plausible_range_si": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "number"
+             }
+            ],
+            "title": "Plausible Range Si",
+            "type": "array"
+           },
+           "notes": {
+            "default": "",
+            "title": "Notes",
+            "type": "string"
+           }
+          },
+          "required": [
+           "target_phrase",
+           "reference_phrase",
+           "reference_kind",
+           "reference_value_si",
+           "reference_source",
+           "quantity",
+           "statistic",
+           "timestamp_s",
+           "output_unit",
+           "depth_info",
+           "plausible_range_si"
+          ],
+          "title": "MeasurementSpec",
+          "type": "object"
+         }
+        },
+        "title": "Result"
+       }
+      },
+      {
+       "description": "Street speed study: time every vehicle between two gate lines distance_m apart. Returns each vehicle's speed with a 90% interval (or why it has no reading), the median, and the 85th percentile with its interval.",
+       "inputSchema": {
+        "properties": {
+         "video_path": {
+          "title": "Video Path",
+          "type": "string"
+         },
+         "gates": {
+          "$ref": "#/$defs/StudyGates"
+         },
+         "distance_m": {
+          "title": "Distance M",
+          "type": "number"
+         },
+         "vehicle_classes": {
+          "anyOf": [
+           {
+            "items": {
+             "type": "string"
+            },
+            "type": "array"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "default": null,
+          "title": "Vehicle Classes"
+         },
+         "speed_limit_kmh": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "default": null,
+          "title": "Speed Limit Kmh"
+         }
+        },
+        "required": [
+         "video_path",
+         "gates",
+         "distance_m"
+        ],
+        "type": "object",
+        "$defs": {
+         "GateLine": {
+          "description": "A line across the road, in pixels on frame 0 of the normalized video (longest side <= 1280\nfor portrait clips, width <= 1280 otherwise).",
+          "properties": {
+           "a": {
+            "description": "First end, (x, y) in pixels",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "number"
+             }
+            ],
+            "title": "A",
+            "type": "array"
+           },
+           "b": {
+            "description": "Second end, (x, y) in pixels",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "number"
+             }
+            ],
+            "title": "B",
+            "type": "array"
+           }
+          },
+          "required": [
+           "a",
+           "b"
+          ],
+          "title": "GateLine",
+          "type": "object"
+         },
+         "StudyGates": {
+          "properties": {
+           "gate_a": {
+            "$ref": "#/$defs/GateLine",
+            "description": "One gate line; the order of the two gates is free"
+           },
+           "gate_b": {
+            "$ref": "#/$defs/GateLine",
+            "description": "The other gate, distance_m away along the road"
+           }
+          },
+          "required": [
+           "gate_a",
+           "gate_b"
+          ],
+          "title": "StudyGates",
+          "type": "object"
+         }
+        },
+        "title": "studyArguments"
+       },
+       "name": "study",
+       "outputSchema": {
+        "properties": {
+         "run_id": {
+          "title": "Run Id",
+          "type": "string"
+         },
+         "gate_distance_m": {
+          "title": "Gate Distance M",
+          "type": "number"
+         },
+         "duration_s": {
+          "title": "Duration S",
+          "type": "number"
+         },
+         "vehicles_seen": {
+          "title": "Vehicles Seen",
+          "type": "integer"
+         },
+         "vehicles_measured": {
+          "title": "Vehicles Measured",
+          "type": "integer"
+         },
+         "median_kmh": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Median Kmh"
+         },
+         "p85_kmh": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "P85 Kmh"
+         },
+         "p85_interval_90_kmh": {
+          "anyOf": [
+           {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "number"
+             }
+            ],
+            "type": "array"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "P85 Interval 90 Kmh"
+         },
+         "speed_limit_kmh": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Speed Limit Kmh"
+         },
+         "share_over_limit": {
+          "anyOf": [
+           {
+            "type": "number"
+           },
+           {
+            "type": "null"
+           }
+          ],
+          "title": "Share Over Limit"
+         },
+         "readings": {
+          "items": {
+           "$ref": "#/$defs/VehicleReading"
+          },
+          "title": "Readings",
+          "type": "array"
+         }
+        },
+        "required": [
+         "run_id",
+         "gate_distance_m",
+         "duration_s",
+         "vehicles_seen",
+         "vehicles_measured",
+         "median_kmh",
+         "p85_kmh",
+         "p85_interval_90_kmh",
+         "speed_limit_kmh",
+         "share_over_limit",
+         "readings"
+        ],
+        "type": "object",
+        "$defs": {
+         "VehicleReading": {
+          "properties": {
+           "vehicle_id": {
+            "title": "Vehicle Id",
+            "type": "string"
+           },
+           "vehicle_class": {
+            "title": "Vehicle Class",
+            "type": "string"
+           },
+           "status": {
+            "enum": [
+             "measured",
+             "no_reading"
+            ],
+            "title": "Status",
+            "type": "string"
+           },
+           "speed_kmh": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Speed Kmh"
+           },
+           "interval_90_kmh": {
+            "anyOf": [
+             {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+               {
+                "type": "number"
+               },
+               {
+                "type": "number"
+               }
+              ],
+              "type": "array"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Interval 90 Kmh"
+           },
+           "t_gate_a_s": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "T Gate A S"
+           },
+           "t_gate_b_s": {
+            "anyOf": [
+             {
+              "type": "number"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "T Gate B S"
+           },
+           "reason": {
+            "anyOf": [
+             {
+              "type": "string"
+             },
+             {
+              "type": "null"
+             }
+            ],
+            "title": "Reason"
+           }
+          },
+          "required": [
+           "vehicle_id",
+           "vehicle_class",
+           "status",
+           "speed_kmh",
+           "interval_90_kmh",
+           "t_gate_a_s",
+           "t_gate_b_s",
+           "reason"
+          ],
+          "title": "VehicleReading",
+          "type": "object"
+         }
+        },
+        "title": "StudySummary"
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "direction": "client_to_server",
+   "t_ms": 17094,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+     "name": "measure",
+     "arguments": {
+      "video_path": "C:\\Projects\\Caliper\\data\\field\\C_07.MOV",
+      "question": "What is the length of the phone in cm?",
+      "prior": "The INR 10 coin is 0.027 m in diameter."
+     }
+    }
+   }
+  },
+  {
+   "direction": "server_to_client",
+   "t_ms": 53244,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "result": {
+     "content": [
+      {
+       "text": "{\n  \"run_id\": \"mcp-770d3a6f94ea\",\n  \"status\": \"measured\",\n  \"value\": 14.126076766138956,\n  \"unit\": \"cm\",\n  \"interval_90\": [\n    9.084207473717075,\n    21.959378093403583\n  ],\n  \"quantity\": \"size\",\n  \"spec\": {\n    \"target_phrase\": \"white phone\",\n    \"target_alt_phrases\": [\n      \"smartphone\",\n      \"white mobile phone\"\n    ],\n    \"target_instance\": \"auto\",\n    \"second_phrase\": null,\n    \"second_instance\": \"auto\",\n    \"reference_phrase\": \"coin\",\n    \"reference_alt_phrases\": [\n      \"gold coin\",\n      \"round coin\"\n    ],\n    \"reference_instance\": \"auto\",\n    \"reference_kind\": \"size\",\n    \"reference_statistic\": \"extent\",\n    \"reference_axis\": \"disc\",\n    \"reference_value_si\": 0.027,\n    \"reference_source\": \"question prior\",\n    \"quantity\": \"size\",\n    \"statistic\": \"extent\",\n    \"axis\": \"longest\",\n    \"timestamp_s\": null,\n    \"time_anchor\": \"timestamp\",\n    \"time_range_s\": null,\n    \"output_unit\": \"cm\",\n    \"depth_info\": null,\n    \"target_depth_key\": null,\n    \"reference_depth_key\": null,\n    \"plausible_range_si\": [\n      0.1,\n      0.2\n    ],\n    \"notes\": \"The phone is viewed from the back lying next to the coin on striped fabric.\"\n  },\n  \"scale_m_per_px\": 0.00014262654540597461,\n  \"method\": \"centroid; extent size along longest; local quadratic window 0.30 s on detected frames only; scale from size/extent (disc); bootstrap B=200\",\n  \"checks\": [\n    {\n      \"name\": \"physical_bounds\",\n      \"passed\": true,\n      \"value\": 0.14126076766138956,\n      \"threshold\": \"spec range [0.1, 0.2] and hard limits [0.001, 1000] SI\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"scene_scale\",\n      \"passed\": true,\n      \"value\": 0.1540366690384526,\n      \"threshold\": \"frame width in metres within [0.05, 2000]\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"reference_too_small\",\n      \"passed\": true,\n      \"value\": 189.305573679477,\n      \"threshold\": \"reference extent >= 8.0 px\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"gravity_reference\",\n      \"passed\": true,\n      \"value\": null,\n      \"threshold\": \"\",\n      \"detail\": \"not applicable\"\n    },\n    {\n      \"name\": \"estimates_agree\",\n      \"passed\": true,\n      \"value\": 0.011777598898995037,\n      \"threshold\": \"scale spread <= 25%\",\n      \"detail\": \"scales 0.0001426, 0.0001427, 0.000141\"\n    },\n    {\n      \"name\": \"same_plane\",\n      \"passed\": true,\n      \"value\": null,\n      \"threshold\": \"\",\n      \"detail\": \"reference does not span enough rows to measure perspective\"\n    },\n    {\n      \"name\": \"depth_change\",\n      \"passed\": true,\n      \"value\": 0.0009597121038416034,\n      \"threshold\": \"apparent size change <= 30%\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"target_found\",\n      \"passed\": true,\n      \"value\": 1.0,\n      \"threshold\": \"target in >= 80% of frames used\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"reference_found\",\n      \"passed\": true,\n      \"value\": 1.0,\n      \"threshold\": \"reference in >= 20% of frames\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"track_continuity\",\n      \"passed\": true,\n      \"value\": null,\n      \"threshold\": \"\",\n      \"detail\": \"not applicable\"\n    },\n    {\n      \"name\": \"mask_stability\",\n      \"passed\": true,\n      \"value\": 0.00206683969983041,\n      \"threshold\": \"area coefficient of variation <= 0.3\",\n      \"detail\": \"\"\n    },\n    {\n      \"name\": \"interval_width\",\n      \"passed\": true,\n      \"value\": 0.45572351165997677,\n      \"threshold\": \"90% half-width <= 50% of the value\",\n      \"detail\": \"\"\n    }\n  ],\n  \"audit\": {\n    \"target_is_right_object\": true,\n    \"reference_is_right_object\": true,\n    \"reference_same_plane\": \"yes\",\n    \"occlusion_or_identity_switch\": false,\n    \"approve\": true,\n    \"reason\": \"Cyan outline stays on the white phone and amber outline stays on the coin lying beside it on the same surface.\"\n  },\n  \"abstain_reason\": null,\n  \"artifacts\": {\n    \"video\": \"C_07\",\n    \"fps\": 59.94005994005994,\n    \"fps_mismatch\": null,\n    \"spec_call\": {\n      \"usage\": {\n        \"input_tokens\": 1612,\n        \"output_tokens\": 1968\n      },\n      \"cost_usd\": 0.010379,\n      \"latency_ms\": 17400.2\n    },\n    \"instances\": {\n      \"target\": \"instance 0 of 1: longest continuous track, ties by mean confidence then mean area\",\n      \"second\": \"\",\n      \"reference\": \"instance 0 of 1: longest continuous track, ties by mean confidence then mean area\"\n    },\n    \"phrases_used\": {\n      \"target\": \"white phone\",\n      \"second\": null,\n      \"reference\": \"coin\"\n    },\n    \"detected_frames\": {\n      \"target\": 213,\n      \"second\": null,\n      \"reference\": 213,\n      \"clip\": 213\n    },\n    \"value_px\": 990.4240985386172,\n    \"bootstrap_ok\": 200,\n    \"unchecked_value\": 14.126076766138956,\n    \"unchecked_interval\": [\n      9.084207473717075,\n      21.959378093403583\n    ],\n    \"audit_call\": {\n      \"usage\": {\n        \"input_tokens\": 1850,\n        \"output_tokens\": 1088\n      },\n      \"cost_usd\": 0.0069365,\n      \"keyframes\": [\n        0,\n        71,\n        141,\n        212\n      ]\n    },\n    \"phrases_tried\": [\n      \"coin\",\n      \"white phone\"\n    ]\n  },\n  \"backend\": \"meta_api\",\n  \"cost_usd\": 0.1025155,\n  \"timings_ms\": {}\n}",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "structuredContent": {
+      "run_id": "mcp-770d3a6f94ea",
+      "status": "measured",
+      "value": 14.126076766138956,
+      "unit": "cm",
+      "interval_90": [
+       9.084207473717075,
+       21.959378093403583
+      ],
+      "quantity": "size",
+      "spec": {
+       "target_phrase": "white phone",
+       "target_alt_phrases": [
+        "smartphone",
+        "white mobile phone"
+       ],
+       "target_instance": "auto",
+       "second_phrase": null,
+       "second_instance": "auto",
+       "reference_phrase": "coin",
+       "reference_alt_phrases": [
+        "gold coin",
+        "round coin"
+       ],
+       "reference_instance": "auto",
+       "reference_kind": "size",
+       "reference_statistic": "extent",
+       "reference_axis": "disc",
+       "reference_value_si": 0.027,
+       "reference_source": "question prior",
+       "quantity": "size",
+       "statistic": "extent",
+       "axis": "longest",
+       "timestamp_s": null,
+       "time_anchor": "timestamp",
+       "time_range_s": null,
+       "output_unit": "cm",
+       "depth_info": null,
+       "target_depth_key": null,
+       "reference_depth_key": null,
+       "plausible_range_si": [
+        0.1,
+        0.2
+       ],
+       "notes": "The phone is viewed from the back lying next to the coin on striped fabric."
+      },
+      "scale_m_per_px": 0.00014262654540597461,
+      "method": "centroid; extent size along longest; local quadratic window 0.30 s on detected frames only; scale from size/extent (disc); bootstrap B=200",
+      "checks": [
+       {
+        "name": "physical_bounds",
+        "passed": true,
+        "value": 0.14126076766138956,
+        "threshold": "spec range [0.1, 0.2] and hard limits [0.001, 1000] SI",
+        "detail": ""
+       },
+       {
+        "name": "scene_scale",
+        "passed": true,
+        "value": 0.1540366690384526,
+        "threshold": "frame width in metres within [0.05, 2000]",
+        "detail": ""
+       },
+       {
+        "name": "reference_too_small",
+        "passed": true,
+        "value": 189.305573679477,
+        "threshold": "reference extent >= 8.0 px",
+        "detail": ""
+       },
+       {
+        "name": "gravity_reference",
+        "passed": true,
+        "value": null,
+        "threshold": "",
+        "detail": "not applicable"
+       },
+       {
+        "name": "estimates_agree",
+        "passed": true,
+        "value": 0.011777598898995037,
+        "threshold": "scale spread <= 25%",
+        "detail": "scales 0.0001426, 0.0001427, 0.000141"
+       },
+       {
+        "name": "same_plane",
+        "passed": true,
+        "value": null,
+        "threshold": "",
+        "detail": "reference does not span enough rows to measure perspective"
+       },
+       {
+        "name": "depth_change",
+        "passed": true,
+        "value": 0.0009597121038416034,
+        "threshold": "apparent size change <= 30%",
+        "detail": ""
+       },
+       {
+        "name": "target_found",
+        "passed": true,
+        "value": 1.0,
+        "threshold": "target in >= 80% of frames used",
+        "detail": ""
+       },
+       {
+        "name": "reference_found",
+        "passed": true,
+        "value": 1.0,
+        "threshold": "reference in >= 20% of frames",
+        "detail": ""
+       },
+       {
+        "name": "track_continuity",
+        "passed": true,
+        "value": null,
+        "threshold": "",
+        "detail": "not applicable"
+       },
+       {
+        "name": "mask_stability",
+        "passed": true,
+        "value": 0.00206683969983041,
+        "threshold": "area coefficient of variation <= 0.3",
+        "detail": ""
+       },
+       {
+        "name": "interval_width",
+        "passed": true,
+        "value": 0.45572351165997677,
+        "threshold": "90% half-width <= 50% of the value",
+        "detail": ""
+       }
+      ],
+      "audit": {
+       "target_is_right_object": true,
+       "reference_is_right_object": true,
+       "reference_same_plane": "yes",
+       "occlusion_or_identity_switch": false,
+       "approve": true,
+       "reason": "Cyan outline stays on the white phone and amber outline stays on the coin lying beside it on the same surface."
+      },
+      "abstain_reason": null,
+      "artifacts": {
+       "video": "C_07",
+       "fps": 59.94005994005994,
+       "fps_mismatch": null,
+       "spec_call": {
+        "usage": {
+         "input_tokens": 1612,
+         "output_tokens": 1968
+        },
+        "cost_usd": 0.010379,
+        "latency_ms": 17400.2
+       },
+       "instances": {
+        "target": "instance 0 of 1: longest continuous track, ties by mean confidence then mean area",
+        "second": "",
+        "reference": "instance 0 of 1: longest continuous track, ties by mean confidence then mean area"
+       },
+       "phrases_used": {
+        "target": "white phone",
+        "second": null,
+        "reference": "coin"
+       },
+       "detected_frames": {
+        "target": 213,
+        "second": null,
+        "reference": 213,
+        "clip": 213
+       },
+       "value_px": 990.4240985386172,
+       "bootstrap_ok": 200,
+       "unchecked_value": 14.126076766138956,
+       "unchecked_interval": [
+        9.084207473717075,
+        21.959378093403583
+       ],
+       "audit_call": {
+        "usage": {
+         "input_tokens": 1850,
+         "output_tokens": 1088
+        },
+        "cost_usd": 0.0069365,
+        "keyframes": [
+         0,
+         71,
+         141,
+         212
+        ]
+       },
+       "phrases_tried": [
+        "coin",
+        "white phone"
+       ]
+      },
+      "backend": "meta_api",
+      "cost_usd": 0.1025155,
+      "timings_ms": {}
+     }
+    }
+   }
+  },
+  {
+   "direction": "client_to_server",
+   "t_ms": 53244,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 4,
+    "method": "tools/call",
+    "params": {
+     "name": "study",
+     "arguments": {
+      "video_path": "C:\\Projects\\Caliper\\data\\field\\PXL_20261103_120028917.mp4",
+      "gates": {
+       "gate_a": {
+        "a": [
+         200,
+         0
+        ],
+        "b": [
+         200,
+         720
+        ]
+       },
+       "gate_b": {
+        "a": [
+         1010,
+         0
+        ],
+        "b": [
+         1010,
+         720
+        ]
+       }
+      },
+      "distance_m": 7.92,
+      "vehicle_classes": [
+       "scooter"
+      ]
+     }
+    }
+   }
+  },
+  {
+   "direction": "server_to_client",
+   "t_ms": 55140,
+   "message": {
+    "jsonrpc": "2.0",
+    "id": 4,
+    "result": {
+     "content": [
+      {
+       "text": "{\n  \"run_id\": \"mcp-study-4c952082be80\",\n  \"gate_distance_m\": 7.92,\n  \"duration_s\": 2.2666666666666666,\n  \"vehicles_seen\": 2,\n  \"vehicles_measured\": 1,\n  \"median_kmh\": 42.61253560574459,\n  \"p85_kmh\": 42.61253560574459,\n  \"p85_interval_90_kmh\": [\n    42.61253560574459,\n    42.61253560574459\n  ],\n  \"speed_limit_kmh\": null,\n  \"share_over_limit\": null,\n  \"readings\": [\n    {\n      \"vehicle_id\": \"scooter-0\",\n      \"vehicle_class\": \"scooter\",\n      \"status\": \"no_reading\",\n      \"speed_kmh\": null,\n      \"interval_90_kmh\": null,\n      \"t_gate_a_s\": null,\n      \"t_gate_b_s\": null,\n      \"reason\": \"does not cross both gates\"\n    },\n    {\n      \"vehicle_id\": \"scooter-1\",\n      \"vehicle_class\": \"scooter\",\n      \"status\": \"measured\",\n      \"speed_kmh\": 42.61253560574459,\n      \"interval_90_kmh\": [\n        41.94016347908168,\n        43.47040906900531\n      ],\n      \"t_gate_a_s\": 1.0734848484848485,\n      \"t_gate_b_s\": 0.40438596491228074,\n      \"reason\": null\n    }\n  ]\n}",
+       "type": "text"
+      }
+     ],
+     "isError": false,
+     "structuredContent": {
+      "run_id": "mcp-study-4c952082be80",
+      "gate_distance_m": 7.92,
+      "duration_s": 2.2666666666666666,
+      "vehicles_seen": 2,
+      "vehicles_measured": 1,
+      "median_kmh": 42.61253560574459,
+      "p85_kmh": 42.61253560574459,
+      "p85_interval_90_kmh": [
+       42.61253560574459,
+       42.61253560574459
+      ],
+      "speed_limit_kmh": null,
+      "share_over_limit": null,
+      "readings": [
+       {
+        "vehicle_id": "scooter-0",
+        "vehicle_class": "scooter",
+        "status": "no_reading",
+        "speed_kmh": null,
+        "interval_90_kmh": null,
+        "t_gate_a_s": null,
+        "t_gate_b_s": null,
+        "reason": "does not cross both gates"
+       },
+       {
+        "vehicle_id": "scooter-1",
+        "vehicle_class": "scooter",
+        "status": "measured",
+        "speed_kmh": 42.61253560574459,
+        "interval_90_kmh": [
+         41.94016347908168,
+         43.47040906900531
+        ],
+        "t_gate_a_s": 1.0734848484848485,
+        "t_gate_b_s": 0.40438596491228074,
+        "reason": null
+       }
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

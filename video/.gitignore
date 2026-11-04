@@ -1,0 +1,19 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Renders, stills and drafts (never committed)
+out
+
+# Generated media: narration audio and timings (scripts/narration.mts), field footage with the
+# site's blur (scripts/export_footage.py), screen recordings of the live site (scripts/record.mts).
+# Rebuild them with those scripts; they are not source.
+public/audio/
+public/footage/
+public/rec/
+public/keyframes/
+
+# Installed agent skills (third party, like the untracked .agents/ at the repo root)
+.claude/
+skills-lock.json
